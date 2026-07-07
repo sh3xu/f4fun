@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0b0f17;
+  --foreground: #e5e7eb;
+  --game-bg: #0b0f17;
+  --board-center: #111827;
+  --sidebar-bg: #131a27;
+  --tile-bg: #ffffff;
+  --accent: #4fc3f7;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+}

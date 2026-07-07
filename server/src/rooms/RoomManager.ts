@@ -1,0 +1,152 @@
+import { randomBytes } from "node:crypto";
+import { type IRoomPlayer, RoomModel } from "../db/index.js";
+import type { RoomStatus } from "../db/schemas/RoomSchema.js";
+
+export interface RoomPlayer {
+  playerId: string;
+  name: string;
+  token: string;
+  isHost: boolean;
+  isConnected: boolean;
+}
+
+export interface Room {
+  roomId: string;
+  code: string;
+  hostId: string;
+  status: RoomStatus;
+  players: RoomPlayer[];
+  gameId: string | null;
+}
+
+function generateRoomCode(): string {
+  return randomBytes(3).toString("hex").toUpperCase();
+}
+
+function generateId(): string {
+  return randomBytes(8).toString("hex");
+}
+
+export async function createRoom(
+  playerId: string,
+  name: string,
+  token: string,
+): Promise<Room> {
+  const roomId = generateId();
+  const code = generateRoomCode();
+
+  const player: IRoomPlayer = {
+    playerId,
+    name,
+    token,
+    isHost: true,
+    isConnected: true,
+    joinedAt: new Date(),
+  };
+
+  const doc = await RoomModel.create({
+    roomId,
+    code,
+    hostId: playerId,
+    status: "lobby",
+    players: [player],
+    gameId: null,
+  });
+
+  return docToRoom(doc);
+}
+
+export async function joinRoom(
+  code: string,
+  playerId: string,
+  name: string,
+  token: string,
+): Promise<Room> {
+  const doc = await RoomModel.findOne({ code: code.toUpperCase() });
+  if (!doc) throw new Error("Room not found");
+  if (doc.status !== "lobby") throw new Error("Game already started");
+
+  const existing = doc.players.find((p) => p.playerId === playerId);
+  if (existing) {
+    existing.isConnected = true;
+    await doc.save();
+    return docToRoom(doc);
+  }
+
+  if (doc.players.length >= 8) throw new Error("Room is full");
+
+  doc.players.push({
+    playerId,
+    name,
+    token,
+    isHost: false,
+    isConnected: true,
+    joinedAt: new Date(),
+  });
+
+  await doc.save();
+  return docToRoom(doc);
+}
+
+export async function getRoom(roomId: string): Promise<Room | null> {
+  const doc = await RoomModel.findOne({ roomId });
+  return doc ? docToRoom(doc) : null;
+}
+
+export async function getRoomByCode(code: string): Promise<Room | null> {
+  const doc = await RoomModel.findOne({ code: code.toUpperCase() });
+  return doc ? docToRoom(doc) : null;
+}
+
+export async function setRoomGameStarted(
+  roomId: string,
+  gameId: string,
+): Promise<void> {
+  await RoomModel.updateOne(
+    { roomId },
+    { $set: { status: "playing", gameId } },
+  );
+}
+
+export async function setRoomFinished(roomId: string): Promise<void> {
+  await RoomModel.updateOne({ roomId }, { $set: { status: "finished" } });
+}
+
+export async function setPlayerConnected(
+  roomId: string,
+  playerId: string,
+  isConnected: boolean,
+): Promise<void> {
+  await RoomModel.updateOne(
+    { roomId, "players.playerId": playerId },
+    { $set: { "players.$.isConnected": isConnected } },
+  );
+}
+
+export async function getRoomByPlayerId(
+  playerId: string,
+): Promise<Room | null> {
+  const doc = await RoomModel.findOne({
+    "players.playerId": playerId,
+    status: { $in: ["lobby", "playing"] },
+  });
+  return doc ? docToRoom(doc) : null;
+}
+
+function docToRoom(doc: Awaited<ReturnType<typeof RoomModel.findOne>>): Room {
+  if (!doc) throw new Error("Null doc");
+  return {
+    roomId: doc.roomId,
+    code: doc.code,
+    hostId: doc.hostId,
+    status: doc.status,
+    players: doc.players.map((p) => ({
+      playerId: p.playerId,
+      name: p.name,
+      token: p.token,
+      isHost: p.isHost,
+      isConnected: p.isConnected,
+    })),
+    gameId: doc.gameId,
+  };
+}

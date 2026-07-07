@@ -1,0 +1,9 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/monopoly-engine" },
+    { "path": "packages/shared-types" },
+    { "path": "server" },
+    { "path": "apps/web" }
+  ]
+}
