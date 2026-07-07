@@ -65,7 +65,7 @@ export const useRoomStore = create<RoomStore>((set) => ({
       if (exists) {
         return {
           players: s.players.map((p) =>
-            p.id === player.id ? { ...p, isConnected: true } : p,
+            p.id === player.id ? { ...p, ...player, isConnected: true } : p,
           ),
         };
       }

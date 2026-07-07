@@ -143,8 +143,8 @@ function FlagBackdrop({
   return (
     <div
       className={cn(
-        "rounded-full overflow-hidden shadow-lg select-none",
-        large ? "w-[85%] h-[85%] opacity-90" : "w-5 h-5 border border-white/20",
+        "rounded-full overflow-hidden shadow-md select-none",
+        large ? "w-[68%] h-[68%] opacity-95" : "w-5 h-5 border border-white/20",
       )}
     >
       <svg className="w-full h-full object-cover" viewBox="0 0 9 6">

@@ -70,12 +70,12 @@ export const GAME_BG = "#0b0f17";
 export const BOARD_CENTER_BG = "#111827";
 export const SIDEBAR_BG = "#131a27";
 
-/** Frosted-glass surface classes reused across board tiles and panels. */
+/** Frosted-glass surface for board tiles — transparency only, no backdrop-blur (blur smears across adjacent grid cells). */
 export const GLASS_TILE =
-  "bg-white/[0.07] backdrop-blur-[10px] border border-white/[0.14] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]";
+  "bg-[rgba(18,26,40,0.35)] border border-white/[0.16] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]";
 
 export const GLASS_PANEL =
-  "bg-white/[0.05] backdrop-blur-xl border border-white/[0.1] shadow-[0_8px_32px_rgba(0,0,0,0.35)]";
+  "bg-white/[0.06] backdrop-blur-md border border-white/[0.1] shadow-[0_8px_32px_rgba(0,0,0,0.35)]";
 
 export const GLASS_CARD =
-  "bg-white/[0.08] backdrop-blur-md border border-white/[0.12] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]";
+  "bg-white/[0.08] backdrop-blur-sm border border-white/[0.12] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]";

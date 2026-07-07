@@ -241,6 +241,18 @@ export function HomePage() {
             </>
           ) : (
             <>
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-950/50 border border-slate-800">
+                <Avatar avatarId={selectedAvatar} size="md" />
+                <div className="min-w-0">
+                  <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">
+                    Joining as
+                  </p>
+                  <p className="text-sm font-bold text-slate-100 truncate">
+                    {name.trim() || "Player"}
+                  </p>
+                </div>
+              </div>
+
               {/* Form 4: Enter Room Code */}
               <div className="flex flex-col gap-2.5">
                 <span className="text-xs font-bold text-slate-300 uppercase tracking-widest px-0.5">
