@@ -1,0 +1,41 @@
+apps/web/src/features/room/components/LobbyPage.tsx
+  s_cffca454854aa4::t_d8dab750a288b7 76-80,86-92,100-102,130
+  s_cffca454854aa4::t_8900ddf9f023f3 4,10,17-18,21-32,35-37,43,47-49,53,57,61-75,81-85,93-99,103-129,151,154,162-169,172,178,186-187,192-199,228,258
+  s_cffca454854aa4::t_f5ccb9c8fc2660 9,14,16,55,185,188-189,202-219,222,224-227,229,231-238,243-244,249,251-257,259-262,267-271,278,280-287,292,296-299,301
+  s_cffca454854aa4::t_6d7418706e80de 131,200,300
+server/src/socket/room-handlers.ts
+  s_cffca454854aa4::t_deefd8b6f4cab7 17
+  s_cffca454854aa4::t_4810b826a7b9e0 15
+  s_cffca454854aa4::t_31104ed5aec931 27-44
+  s_cffca454854aa4::t_311ebad97411f5 114-150
+  s_cffca454854aa4::t_6fdcc8fd2b9c69 64,105
+  s_cffca454854aa4::t_40744774bf8f83 7
+packages/shared-types/src/room-events.ts
+  s_cffca454854aa4::t_917ac6161b8e6c 28-32
+  s_cffca454854aa4::t_5ea195e46ffe3a 60
+apps/web/src/features/monopoly/theme/board-theme.ts
+  s_cffca454854aa4::t_61c545d0f0674e 73,75,78,81
+apps/web/src/components/ui/PlayerBadge.tsx
+  s_cffca454854aa4::t_73700440ac0c70 23,29-30,35-38,40-42
+  s_cffca454854aa4::t_a14a9667fe09de 1,7,15,20-21,25
+apps/web/src/features/monopoly/components/BoardTile.tsx
+  s_cffca454854aa4::t_c0300e4426d161 146-147
+apps/web/src/features/room/components/HomePage.tsx
+  s_cffca454854aa4::t_0c6b228202b4d0 244-255
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "963ede8b7f76fb6751338e2243e29d2110b74b07",
+  "prompts": {},
+  "sessions": {
+    "s_cffca454854aa4": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "ba6af897-e69f-4eea-aeb7-cfeb7eec74ee",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
