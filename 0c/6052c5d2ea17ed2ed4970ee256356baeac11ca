@@ -1,0 +1,61 @@
+apps/web/src/features/monopoly/theme/board-theme.ts
+  s_cffca454854aa4::t_6da0d1943119d1 7-81
+  s_cffca454854aa4::t_977ab6a128b4e5 4-6
+apps/web/src/features/monopoly/components/PropertyPanel.tsx
+  s_cffca454854aa4::t_c98fd3572af1d7 1-145
+apps/web/src/features/monopoly/components/BoardTile.tsx
+  s_cffca454854aa4::t_c30b05b34148ff 213
+  s_cffca454854aa4::t_d83566bb3367bc 18-181,217-431
+  s_29d18f927cb1f3::t_863df86f72e903 1-17,182-212,214-216,432-434
+apps/web/src/features/monopoly/components/Board.tsx
+  s_cffca454854aa4::t_90f576f537eeaf 82-83
+  s_cffca454854aa4::t_78ee5bec261c43 100-105
+  s_cffca454854aa4::t_d8ed22a7ad4edd 7
+  s_cffca454854aa4::t_5a417c3308d10c 4
+  s_cffca454854aa4::t_59346b35d3b4bd 128-133
+  s_cffca454854aa4::t_b32d5e1718b09e 1-3
+  s_cffca454854aa4::t_bc3bb21083e210 5-6
+  s_cffca454854aa4::t_574a53b18cee02 8-10,79-81
+  s_cffca454854aa4::t_f25ec8ecaea0c2 84-86,97-99
+  s_cffca454854aa4::t_f043d7023a75e0 106-108,125-127
+  s_cffca454854aa4::t_61b3ca39c4aca0 134-136
+apps/web/src/features/monopoly/components/PlayerHUD.tsx
+  s_cffca454854aa4::t_245f14659a2444 7
+  s_cffca454854aa4::t_641a0ae55962cc 27-29
+  s_cffca454854aa4::t_ce803b7ea7abf0 35-38
+  s_29d18f927cb1f3::t_7483671fde9592 1-6,8-26,30-34,39-101
+apps/web/src/features/monopoly/components/GamePage.tsx
+  s_cffca454854aa4::t_8051a9e9839e8c 280-285
+  s_cffca454854aa4::t_49ec84037090fd 8
+  s_cffca454854aa4::t_3cb812bd40e252 247-252
+  s_cffca454854aa4::t_5bc5bfb60682b9 12
+  s_cffca454854aa4::t_d9c7ce42ad1643 286
+  s_29d18f927cb1f3::t_1c3ce4632dadef 1-7,9-11,13-246,253-279,287-317
+apps/web/src/app/globals.css
+  s_cffca454854aa4::t_e2af119c8f461a 4-24
+  s_cffca454854aa4::t_5adac0e5f2c530 1-3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "0c6052c5d2ea17ed2ed4970ee256356baeac11ca",
+  "prompts": {},
+  "sessions": {
+    "s_29d18f927cb1f3": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9d39a03b-3c3e-4018-8010-2f3eca264eb2",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    },
+    "s_cffca454854aa4": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "ba6af897-e69f-4eea-aeb7-cfeb7eec74ee",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
