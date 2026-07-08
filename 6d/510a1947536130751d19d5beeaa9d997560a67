@@ -1,0 +1,64 @@
+apps/web/src/features/monopoly/theme/board-theme.ts
+  s_5db9215610b405::t_fbd44c0347ab1b 75,78,81
+apps/web/src/features/monopoly/components/PlayerHUD.tsx
+  s_5db9215610b405::t_edfc07fca40040 27
+apps/web/src/features/monopoly/components/Board.tsx
+  s_5db9215610b405::t_5bd086916b3a90 115-116,123,128,133,146-147,162
+  s_5db9215610b405::t_890afc0b268f72 84
+  s_5db9215610b405::t_5f7b3e34e676c6 82-83,85-96,101,114,120-122
+apps/web/src/features/monopoly/components/PropertyPanel.tsx
+  s_5db9215610b405::t_c763ac75e21f6c 44-46,48-49,51,55,57,63-68,72,95-96,117,130,135,139-140,149-150
+  s_5db9215610b405::t_3a6e1b4689b5ad 38-43
+apps/web/src/features/monopoly/components/DiceTray.tsx
+  s_5db9215610b405::t_2585bbcd0a5dfd 40,44-45,52,62,64,69,81,94
+apps/web/src/app/globals.css
+  s_5db9215610b405::t_17d5fba455a232 11-14,24,30-69
+apps/web/src/features/monopoly/components/tile-labels.ts
+  s_5db9215610b405::t_190f678abcaf54 1-43
+apps/web/src/features/monopoly/components/BoardTile.tsx
+  s_5db9215610b405::t_82e7e427a173e7 19,144,161,165,167,172,174,178,181,187,190,193,219-224,226-227,248,256
+  s_5db9215610b405::t_2d2ee9572581fc 312
+  s_5db9215610b405::t_05da76c0bbbae1 225
+  s_5db9215610b405::t_fa2df5d18df7c5 32-33,136-143,149-150,159,184,212-213,228,249,273,325,395
+  s_5db9215610b405::t_d96c404ce27fbb 214-215,230-236,238-242,247,250-255,260,264,267,270,272,274-284,286,291-296,301,320-321,324,326,329-334,336,338-342,349-354,365,379-393
+  s_5db9215610b405::t_354ea0c5b9295d 394
+apps/web/src/features/room/components/HomePage.tsx
+  s_5db9215610b405::t_c7262a71a5da62 166
+apps/web/src/features/monopoly/components/GamePage.tsx
+  s_5db9215610b405::t_05da76c0bbbae1 282-285
+  s_5db9215610b405::t_588d2ce366e053 260-261,264-266,280,286,293-294,300,305,309,321
+  s_5db9215610b405::t_a37161dced1095 262-263
+  s_5db9215610b405::t_b2a2691f8082ed 277-278
+  s_5db9215610b405::t_0fa87cb34ce29f 299,304,317
+  s_5db9215610b405::t_3ef5da8dbcfdc0 279,281,287-292
+apps/web/src/components/animation/DiceRoller.tsx
+  s_5db9215610b405::t_ac0b1f29d38cdc 5,11,62,69,73,82-83,85,104-106,110,116-121,126-127,150,174-176,188-190,225-233,235-236,240-242,248
+  s_5db9215610b405::t_ab1772924340e8 237,239,243,247
+  s_5db9215610b405::t_3a6e1b4689b5ad 84,238,244-246
+package.json
+  s_29d18f927cb1f3::t_0bb59127750dd6 6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "6d510a1947536130751d19d5beeaa9d997560a67",
+  "prompts": {},
+  "sessions": {
+    "s_29d18f927cb1f3": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9d39a03b-3c3e-4018-8010-2f3eca264eb2",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    },
+    "s_5db9215610b405": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "6320d012-34c1-4b8f-ad1a-5cc0c551f0e3",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
