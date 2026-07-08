@@ -1,0 +1,43 @@
+/** Compact board labels — full name stays on the tile title tooltip. */
+const SHORT_NAMES: Record<string, string> = {
+  "Mediterranean Avenue": "Mediterranean",
+  "Baltic Avenue": "Baltic",
+  "Oriental Avenue": "Oriental",
+  "Vermont Avenue": "Vermont",
+  "Connecticut Avenue": "Connecticut",
+  "St. Charles Place": "St. Charles",
+  "States Avenue": "States",
+  "Virginia Avenue": "Virginia",
+  "St. James Place": "St. James",
+  "Tennessee Avenue": "Tennessee",
+  "New York Avenue": "New York",
+  "Kentucky Avenue": "Kentucky",
+  "Indiana Avenue": "Indiana",
+  "Illinois Avenue": "Illinois",
+  "Atlantic Avenue": "Atlantic",
+  "Ventnor Avenue": "Ventnor",
+  "Marvin Gardens": "Marvin G.",
+  "Pacific Avenue": "Pacific",
+  "North Carolina Avenue": "N. Carolina",
+  "Pennsylvania Avenue": "Pennsylvania",
+  "Park Place": "Park Place",
+  Boardwalk: "Boardwalk",
+  "Reading Railroad": "Reading RR",
+  "Pennsylvania Railroad": "Penn. RR",
+  "B&O Railroad": "B&O RR",
+  "Short Line Railroad": "Short Line",
+  "Electric Company": "Electric",
+  "Water Works": "Water Works",
+  "Community Chest": "Chest",
+  Chance: "Chance",
+  "Income Tax": "Income Tax",
+  "Luxury Tax": "Luxury Tax",
+  "Jail / Just Visiting": "Jail",
+  "Free Parking": "Free Parking",
+  "Go To Jail": "Go To Jail",
+  GO: "GO",
+};
+
+export function getTileLabel(name: string): string {
+  return SHORT_NAMES[name] ?? name;
+}

@@ -163,7 +163,7 @@ export function HomePage() {
                 <span className="text-xs font-bold text-slate-300 uppercase tracking-widest px-0.5">
                   Choose Your Character
                 </span>
-                <div className="grid grid-cols-4 gap-2.5 max-h-[140px] overflow-y-auto pr-1 select-none">
+                <div className="grid max-h-[140px] grid-cols-4 gap-2.5 overflow-y-auto pr-1 select-none">
                   {AVATARS.map((avatar) => {
                     const isSelected = selectedAvatar === avatar.id;
                     return (

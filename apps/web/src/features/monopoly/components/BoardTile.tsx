@@ -16,6 +16,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { cn } from "@/lib/cn";
 import { getPlayerColor } from "@/lib/player-colors";
 import { GLASS_TILE, PROPERTY_COLORS } from "../theme/board-theme";
+import { getTileLabel } from "./tile-labels";
 
 interface BoardTileProps {
   tile: TileData;
@@ -27,6 +28,8 @@ interface BoardTileProps {
   hotels?: number;
   turnOrder?: string[];
 }
+
+type BoardSide = "bottom" | "left" | "top" | "right" | "corner";
 
 const FLAG_SVGS: Record<string, { title: string; element: React.ReactNode }> = {
   brown: {
@@ -130,24 +133,21 @@ const FLAG_SVGS: Record<string, { title: string; element: React.ReactNode }> = {
   },
 };
 
-function FlagBackdrop({
-  colorGroup,
-  large,
-}: {
-  colorGroup: string;
-  large?: boolean;
-}) {
+function getBoardSide(position: number): BoardSide {
+  if (position > 0 && position < 10) return "bottom";
+  if (position > 10 && position < 20) return "left";
+  if (position > 20 && position < 30) return "top";
+  if (position > 30 && position < 40) return "right";
+  return "corner";
+}
+
+function FlagBackdrop({ colorGroup }: { colorGroup: string }) {
   const flag = FLAG_SVGS[colorGroup];
   if (!flag) return null;
 
   return (
-    <div
-      className={cn(
-        "rounded-full overflow-hidden shadow-md select-none",
-        large ? "w-[68%] h-[68%] opacity-95" : "w-5 h-5 border border-white/20",
-      )}
-    >
-      <svg className="w-full h-full object-cover" viewBox="0 0 9 6">
+    <div className="h-[38%] w-[38%] select-none overflow-hidden rounded-full opacity-20">
+      <svg className="h-full w-full" viewBox="0 0 9 6" aria-hidden>
         <title>{flag.title}</title>
         {flag.element}
       </svg>
@@ -156,40 +156,41 @@ function FlagBackdrop({
 }
 
 function getTileIcon(tile: TileData) {
+  const cls = "h-3.5 w-3.5 shrink-0";
   if (tile.type === "railroad") {
-    return <Train className="w-5 h-5 text-white/70" />;
+    return <Train className={cn(cls, "text-white/80")} />;
   }
   if (tile.type === "utility") {
     return tile.name.includes("Electric") ? (
-      <Zap className="w-5 h-5 text-yellow-300/80 fill-yellow-300/10" />
+      <Zap className={cn(cls, "text-yellow-300/90")} />
     ) : (
-      <Droplets className="w-5 h-5 text-sky-300/80 fill-sky-300/10" />
+      <Droplets className={cn(cls, "text-sky-300/90")} />
     );
   }
   if (tile.type === "tax") {
     return tile.name.includes("Income") ? (
-      <Coins className="w-5 h-5 text-amber-300/80" />
+      <Coins className={cn(cls, "text-amber-300/90")} />
     ) : (
-      <Gem className="w-5 h-5 text-purple-300/80" />
+      <Gem className={cn(cls, "text-purple-300/90")} />
     );
   }
   if (tile.type === "chance") {
-    return <Sparkles className="w-5 h-5 text-orange-300/80" />;
+    return <Sparkles className={cn(cls, "text-orange-300/90")} />;
   }
   if (tile.type === "community_chest") {
-    return <Gift className="w-5 h-5 text-purple-300/80" />;
+    return <Gift className={cn(cls, "text-purple-300/90")} />;
   }
   if (tile.type === "go") {
-    return <Flag className="w-6 h-6 text-emerald-300/80 fill-emerald-300/10" />;
+    return <Flag className="h-5 w-5 text-emerald-300/90" />;
   }
   if (tile.type === "jail") {
-    return <Lock className="w-5 h-5 text-white/50" />;
+    return <Lock className={cn(cls, "text-white/60")} />;
   }
   if (tile.type === "free_parking") {
-    return <Compass className="w-5 h-5 text-blue-300/80" />;
+    return <Compass className={cn(cls, "text-blue-300/90")} />;
   }
   if (tile.type === "go_to_jail") {
-    return <Siren className="w-5 h-5 text-rose-400/80" />;
+    return <Siren className={cn(cls, "text-rose-400/90")} />;
   }
   return null;
 }
@@ -208,110 +209,96 @@ export function BoardTile({
     tile.type === "property" ? PROPERTY_COLORS[tile.colorGroup] : null;
   const isOwned = !!ownerId;
   const tileIcon = getTileIcon(tile);
-  const isSpecialCorner = ["go", "jail", "free_parking", "go_to_jail"].includes(
-    tile.type,
-  );
+  const side = getBoardSide(tile.position);
+  const isCorner = side === "corner";
+  // NOTE: Top/bottom use vertical lettering; left/right use horizontal (vice versa of classic Monopoly).
+  const isVerticalText = side === "top" || side === "bottom";
   const ownerColor =
     ownerId && turnOrder.length > 0 ? getPlayerColor(ownerId, turnOrder) : null;
 
-  const isBottom = tile.position > 0 && tile.position < 10;
-  const isLeft = tile.position > 10 && tile.position < 20;
-  const isTop = tile.position > 20 && tile.position < 30;
-  const isRight = tile.position > 30 && tile.position < 40;
-  const isVerticalSide = isLeft || isRight;
+  const label = getTileLabel(tile.name);
+  const hasPrice =
+    tile.type === "property" ||
+    tile.type === "railroad" ||
+    tile.type === "utility";
+  const price =
+    hasPrice && "price" in tile ? (isMortgaged ? "M" : `$${tile.price}`) : null;
+  const taxAmount =
+    tile.type === "tax" && "amount" in tile ? `$${tile.amount}` : null;
+  const displayPrice = price ?? taxAmount;
 
-  const renderOuterPriceBanner = () => {
-    if (!colorStyle || tile.type !== "property") return null;
-    const priceText = isMortgaged ? "M" : `${tile.price}$`;
+  const textMode = cn(
+    "text-center font-bold uppercase leading-[1.05] tracking-wide text-white/95",
+    "drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]",
+    "text-[clamp(5.5px,7.5cqmin,9px)]",
+    // vertical-rl: letters stack top→bottom on upper/lower rows
+    isVerticalText && "[writing-mode:vertical-rl] rotate-180",
+  );
 
-    return (
-      <div
-        className={cn(
-          "absolute flex items-center justify-center font-extrabold tracking-tight text-[7.5px] md:text-[8.5px] select-none z-20 shrink-0",
-          colorStyle.bg,
-          colorStyle.text,
-          isBottom && "bottom-0 inset-x-0 h-[22%] min-h-[14px] border-t",
-          isTop && "top-0 inset-x-0 h-[22%] min-h-[14px] border-b",
-          isLeft && "left-0 inset-y-0 w-[22%] min-w-[14px] border-r",
-          isRight && "right-0 inset-y-0 w-[22%] min-w-[14px] border-l",
-          colorStyle.border,
-        )}
-      >
-        <span
-          className={cn(
-            "whitespace-nowrap",
-            isLeft && "rotate-90",
-            isRight && "-rotate-90",
-          )}
-        >
-          {priceText}
-        </span>
-      </div>
-    );
-  };
+  const priceMode = cn(
+    "whitespace-nowrap font-extrabold leading-none tracking-tight",
+    "text-[clamp(6px,7cqmin,9px)]",
+    isVerticalText && "[writing-mode:vertical-rl] rotate-180",
+  );
 
   return (
     <div
       className={cn(
-        "relative flex overflow-hidden",
-        "transition-all duration-200 hover:z-20 hover:brightness-110",
-        "w-full h-full select-none",
-        isSpecialCorner && "justify-center flex-col",
-        isBottom && "flex-col pb-[22%]",
-        isTop && "flex-col-reverse pt-[22%]",
-        isLeft && "flex-row-reverse pr-[22%]",
-        isRight && "flex-row pl-[22%]",
-        isMortgaged && "opacity-50 saturate-[0.6]",
+        "relative flex h-full w-full overflow-hidden rounded-lg select-none [container-type:size]",
+        "shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]",
+        "transition-[filter] duration-200 hover:z-20 hover:brightness-110",
+        // NOTE: Same card chrome on every edge; only flex axis + writing-mode change per side.
+        side === "bottom" && "flex-col",
+        side === "top" && "flex-col-reverse",
+        side === "left" && "flex-row-reverse",
+        side === "right" && "flex-row",
+        isCorner && "flex-col items-center justify-center",
+        isMortgaged && "opacity-50 saturate-[0.55]",
       )}
       title={`${tile.name}${isOwned ? ` (owned by ${ownerToken})` : ""}${isMortgaged ? " [Mortgaged]" : ""}`}
     >
-      {/* Layer 1: flag or icon backdrop — visible through frosted glass */}
-      <div className="absolute inset-0 z-0 flex items-center justify-center overflow-hidden">
+      <div className="absolute inset-0 z-0 flex items-center justify-center overflow-hidden rounded-lg">
         {tile.type === "property" && colorStyle ? (
           <>
             <div className={cn("absolute inset-0", colorStyle.tint)} />
-            <FlagBackdrop colorGroup={tile.colorGroup} large />
+            <FlagBackdrop colorGroup={tile.colorGroup} />
           </>
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 via-slate-800/30 to-slate-900/50 flex items-center justify-center">
-            {tileIcon && (
-              <div className="opacity-40 scale-150 blur-[1px]">{tileIcon}</div>
-            )}
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/35 via-slate-800/25 to-slate-900/45" />
         )}
       </div>
+      <div className={cn("absolute inset-0 z-[1] rounded-lg", GLASS_TILE)} />
 
-      {/* Layer 2: frosted glass surface */}
-      <div className={cn("absolute inset-0 z-[1]", GLASS_TILE)} />
+      {isOwned && ownerColor && (
+        <div
+          className={cn(
+            "absolute z-20 rounded-full",
+            side === "bottom" && "inset-x-1.5 top-0 h-[3px]",
+            side === "top" && "inset-x-1.5 bottom-0 h-[3px]",
+            side === "left" && "inset-y-1.5 right-0 w-[3px]",
+            side === "right" && "inset-y-1.5 left-0 w-[3px]",
+            isCorner && "inset-x-2 top-0 h-[3px]",
+          )}
+          style={{ backgroundColor: ownerColor.hex }}
+        />
+      )}
 
-      {/* Layer 3: content */}
-      <div
-        className={cn(
-          "relative z-10 flex w-full h-full",
-          isSpecialCorner && "justify-center flex-col p-1",
-          isBottom && "flex-col pt-0.5",
-          isTop && "flex-col-reverse pb-0.5",
-          isLeft && "flex-row-reverse pl-0.5",
-          isRight && "flex-row pr-0.5",
-        )}
-      >
-        {renderOuterPriceBanner()}
-
+      <div className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 overflow-hidden p-0.5">
         {!isMortgaged && (houses > 0 || hotels > 0) && (
           <div
             className={cn(
               "absolute z-20 flex gap-px",
-              isBottom && "bottom-[24%] left-0 right-0 justify-center",
-              isTop && "top-[24%] left-0 right-0 justify-center",
-              isLeft &&
-                "left-[24%] top-0 bottom-0 flex-col justify-center items-center",
-              isRight &&
-                "right-[24%] top-0 bottom-0 flex-col justify-center items-center",
+              side === "bottom" && "inset-x-0 top-0.5 justify-center",
+              side === "top" && "inset-x-0 bottom-0.5 justify-center",
+              side === "left" &&
+                "inset-y-0 right-0.5 flex-col items-center justify-center",
+              side === "right" &&
+                "inset-y-0 left-0.5 flex-col items-center justify-center",
             )}
           >
             {hotels > 0 ? (
               <div
-                className="w-2.5 h-2 bg-rose-600/90 backdrop-blur-sm rounded-sm border border-rose-400/50 flex items-center justify-center text-[6px] text-white font-bold leading-none shrink-0"
+                className="flex h-2 w-2.5 shrink-0 items-center justify-center rounded-sm border border-rose-400/50 bg-rose-600/90 text-[6px] font-bold leading-none text-white"
                 title="Hotel"
               >
                 H
@@ -322,7 +309,7 @@ export function BoardTile({
                 .map((houseNum) => (
                   <div
                     key={`house-${houseNum}`}
-                    className="w-1.5 h-1.5 bg-emerald-500/90 backdrop-blur-sm rounded-sm border border-emerald-300/40 shrink-0"
+                    className="h-1.5 w-1.5 shrink-0 rounded-sm border border-emerald-300/40 bg-emerald-500/90"
                     title="House"
                   />
                 ))
@@ -330,94 +317,41 @@ export function BoardTile({
           </div>
         )}
 
-        <div className="flex-grow flex items-center justify-center min-h-0 min-w-0 w-full h-full relative px-0.5 overflow-hidden">
-          <span
-            className={cn(
-              "font-bold text-center select-none leading-tight text-white/90 drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]",
-              tileIcon
-                ? "text-[7px] md:text-[8px] text-white/75"
-                : "text-[7.5px] md:text-[9px]",
-              isVerticalSide &&
-                "whitespace-nowrap uppercase tracking-wide text-[7px] md:text-[8px]",
-              isLeft && "rotate-90",
-              isRight && "-rotate-90",
-            )}
-          >
-            {tile.name}
-          </span>
-
-          {isOwned && ownerToken && ownerColor && (
-            <div
-              className={cn(
-                "absolute z-30 shadow-lg rounded-full scale-[0.75] overflow-hidden border-2 border-white/30",
-                isBottom && "top-0 right-0",
-                isTop && "bottom-0 right-0",
-                isLeft && "top-0 right-0",
-                isRight && "top-0 left-0",
-              )}
-              style={{ borderColor: ownerColor.hex }}
-            >
-              <Avatar
-                avatarId={ownerToken}
-                size="xs"
-                backgroundColor={ownerColor.hex}
-              />
-            </div>
-          )}
-
-          {isOwned && ownerColor && (
-            <div
-              className={cn(
-                "absolute z-20",
-                isBottom && "left-0 right-0 top-0 h-[3px]",
-                isTop && "left-0 right-0 bottom-0 h-[3px]",
-                isLeft && "top-0 bottom-0 right-0 w-[3px]",
-                isRight && "top-0 bottom-0 left-0 w-[3px]",
-              )}
-              style={{ backgroundColor: ownerColor.hex }}
-            />
-          )}
-        </div>
-
-        {isSpecialCorner && (
-          <div className="flex flex-col items-center justify-center w-full h-full flex-grow gap-0.5 py-0.5">
-            {tileIcon && (
-              <div className="shrink-0 drop-shadow-md">{tileIcon}</div>
-            )}
-            <span className="text-[7px] md:text-[8.5px] font-bold text-center text-white/90 uppercase tracking-tight max-w-full leading-tight px-0.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
-              {tile.name}
-            </span>
-            {tile.type === "tax" && (
-              <span className="text-[6.5px] md:text-[7.5px] text-white/60 font-bold select-none">
-                $200
-              </span>
-            )}
-          </div>
+        {tileIcon && (
+          <div className="shrink-0 opacity-90 drop-shadow-sm">{tileIcon}</div>
         )}
 
-        {(tile.type === "railroad" || tile.type === "utility") && (
+        <span className={textMode}>{label}</span>
+
+        {isOwned && ownerToken && ownerColor && (
           <div
             className={cn(
-              "absolute z-20 flex flex-col items-center gap-0.5 select-none drop-shadow-md",
-              isBottom && "top-[30%] left-0 right-0",
-              isTop && "bottom-[30%] left-0 right-0",
-              isLeft && "right-[30%] top-0 bottom-0 justify-center",
-              isRight && "left-[30%] top-0 bottom-0 justify-center",
+              "absolute z-30 scale-[0.7] overflow-hidden rounded-full border-2 shadow-md",
+              side === "bottom" && "top-0 right-0",
+              side === "top" && "bottom-0 right-0",
+              side === "left" && "top-0 right-0",
+              side === "right" && "top-0 left-0",
+              isCorner && "top-0.5 right-0.5",
             )}
+            style={{ borderColor: ownerColor.hex }}
           >
-            {tileIcon}
+            <Avatar
+              avatarId={ownerToken}
+              size="xs"
+              backgroundColor={ownerColor.hex}
+            />
           </div>
         )}
 
         {playersOnTile.length > 0 && (
           <div
             className={cn(
-              "absolute flex gap-0.5 flex-wrap z-30 justify-center",
-              isBottom && "top-[35%] left-0 right-0",
-              isTop && "bottom-[35%] left-0 right-0",
-              isLeft && "right-[35%] top-0 bottom-0 flex-col items-center",
-              isRight && "left-[35%] top-0 bottom-0 flex-col items-center",
-              isSpecialCorner && "bottom-1 left-0 right-0",
+              "absolute z-30 flex flex-wrap justify-center gap-0.5",
+              side === "bottom" && "inset-x-0 bottom-0.5",
+              side === "top" && "inset-x-0 top-0.5",
+              side === "left" && "inset-y-0 left-0.5 flex-col items-center",
+              side === "right" && "inset-y-0 right-0.5 flex-col items-center",
+              isCorner && "inset-x-0 bottom-0.5",
             )}
           >
             {playersOnTile.map((player) => {
@@ -428,7 +362,7 @@ export function BoardTile({
               return (
                 <div
                   key={player.id}
-                  className="transform hover:scale-110 hover:z-40 transition-transform duration-150 shadow-md"
+                  className="shadow-md transition-transform duration-150 hover:z-40 hover:scale-110"
                   title={player.name}
                 >
                   <Avatar
@@ -442,6 +376,23 @@ export function BoardTile({
           </div>
         )}
       </div>
+
+      {(colorStyle || (!isCorner && displayPrice)) && (
+        <div
+          className={cn(
+            "relative z-20 flex shrink-0 items-center justify-center",
+            colorStyle
+              ? cn(colorStyle.bg, colorStyle.text, colorStyle.border)
+              : "border-white/10 bg-white/10 text-white/80",
+            side === "bottom" && "h-[22%] min-h-[14px] w-full border-t",
+            side === "top" && "h-[22%] min-h-[14px] w-full border-b",
+            side === "left" && "h-full w-[22%] min-w-[14px] border-r",
+            side === "right" && "h-full w-[22%] min-w-[14px] border-l",
+          )}
+        >
+          {displayPrice && <span className={priceMode}>{displayPrice}</span>}
+        </div>
+      )}
     </div>
   );
 }

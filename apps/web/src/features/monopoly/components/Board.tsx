@@ -79,13 +79,26 @@ export function Board({ onRoll, onBuy, onDecline, onEndTurn }: BoardProps) {
   const currentPlayer = activePlayerId ? state?.players[activePlayerId] : null;
 
   return (
-    <div className="relative w-full max-w-[min(100vw-2rem,82vh)] max-h-[min(100vw-2rem,82vh)] aspect-square bg-[#0d1420] border border-white/[0.08] rounded-lg shadow-[0_4px_24px_rgba(0,0,0,0.5)] overflow-hidden shrink-0 mx-auto">
-      <div className="absolute inset-0 grid grid-rows-[2.2fr_repeat(9,1fr)_2.2fr] grid-cols-[2.2fr_repeat(9,1fr)_2.2fr] gap-px p-px bg-[#1e2a3d]/80">
+    <div
+      className={cn(
+        "relative h-full w-full overflow-hidden [container-type:size]",
+        "rounded-2xl border border-white/[0.1] bg-[#0d1420]",
+        "shadow-[0_8px_40px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.06)]",
+      )}
+    >
+      <div
+        className={cn(
+          "absolute inset-0 grid gap-1 p-1.5 sm:gap-1.5 sm:p-2",
+          "grid-rows-[minmax(0,2.15fr)_repeat(9,minmax(0,1fr))_minmax(0,2.15fr)]",
+          "grid-cols-[minmax(0,2.15fr)_repeat(9,minmax(0,1fr))_minmax(0,2.15fr)]",
+          "bg-gradient-to-br from-[#1a2740]/90 via-[#121a2a]/95 to-[#0d1420]",
+        )}
+      >
         {BOARD_TILES.map((tile) => (
           <div
             key={tile.position}
             style={getGridStyles(tile.position)}
-            className="w-full h-full"
+            className="min-h-0 min-w-0"
           >
             <BoardTile
               tile={tile}
@@ -98,23 +111,26 @@ export function Board({ onRoll, onBuy, onDecline, onEndTurn }: BoardProps) {
 
         <div
           className={cn(
-            "col-start-2 col-end-11 row-start-2 row-end-11 flex flex-col items-center justify-between py-3 px-2 md:py-5 relative overflow-hidden",
+            "relative col-start-2 col-end-11 row-start-2 row-end-11 flex flex-col items-center justify-between overflow-hidden",
+            "rounded-xl px-[clamp(0.4rem,2cqmin,0.85rem)] py-[clamp(0.5rem,2.2cqmin,1.25rem)]",
+            "[container-type:size]",
             GLASS_PANEL,
           )}
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-[#1a2744]/60 via-[#111827]/40 to-[#0d1420]/60 pointer-events-none" />
-          <div className="text-center shrink-0 z-10 select-none">
-            <h1 className="text-lg md:text-2xl font-black tracking-wider">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#1a2744]/55 via-[#111827]/35 to-[#0d1420]/55" />
+
+          <div className="z-10 shrink-0 select-none text-center">
+            <h1 className="text-[clamp(0.85rem,4.5cqmin,1.65rem)] font-black tracking-wider">
               <span className="bg-gradient-to-r from-[#4fc3f7] via-[#29b6f6] to-[#26c6da] bg-clip-text text-transparent">
                 MONOPOLY
               </span>
             </h1>
-            <p className="text-[7px] md:text-[9px] text-gray-500 font-semibold uppercase tracking-[0.2em] mt-0.5">
+            <p className="mt-0.5 text-[clamp(6px,1.4cqmin,9px)] font-semibold uppercase tracking-[0.2em] text-gray-500">
               Board Game House
             </p>
           </div>
 
-          <div className="w-full flex flex-col justify-center items-center z-10 shrink-0 relative">
+          <div className="relative z-10 flex w-full max-w-full shrink-0 flex-col items-center justify-center">
             <DiceTray
               dice={state?.lastDice ?? null}
               isMyTurn={isMyTurn}
@@ -127,7 +143,8 @@ export function Board({ onRoll, onBuy, onDecline, onEndTurn }: BoardProps) {
             {state?.phase === "BUY_OR_DECLINE" && isMyTurn && currentPlayer && (
               <div
                 className={cn(
-                  "absolute left-1/2 -translate-x-1/2 bottom-0 w-[240px] md:w-[320px] max-w-[90vw] animate-in fade-in zoom-in-95 duration-200 rounded-lg p-2 z-30",
+                  "absolute bottom-0 left-1/2 z-30 max-h-[min(100%,70cqb)] w-[min(55cqmin,90%)] -translate-x-1/2 overflow-y-auto",
+                  "animate-in fade-in zoom-in-95 rounded-[clamp(0.5rem,1.5cqmin,0.85rem)] p-[clamp(0.25rem,1cqmin,0.5rem)] duration-200",
                   GLASS_CARD,
                 )}
               >
@@ -142,7 +159,7 @@ export function Board({ onRoll, onBuy, onDecline, onEndTurn }: BoardProps) {
             )}
           </div>
 
-          <div className="text-[7px] md:text-[9px] text-gray-600 font-medium z-10 select-none shrink-0">
+          <div className="z-10 shrink-0 select-none text-[clamp(6px,1.3cqmin,9px)] font-medium text-gray-600">
             {state?.turnOrder.length || 0} Players active
           </div>
         </div>

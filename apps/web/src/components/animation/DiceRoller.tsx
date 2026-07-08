@@ -2,11 +2,13 @@
 
 import { gsap } from "gsap";
 import { useEffect, useRef } from "react";
+import { cn } from "@/lib/cn";
 
 interface DiceRollerProps {
   dice: [number, number] | null;
   onComplete?: () => void;
   rolling?: boolean;
+  className?: string;
 }
 
 const diceFaces: Record<number, string[][]> = {
@@ -57,18 +59,18 @@ function DiceFace({ value, transform }: { value: number; transform: string }) {
 
   return (
     <div
-      className="absolute w-14 h-14 bg-gradient-to-br from-white to-slate-100 rounded-xl border border-slate-300 shadow-md p-2 flex flex-col justify-center items-center backface-hidden"
+      className="absolute inset-0 flex flex-col items-center justify-center rounded-[18%] border border-slate-300 bg-gradient-to-br from-white to-slate-100 p-[12%] shadow-md backface-hidden"
       style={{
         transform,
         backfaceVisibility: "hidden",
         WebkitBackfaceVisibility: "hidden",
       }}
     >
-      <div className="grid grid-rows-3 gap-1 h-full w-full">
+      <div className="grid h-full w-full grid-rows-3 gap-[8%]">
         {face.map((row, i) => (
           <div
             key={`row-${i}-${row.join("")}`}
-            className="grid grid-cols-3 gap-1"
+            className="grid grid-cols-3 gap-[8%]"
           >
             {row.map((cell, j) => (
               <div
@@ -77,9 +79,10 @@ function DiceFace({ value, transform }: { value: number; transform: string }) {
               >
                 {cell && (
                   <div
-                    className={`w-2 h-2 rounded-full shadow-inner ${
-                      isOne ? "bg-rose-600 w-2.5 h-2.5" : "bg-slate-900"
-                    }`}
+                    className={cn(
+                      "aspect-square rounded-full shadow-inner",
+                      isOne ? "w-[38%] bg-rose-600" : "w-[30%] bg-slate-900",
+                    )}
                   />
                 )}
               </div>
@@ -98,38 +101,35 @@ function CubeDie({
   innerRef: React.RefObject<HTMLDivElement | null>;
   initialRotation?: { x: number; y: number };
 }) {
+  // NOTE: translateZ uses half die size so 3D faces stay flush as the board rescales.
+  const half = "calc(var(--die-size) / 2)";
+
   return (
     <div
       ref={innerRef}
-      className="w-14 h-14 relative"
+      className="relative h-[var(--die-size)] w-[var(--die-size)]"
       style={{
         transformStyle: "preserve-3d",
         transform: `rotateX(${initialRotation.x}deg) rotateY(${initialRotation.y}deg)`,
       }}
     >
-      {/* Face 1: Front */}
-      <DiceFace value={1} transform="rotateY(0deg) translateZ(28px)" />
-      {/* Face 6: Back */}
-      <DiceFace value={6} transform="rotateY(180deg) translateZ(28px)" />
-      {/* Face 3: Right */}
-      <DiceFace value={3} transform="rotateY(95deg) translateZ(28px)" />
-      {/* Face 4: Left */}
-      <DiceFace value={4} transform="rotateY(-95deg) translateZ(28px)" />
-      {/* Face 2: Top */}
-      <DiceFace value={2} transform="rotateX(95deg) translateZ(28px)" />
-      {/* Face 5: Bottom */}
-      <DiceFace value={5} transform="rotateX(-95deg) translateZ(28px)" />
+      <DiceFace value={1} transform={`rotateY(0deg) translateZ(${half})`} />
+      <DiceFace value={6} transform={`rotateY(180deg) translateZ(${half})`} />
+      <DiceFace value={3} transform={`rotateY(90deg) translateZ(${half})`} />
+      <DiceFace value={4} transform={`rotateY(-90deg) translateZ(${half})`} />
+      <DiceFace value={2} transform={`rotateX(90deg) translateZ(${half})`} />
+      <DiceFace value={5} transform={`rotateX(-90deg) translateZ(${half})`} />
     </div>
   );
 }
 
-export function DiceRoller({ dice, onComplete }: DiceRollerProps) {
+/** Animated 3D dice pair. Size follows `--die-size` from the board container. */
+export function DiceRoller({ dice, onComplete, className }: DiceRollerProps) {
   const die1Ref = useRef<HTMLDivElement>(null);
   const die2Ref = useRef<HTMLDivElement>(null);
   const prevDice = useRef(dice);
 
   useEffect(() => {
-    // If we have no dice or if it hasn't changed, do not re-animate.
     if (!dice || !die1Ref.current || !die2Ref.current) return;
     if (dice[0] === prevDice.current?.[0] && dice[1] === prevDice.current?.[1])
       return;
@@ -147,7 +147,7 @@ export function DiceRoller({ dice, onComplete }: DiceRollerProps) {
     const target1 = faceRotations[dice[0]] || faceRotations[1];
     const target2 = faceRotations[dice[1]] || faceRotations[1];
 
-    // Generate big random spins for ultra-dynamic 3D rolling physics
+    // NOTE: GSAP for tumble physics — reduced-motion skips to final face above.
     const spinsX1 = 720 + Math.random() * 360 + target1.x;
     const spinsY1 = 1080 + Math.random() * 360 + target1.y;
     const spinsZ1 = 180 + Math.random() * 180;
@@ -163,7 +163,6 @@ export function DiceRoller({ dice, onComplete }: DiceRollerProps) {
       },
     });
 
-    // Clear previous gsap animation state
     gsap.set([die1Ref.current, die2Ref.current], { x: 0, y: 0, scale: 1 });
 
     tl.to(
@@ -172,9 +171,9 @@ export function DiceRoller({ dice, onComplete }: DiceRollerProps) {
         rotationX: spinsX1,
         rotationY: spinsY1,
         rotationZ: spinsZ1,
-        scale: 1.2,
-        y: -50,
-        x: -15,
+        scale: 1.15,
+        y: -28,
+        x: -10,
         duration: 0.7,
         ease: "power2.out",
       },
@@ -186,9 +185,9 @@ export function DiceRoller({ dice, onComplete }: DiceRollerProps) {
           rotationX: spinsX2,
           rotationY: spinsY2,
           rotationZ: spinsZ2,
-          scale: 1.2,
-          y: -50,
-          x: 15,
+          scale: 1.15,
+          y: -28,
+          x: 10,
           duration: 0.7,
           ease: "power2.out",
         },
@@ -221,34 +220,32 @@ export function DiceRoller({ dice, onComplete }: DiceRollerProps) {
       );
   }, [dice, onComplete]);
 
-  // Render static 3D cubes as an elegant placeholder if there are no dice rolled yet
-  if (!dice) {
-    return (
-      <div
-        className="flex gap-6 items-center justify-center py-4"
-        style={{ perspective: "1000px" }}
-      >
-        <CubeDie
-          innerRef={die1Ref}
-          value={1}
-          initialRotation={{ x: 20, y: 35 }}
-        />
-        <CubeDie
-          innerRef={die2Ref}
-          value={5}
-          initialRotation={{ x: -20, y: -45 }}
-        />
-      </div>
-    );
-  }
-
   return (
     <div
-      className="flex gap-6 items-center justify-center py-4"
-      style={{ perspective: "1000px" }}
+      className={cn(
+        "flex items-center justify-center gap-[clamp(0.5rem,2.5cqmin,1.5rem)] py-[clamp(0.25rem,1.5cqmin,1rem)]",
+        className,
+      )}
+      style={{
+        perspective: "calc(var(--die-size) * 12)",
+        // NOTE: Die edge tracks board center size via container query units.
+        ["--die-size" as string]: "clamp(1.75rem, 9cqmin, 3.5rem)",
+      }}
     >
-      <CubeDie innerRef={die1Ref} value={dice[0]} />
-      <CubeDie innerRef={die2Ref} value={dice[1]} />
+      <CubeDie
+        innerRef={die1Ref}
+        initialRotation={
+          dice ? (faceRotations[dice[0]] ?? faceRotations[1]) : { x: 20, y: 35 }
+        }
+      />
+      <CubeDie
+        innerRef={die2Ref}
+        initialRotation={
+          dice
+            ? (faceRotations[dice[1]] ?? faceRotations[5])
+            : { x: -20, y: -45 }
+        }
+      />
     </div>
   );
 }
