@@ -230,21 +230,21 @@ export function BoardTile({
   const textMode = cn(
     "text-center font-bold uppercase leading-[1.05] tracking-wide text-white/95",
     "drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]",
-    "text-[clamp(5.5px,7.5cqmin,9px)]",
+    "text-[length:var(--board-text-sm)]",
     // vertical-rl: letters stack top→bottom on upper/lower rows
     isVerticalText && "[writing-mode:vertical-rl] rotate-180",
   );
 
   const priceMode = cn(
     "whitespace-nowrap font-extrabold leading-none tracking-tight",
-    "text-[clamp(6px,7cqmin,9px)]",
+    "text-[length:var(--board-text-xs)]",
     isVerticalText && "[writing-mode:vertical-rl] rotate-180",
   );
 
   return (
     <div
       className={cn(
-        "relative flex h-full w-full overflow-hidden rounded-lg select-none [container-type:size]",
+        "relative flex h-full w-full overflow-hidden rounded-lg select-none",
         "shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]",
         "transition-[filter] duration-200 hover:z-20 hover:brightness-110",
         // NOTE: Same card chrome on every edge; only flex axis + writing-mode change per side.

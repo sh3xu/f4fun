@@ -27,7 +27,7 @@ interface SessionData {
 export function GamePage() {
   const { roomId, roomCode, myPlayerId, setRoomId, setMyPlayerId } =
     useRoomStore();
-  const { state, setFromSnapshot, applyServerUpdate } = useGameStore();
+  const { state, setFromSnapshot, applyServerUpdate, startDiceRoll } = useGameStore();
   const [initializing, setInitializing] = useState(true);
   const [winnerId, setWinnerId] = useState<string | null>(null);
 
@@ -208,6 +208,7 @@ export function GamePage() {
 
   const handleRoll = async () => {
     if (!roomId) return;
+    startDiceRoll();
     try {
       await emitWithCallback("game:rollDice", { roomId });
     } catch (err) {

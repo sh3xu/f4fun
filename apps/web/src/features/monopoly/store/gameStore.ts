@@ -12,26 +12,41 @@ interface PendingAnimation {
 interface GameStore {
   state: GameState | null;
   pendingAnimation: PendingAnimation;
+  diceAnimationComplete: boolean;
+  rollAnimationKey: number;
   lastEvents: GameEvent[];
 
   setFromSnapshot: (state: GameState) => void;
   applyServerUpdate: (state: GameState, events: GameEvent[]) => void;
+  startDiceRoll: () => void;
   triggerDiceAnimation: (
     playerId: string,
     dice: [number, number],
     newPosition: number,
   ) => void;
-  clearAnimation: () => void;
+  completeDiceAnimation: () => void;
   reset: () => void;
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
   state: null,
   pendingAnimation: { type: "none" },
+  diceAnimationComplete: true,
+  rollAnimationKey: 0,
   lastEvents: [],
 
   setFromSnapshot: (state) => {
-    set({ state, lastEvents: [], pendingAnimation: { type: "none" } });
+    set({
+      state,
+      lastEvents: [],
+      pendingAnimation: { type: "none" },
+      diceAnimationComplete: true,
+      rollAnimationKey: 0,
+    });
+  },
+
+  startDiceRoll: () => {
+    set({ diceAnimationComplete: false });
   },
 
   applyServerUpdate: (state, events) => {
@@ -40,7 +55,31 @@ export const useGameStore = create<GameStore>((set, get) => ({
       set({ state, lastEvents: events });
       return;
     }
-    set({ state, lastEvents: events });
+
+    const diceEvent = events.find(
+      (e): e is Extract<GameEvent, { type: "DICE_ROLLED" }> =>
+        e.type === "DICE_ROLLED",
+    );
+
+    const pendingAnimation = diceEvent
+      ? {
+          type: "dice" as const,
+          playerId: diceEvent.playerId,
+          dice: diceEvent.dice,
+          fromPosition: prev.players[diceEvent.playerId]?.position ?? 0,
+          toPosition: diceEvent.newPosition,
+        }
+      : get().pendingAnimation;
+
+    set({
+      state,
+      lastEvents: events,
+      pendingAnimation,
+      diceAnimationComplete: diceEvent ? false : get().diceAnimationComplete,
+      rollAnimationKey: diceEvent
+        ? get().rollAnimationKey + 1
+        : get().rollAnimationKey,
+    });
   },
 
   triggerDiceAnimation: (playerId, dice, newPosition) => {
@@ -57,11 +96,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
     });
   },
 
-  clearAnimation: () => {
-    set({ pendingAnimation: { type: "none" } });
+  completeDiceAnimation: () => {
+    set({ pendingAnimation: { type: "none" }, diceAnimationComplete: true });
   },
 
   reset: () => {
-    set({ state: null, pendingAnimation: { type: "none" }, lastEvents: [] });
+    set({
+      state: null,
+      pendingAnimation: { type: "none" },
+      diceAnimationComplete: true,
+      rollAnimationKey: 0,
+      lastEvents: [],
+    });
   },
 }));

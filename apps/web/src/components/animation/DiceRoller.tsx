@@ -7,7 +7,8 @@ import { cn } from "@/lib/cn";
 interface DiceRollerProps {
   dice: [number, number] | null;
   onComplete?: () => void;
-  rolling?: boolean;
+  animate?: boolean;
+  rollKey?: number;
   className?: string;
 }
 
@@ -124,23 +125,37 @@ function CubeDie({
 }
 
 /** Animated 3D dice pair. Size follows `--die-size` from the board container. */
-export function DiceRoller({ dice, onComplete, className }: DiceRollerProps) {
+export function DiceRoller({
+  dice,
+  onComplete,
+  animate = false,
+  rollKey = 0,
+  className,
+}: DiceRollerProps) {
   const die1Ref = useRef<HTMLDivElement>(null);
   const die2Ref = useRef<HTMLDivElement>(null);
-  const prevDice = useRef(dice);
+  const animatedRollKey = useRef(-1);
+  const onCompleteRef = useRef(onComplete);
 
   useEffect(() => {
-    if (!dice || !die1Ref.current || !die2Ref.current) return;
-    if (dice[0] === prevDice.current?.[0] && dice[1] === prevDice.current?.[1])
-      return;
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
+  useEffect(() => {
+    if (!dice || !animate || !die1Ref.current || !die2Ref.current) return;
+    if (rollKey === animatedRollKey.current) return;
+
+    const finish = () => {
+      animatedRollKey.current = rollKey;
+      onCompleteRef.current?.();
+    };
 
     const reduceMotion =
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     if (reduceMotion) {
-      prevDice.current = dice;
-      onComplete?.();
+      finish();
       return;
     }
 
@@ -156,12 +171,7 @@ export function DiceRoller({ dice, onComplete, className }: DiceRollerProps) {
     const spinsY2 = 720 + Math.random() * 360 + target2.y;
     const spinsZ2 = -180 - Math.random() * 180;
 
-    const tl = gsap.timeline({
-      onComplete: () => {
-        prevDice.current = dice;
-        onComplete?.();
-      },
-    });
+    const tl = gsap.timeline({ onComplete: finish });
 
     gsap.set([die1Ref.current, die2Ref.current], { x: 0, y: 0, scale: 1 });
 
@@ -218,7 +228,11 @@ export function DiceRoller({ dice, onComplete, className }: DiceRollerProps) {
         },
         "<",
       );
-  }, [dice, onComplete]);
+
+    return () => {
+      tl.kill();
+    };
+  }, [dice, animate, rollKey]);
 
   return (
     <div
@@ -229,7 +243,7 @@ export function DiceRoller({ dice, onComplete, className }: DiceRollerProps) {
       style={{
         perspective: "calc(var(--die-size) * 12)",
         // NOTE: Die edge tracks board center size via container query units.
-        ["--die-size" as string]: "clamp(1.75rem, 9cqmin, 3.5rem)",
+        ["--die-size" as string]: "clamp(2rem, 11cqmin, 6.5rem)",
       }}
     >
       <CubeDie

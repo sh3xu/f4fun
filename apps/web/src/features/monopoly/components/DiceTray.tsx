@@ -12,6 +12,10 @@ interface DiceTrayProps {
   onRoll: () => void;
   onEndTurn: () => void;
   loading: boolean;
+  isDiceAnimating?: boolean;
+  awaitingRoll?: boolean;
+  rollKey?: number;
+  onDiceAnimationComplete?: () => void;
 }
 
 const phaseMessages: Record<GamePhase, string> = {
@@ -33,8 +37,14 @@ export function DiceTray({
   onRoll,
   onEndTurn,
   loading,
+  isDiceAnimating = false,
+  awaitingRoll = false,
+  rollKey = 0,
+  onDiceAnimationComplete,
 }: DiceTrayProps) {
   const isDoubles = dice && dice[0] === dice[1];
+  const phaseHint =
+    awaitingRoll || isDiceAnimating ? "Rolling..." : phaseMessages[phase];
 
   return (
     <div className="flex w-full select-none flex-col items-center gap-[clamp(0.35rem,1.4cqmin,0.65rem)] bg-transparent transition-all">
@@ -42,31 +52,36 @@ export function DiceTray({
         <p
           className={cn(
             "font-bold uppercase tracking-widest",
-            "text-[clamp(8px,1.8cqmin,12px)]",
+            "text-[length:var(--board-text)]",
             isMyTurn ? "text-[#4fc3f7]" : "text-gray-500",
           )}
         >
           {isMyTurn ? "Your Turn" : "Waiting..."}
         </p>
         {isMyTurn && (
-          <p className="mt-0.5 text-[clamp(7px,1.5cqmin,10px)] font-medium text-gray-400">
-            {phaseMessages[phase]}
+          <p className="mt-0.5 text-[length:var(--board-text-sm)] font-medium text-gray-400">
+            {phaseHint}
           </p>
         )}
       </div>
 
-      <DiceRoller dice={dice} />
+      <DiceRoller
+        dice={dice}
+        animate={isDiceAnimating}
+        rollKey={rollKey}
+        onComplete={onDiceAnimationComplete}
+      />
 
-      {dice && (
+      {dice && !isDiceAnimating && (
         <div className="text-center">
-          <p className="text-[clamp(8px,1.6cqmin,12px)] font-medium text-gray-400">
+          <p className="text-[length:var(--board-text-sm)] font-medium text-gray-400">
             Total:{" "}
-            <span className="ml-1 rounded border border-[#2a3a52] bg-[#1a2332] px-[0.4em] py-[0.1em] text-[clamp(10px,2cqmin,14px)] font-extrabold text-white">
+            <span className="ml-1 rounded border border-[#2a3a52] bg-[#1a2332] px-[0.4em] py-[0.1em] text-[length:var(--board-text)] font-extrabold text-white">
               {dice[0] + dice[1]}
             </span>
           </p>
           {isDoubles && (
-            <div className="mt-1 inline-flex items-center gap-1 rounded-full border border-yellow-500/25 bg-yellow-500/10 px-2 py-0.5 text-[clamp(7px,1.4cqmin,9px)] font-bold text-yellow-400">
+            <div className="mt-1 inline-flex items-center gap-1 rounded-full border border-yellow-500/25 bg-yellow-500/10 px-2 py-0.5 text-[length:var(--board-text-xs)] font-bold text-yellow-400">
               Doubles!
             </div>
           )}
@@ -78,7 +93,7 @@ export function DiceTray({
           onClick={onRoll}
           disabled={loading}
           size="sm"
-          className="h-auto w-[clamp(6.5rem,22cqmin,9.5rem)] border-0 bg-[#2196f3] py-[clamp(0.3rem,1cqmin,0.45rem)] text-[clamp(10px,1.8cqmin,13px)] font-bold text-white shadow-md transition-transform duration-150 hover:scale-[1.02] hover:bg-[#1e88e5]"
+          className="h-auto w-[clamp(7rem,24cqmin,12rem)] border-0 bg-[#2196f3] py-[clamp(0.35rem,1.2cqmin,0.65rem)] text-[length:var(--board-text-sm)] font-bold text-white shadow-md transition-transform duration-150 hover:scale-[1.02] hover:bg-[#1e88e5]"
           aria-label="Roll dice"
         >
           {loading ? "Rolling..." : "Roll Dice"}
@@ -91,7 +106,7 @@ export function DiceTray({
           disabled={loading}
           variant="secondary"
           size="sm"
-          className="h-auto w-[clamp(6.5rem,22cqmin,9.5rem)] border border-[#2a3a52] bg-[#1a2332] py-[clamp(0.3rem,1cqmin,0.45rem)] text-[clamp(10px,1.8cqmin,13px)] font-bold text-gray-200 shadow-md transition-transform duration-150 hover:scale-[1.02] hover:bg-[#243044]"
+          className="h-auto w-[clamp(7rem,24cqmin,12rem)] border border-[#2a3a52] bg-[#1a2332] py-[clamp(0.35rem,1.2cqmin,0.65rem)] text-[length:var(--board-text-sm)] font-bold text-gray-200 shadow-md transition-transform duration-150 hover:scale-[1.02] hover:bg-[#243044]"
           aria-label="End turn"
         >
           {loading ? "Ending..." : "End Turn"}
