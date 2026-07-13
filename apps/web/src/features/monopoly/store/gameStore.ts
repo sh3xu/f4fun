@@ -181,8 +181,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   completeDiceAnimation: () => {
     const pending = get().pendingAnimation;
+    // Ignore duplicate completes (e.g. Strict Mode / remount) once we've left the dice phase
+    if (pending.type !== "dice") return;
+
     if (
-      pending.type === "dice" &&
       pending.playerId &&
       pending.fromPosition !== undefined &&
       pending.toPosition !== undefined &&

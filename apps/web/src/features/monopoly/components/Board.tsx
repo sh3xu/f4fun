@@ -7,7 +7,11 @@ import { cn } from "@/lib/cn";
 import { getPlayerColor } from "@/lib/player-colors";
 import { useRoomStore } from "../../room/store/roomStore";
 import { useGameStore } from "../store/gameStore";
-import { BOARD_TEXT_VARS, GLASS_PANEL } from "../theme/board-theme";
+import {
+  BOARD_OVERLAY_PANEL_CLASS,
+  BOARD_TEXT_VARS,
+  GLASS_PANEL,
+} from "../theme/board-theme";
 import { AuctionPanel } from "./AuctionPanel";
 import { BoardTile } from "./BoardTile";
 import { DiceTray } from "./DiceTray";
@@ -128,13 +132,15 @@ export function Board({
     !diceAnimationComplete && pendingAnimation.type === "dice";
   const shouldAnimateDice =
     isDiceAnimating && rollAnimationKey > 0 && displayDice !== null;
+  const animationsSettled =
+    diceAnimationComplete && pendingAnimation.type === "none";
   const showPropertyCard =
     state?.phase === "BUY_OR_DECLINE" &&
     isMyTurn &&
-    diceAnimationComplete &&
+    animationsSettled &&
     !!currentPlayer;
   const showAuction =
-    state?.phase === "AUCTION" && !!state.auction && diceAnimationComplete;
+    state?.phase === "AUCTION" && !!state.auction && animationsSettled;
 
   const movingPlayer =
     movingPlayerId && state?.players[movingPlayerId]
@@ -210,7 +216,7 @@ export function Board({
         <div
           className={cn(
             "relative col-start-2 col-end-11 row-start-2 row-end-11 min-h-0 overflow-hidden",
-            "rounded-xl [container-type:size]",
+            "rounded-xl",
             GLASS_PANEL,
           )}
         >
@@ -239,7 +245,7 @@ export function Board({
             {showAuction && state?.auction ? (
               <div
                 className={cn(
-                  "w-[min(78cqb,92cqi)] [container-type:size]",
+                  BOARD_OVERLAY_PANEL_CLASS,
                   "animate-in fade-in zoom-in-95 duration-300",
                 )}
               >
@@ -255,7 +261,7 @@ export function Board({
             ) : showPropertyCard && currentPlayer ? (
               <div
                 className={cn(
-                  "w-[min(78cqb,92cqi)] [container-type:size]",
+                  BOARD_OVERLAY_PANEL_CLASS,
                   "animate-in fade-in zoom-in-95 duration-300",
                 )}
               >

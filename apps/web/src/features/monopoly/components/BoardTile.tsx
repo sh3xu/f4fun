@@ -15,7 +15,11 @@ import {
 import { Avatar } from "@/components/ui/Avatar";
 import { cn } from "@/lib/cn";
 import { getPlayerColor } from "@/lib/player-colors";
-import { GLASS_TILE, PROPERTY_COLORS } from "../theme/board-theme";
+import {
+  BOARD_MONEY_CLASS,
+  GLASS_TILE,
+  PROPERTY_COLORS,
+} from "../theme/board-theme";
 import { getTileLabel } from "./tile-labels";
 
 interface BoardTileProps {
@@ -236,8 +240,9 @@ export function BoardTile({
   );
 
   const priceMode = cn(
-    "whitespace-nowrap font-extrabold leading-none tracking-tight",
-    "text-[length:var(--board-text-xs)]",
+    BOARD_MONEY_CLASS,
+    "whitespace-nowrap leading-none",
+    "text-[length:var(--board-money)]",
     isVerticalText && "[writing-mode:vertical-rl] rotate-180",
   );
 
