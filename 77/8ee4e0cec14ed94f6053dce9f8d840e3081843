@@ -1,0 +1,50 @@
+apps/web/src/features/monopoly/components/PropertyManagePanel.tsx
+  s_3ad5f969ec3032::t_b0bf885a076a06 97
+  s_3ad5f969ec3032::t_38b6b05f27fd86 9
+apps/web/src/features/monopoly/components/tile-labels.ts
+  h_54cccc4af8e4fc 38-41,43-44,49
+  s_3ad5f969ec3032::t_0f7bfb9b1f0405 48,51
+  s_3ad5f969ec3032::t_33b2688aa7ed64 4-5
+  s_3ad5f969ec3032::t_91ebfbe902c241 1,3,45
+  s_3ad5f969ec3032::t_22538bfcc53776 59-62
+  s_3ad5f969ec3032::t_09cefce52aca2c 52
+  s_3ad5f969ec3032::t_94023a3ad15189 2,7-37,42
+  s_3ad5f969ec3032::t_924c5235dc2727 63
+apps/web/src/features/monopoly/components/BoardTile.tsx
+  s_3ad5f969ec3032::t_d3bfb832dc4e43 258
+apps/web/src/features/monopoly/components/TradeModal.tsx
+  s_3ad5f969ec3032::t_a6df3791d5cedc 167,198
+  s_3ad5f969ec3032::t_968945a1de059b 8
+apps/web/src/features/monopoly/components/PropertyPanel.tsx
+  s_3ad5f969ec3032::t_39bb44e45295ad 39
+  s_3ad5f969ec3032::t_17a3b22df05112 63
+  s_3ad5f969ec3032::t_ce05c3d9fd1211 6
+  s_3ad5f969ec3032::t_9ec966b065fecc 145,155,165
+apps/web/src/features/monopoly/components/AuctionPanel.tsx
+  s_3ad5f969ec3032::t_b7619bbe85bede 56
+  s_3ad5f969ec3032::t_ec1ecbe8b54ea1 9
+apps/web/src/features/monopoly/components/GamePage.tsx
+  s_3ad5f969ec3032::t_0e12e6573faeeb 17
+  s_3ad5f969ec3032::t_5925f028ddc828 113-115,134-139,146
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "778ee4e0cec14ed94f6053dce9f8d840e3081843",
+  "prompts": {},
+  "humans": {
+    "h_54cccc4af8e4fc": {
+      "author": "sh3xu <s43khu@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_3ad5f969ec3032": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "656fae46-62d8-4576-bec9-edeae2492aa6",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
