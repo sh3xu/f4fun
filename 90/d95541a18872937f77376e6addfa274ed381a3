@@ -1,0 +1,30 @@
+apps/web/src/features/monopoly/store/gameStore.animation.test.ts
+  s_0907d82447c7d3::t_930a7349d399e3 1-19,22-25,31-82
+  s_0907d82447c7d3::t_44fda3baeb4bef 20-21,26-30
+apps/web/vitest.config.ts
+  s_0907d82447c7d3::t_8faf902a6f708e 2,4-7,14,17
+  s_0907d82447c7d3::t_a74bfee2a4b368 1,3,8-13,15-16
+server/src/games/monopoly/GameEventLogger.ts
+  s_0907d82447c7d3::t_51a55e538066e1 4-19,30-52
+server/src/games/monopoly/handlers.ts
+  s_0907d82447c7d3::t_f0dec8c8b00492 114-127
+apps/web/src/features/monopoly/components/GamePage.tsx
+  s_0907d82447c7d3::t_a8e63e676659cd 109-110,113,124-125,145,177,182,188,194,197-201,233,276
+  s_0907d82447c7d3::t_087db28a37448b 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "90d95541a18872937f77376e6addfa274ed381a3",
+  "prompts": {},
+  "sessions": {
+    "s_0907d82447c7d3": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "bf19e643-b54b-41fa-85eb-1eff510d6b3d",
+        "model": "grok-4.5"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
