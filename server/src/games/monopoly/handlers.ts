@@ -111,15 +111,20 @@ function registerIntent(
       }
 
       await saveGame(state.gameId, result.state, options.turnCountDelta ?? 0);
-      await logGameAction(
-        state.gameId,
-        roomId,
-        playerId,
-        options.actionName,
-        stateBefore,
-        result.state,
-        result.events,
-      );
+      try {
+        await logGameAction(
+          state.gameId,
+          roomId,
+          playerId,
+          options.actionName,
+          stateBefore,
+          result.state,
+          result.events,
+        );
+      } catch (logErr) {
+        // NOTE: Audit log must not block gameplay after state is already persisted.
+        console.error("[GameEventLogger] Failed to log action:", logErr);
+      }
 
       io.to(roomId).emit("game:stateUpdated", {
         state: result.state,

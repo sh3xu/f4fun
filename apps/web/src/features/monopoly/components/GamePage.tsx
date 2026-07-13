@@ -2,7 +2,7 @@
 
 import type { GameEvent, GameState, TradeOffer } from "@f4fun/monopoly-engine";
 import { TILE_BY_POSITION } from "@f4fun/monopoly-engine";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Toaster, toast } from "sonner";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { useRoomStore } from "@/features/room/store/roomStore";
@@ -106,9 +106,11 @@ export function GamePage() {
 
   const handleEvent = useCallback(
     (event: GameEvent) => {
+      // NOTE: Read players from the store so this callback stays stable across state updates.
+      const players = useGameStore.getState().state?.players;
       switch (event.type) {
         case "PROPERTY_BOUGHT": {
-          const playerName = state?.players[event.playerId]?.name || "Player";
+          const playerName = players?.[event.playerId]?.name || "Player";
           const tile = TILE_BY_POSITION.get(event.position);
           const propertyName = tile
             ? getTileLabel(tile.name)
@@ -119,8 +121,8 @@ export function GamePage() {
           break;
         }
         case "RENT_PAID": {
-          const payerName = state?.players[event.payerId]?.name || "Player";
-          const ownerName = state?.players[event.ownerId]?.name || "Owner";
+          const payerName = players?.[event.payerId]?.name || "Player";
+          const ownerName = players?.[event.ownerId]?.name || "Owner";
           toast.info(
             `${payerName} paid $${event.amount} rent to ${ownerName}`,
             {
@@ -140,7 +142,7 @@ export function GamePage() {
           break;
         }
         case "AUCTION_WON": {
-          const playerName = state?.players[event.playerId]?.name || "Player";
+          const playerName = players?.[event.playerId]?.name || "Player";
           const tile = TILE_BY_POSITION.get(event.position);
           toast.success(
             `${playerName} won ${tile ? getTileLabel(tile.name) : event.position} for $${event.amount}`,
@@ -172,25 +174,30 @@ export function GamePage() {
           break;
         }
         case "PLAYER_BANKRUPT": {
-          const playerName = state?.players[event.playerId]?.name || "Player";
+          const playerName = players?.[event.playerId]?.name || "Player";
           toast.error(`${playerName} went bankrupt!`, { duration: 4000 });
           break;
         }
         case "GAME_WON": {
-          const winnerName = state?.players[event.winnerId]?.name || "Winner";
+          const winnerName = players?.[event.winnerId]?.name || "Winner";
           setWinnerId(event.winnerId);
           toast.success(`${winnerName} won the game!`, { duration: 5000 });
           break;
         }
         case "PASSED_GO": {
-          const playerName = state?.players[event.playerId]?.name || "Player";
+          const playerName = players?.[event.playerId]?.name || "Player";
           toast.success(`${playerName} passed GO! +$200`, { duration: 2000 });
           break;
         }
       }
     },
-    [state, myPlayerId],
+    [myPlayerId],
   );
+
+  // NOTE: Keep latest handler in a ref so the socket effect does not re-subscribe
+  // (and re-emit game:rejoin) on every game state change — that wiped dice animations.
+  const handleEventRef = useRef(handleEvent);
+  handleEventRef.current = handleEvent;
 
   useEffect(() => {
     if (!roomId || !myPlayerId || !myPlayerSecret) return;
@@ -223,7 +230,7 @@ export function GamePage() {
         console.log("[GamePage] Received game:stateUpdated");
         applyServerUpdate(data.state, data.events);
         for (const event of data.events) {
-          handleEvent(event);
+          handleEventRef.current(event);
         }
       };
 
@@ -266,14 +273,7 @@ export function GamePage() {
         cleanupListeners();
       }
     };
-  }, [
-    roomId,
-    myPlayerId,
-    myPlayerSecret,
-    setFromSnapshot,
-    applyServerUpdate,
-    handleEvent,
-  ]);
+  }, [roomId, myPlayerId, myPlayerSecret, setFromSnapshot, applyServerUpdate]);
 
   const handleRoll = async () => {
     if (!roomId) return;
