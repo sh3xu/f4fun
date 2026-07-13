@@ -33,6 +33,7 @@ export type GamePhase =
   | "BUY_OR_DECLINE"
   | "CARD_DRAWN"
   | "POST_BUY"
+  | "AUCTION"
   | "END_TURN"
   | "GAME_OVER";
 
@@ -49,6 +50,33 @@ export interface DeckState {
 export interface PendingCard {
   deck: "chance" | "community_chest";
   cardId: string;
+}
+
+export interface AuctionState {
+  position: number;
+  kind: "bank" | "owner";
+  sellerId: PlayerId | null;
+  highBid: number;
+  highBidderId: PlayerId | null;
+  bidderOrder: PlayerId[];
+  currentBidderIndex: number;
+  minNextBid: number;
+  /** Phase to restore if auction cancels with no bids. */
+  resumePhase: "PRE_ROLL" | "END_TURN";
+}
+
+export interface TradeOffer {
+  cash: number;
+  positions: number[];
+  goojfCards: number;
+}
+
+export interface PendingTrade {
+  tradeId: string;
+  fromPlayerId: PlayerId;
+  toPlayerId: PlayerId;
+  offer: TradeOffer;
+  request: TradeOffer;
 }
 
 export interface GameConfig {
@@ -80,15 +108,11 @@ export interface GameState {
   chanceDeck: DeckState;
   communityChestDeck: DeckState;
   pendingCard: PendingCard | null;
+  auction: AuctionState | null;
+  pendingTrades: PendingTrade[];
   config: GameConfig;
   winnerId: PlayerId | null;
   startedAt: string;
-}
-
-export interface TradeOffer {
-  cash: number;
-  positions: number[];
-  goojfCards: number;
 }
 
 export type GameAction =
@@ -100,6 +124,10 @@ export type GameAction =
   | { type: "USE_GOOJF_CARD" }
   | { type: "ROLL_FOR_JAIL" }
   | { type: "ACKNOWLEDGE_CARD" }
+  | { type: "START_AUCTION" }
+  | { type: "START_OWNER_AUCTION"; position: number }
+  | { type: "PLACE_BID"; amount: number }
+  | { type: "PASS_AUCTION" }
   | { type: "BUILD_HOUSE"; position: number }
   | { type: "SELL_HOUSE"; position: number }
   | { type: "BUILD_HOTEL"; position: number }
@@ -169,7 +197,30 @@ export type GameEvent =
       position: number;
       cost: number;
     }
+  | {
+      type: "TRADE_PROPOSED";
+      tradeId: string;
+      fromPlayerId: PlayerId;
+      toPlayerId: PlayerId;
+    }
+  | { type: "TRADE_REJECTED"; tradeId: string }
   | { type: "TRADE_COMPLETED"; initiatorId: PlayerId; partnerId: PlayerId }
+  | {
+      type: "AUCTION_STARTED";
+      position: number;
+      kind: "bank" | "owner";
+      sellerId: PlayerId | null;
+    }
+  | { type: "AUCTION_BID"; playerId: PlayerId; amount: number }
+  | { type: "AUCTION_PASSED"; playerId: PlayerId }
+  | { type: "AUCTION_AUTOFOLDED"; playerId: PlayerId }
+  | {
+      type: "AUCTION_WON";
+      playerId: PlayerId;
+      position: number;
+      amount: number;
+    }
+  | { type: "AUCTION_CANCELLED"; position: number }
   | { type: "PLAYER_BANKRUPT"; playerId: PlayerId; creditorId: PlayerId | null }
   | { type: "TURN_ADVANCED"; playerId: PlayerId }
   | { type: "GAME_WON"; winnerId: PlayerId };

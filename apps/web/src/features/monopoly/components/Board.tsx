@@ -8,6 +8,7 @@ import { getPlayerColor } from "@/lib/player-colors";
 import { useRoomStore } from "../../room/store/roomStore";
 import { useGameStore } from "../store/gameStore";
 import { BOARD_TEXT_VARS, GLASS_PANEL } from "../theme/board-theme";
+import { AuctionPanel } from "./AuctionPanel";
 import { BoardTile } from "./BoardTile";
 import { DiceTray } from "./DiceTray";
 import { PropertyPanel } from "./PropertyPanel";
@@ -16,7 +17,10 @@ interface BoardProps {
   onRoll: () => void;
   onBuy: () => void;
   onDecline: () => void;
+  onAuction: () => void;
   onEndTurn: () => void;
+  onPlaceBid: (amount: number) => void;
+  onPassAuction: () => void;
 }
 
 function getGridStyles(position: number): CSSProperties {
@@ -35,7 +39,15 @@ function getGridStyles(position: number): CSSProperties {
   return {};
 }
 
-export function Board({ onRoll, onBuy, onDecline, onEndTurn }: BoardProps) {
+export function Board({
+  onRoll,
+  onBuy,
+  onDecline,
+  onAuction,
+  onEndTurn,
+  onPlaceBid,
+  onPassAuction,
+}: BoardProps) {
   const {
     state,
     displayPositions,
@@ -121,6 +133,8 @@ export function Board({ onRoll, onBuy, onDecline, onEndTurn }: BoardProps) {
     isMyTurn &&
     diceAnimationComplete &&
     !!currentPlayer;
+  const showAuction =
+    state?.phase === "AUCTION" && !!state.auction && diceAnimationComplete;
 
   const movingPlayer =
     movingPlayerId && state?.players[movingPlayerId]
@@ -130,6 +144,8 @@ export function Board({ onRoll, onBuy, onDecline, onEndTurn }: BoardProps) {
     movingPlayer && state
       ? getPlayerColor(movingPlayer.id, state.turnOrder)
       : null;
+
+  const centerBusy = showPropertyCard || showAuction;
 
   return (
     <div
@@ -199,7 +215,7 @@ export function Board({ onRoll, onBuy, onDecline, onEndTurn }: BoardProps) {
         >
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#1a2744]/55 via-[#111827]/35 to-[#0d1420]/55" />
 
-          {!showPropertyCard && (
+          {!centerBusy && (
             <>
               <div className="absolute top-0 right-0 left-0 z-10 shrink-0 px-[clamp(0.4rem,2cqmin,1rem)] pt-[clamp(0.5rem,2.2cqmin,1.5rem)] text-center select-none">
                 <h1 className="text-[length:var(--board-text-xl)] font-black tracking-wider">
@@ -219,7 +235,23 @@ export function Board({ onRoll, onBuy, onDecline, onEndTurn }: BoardProps) {
           )}
 
           <div className="absolute inset-0 z-20 flex items-center justify-center p-[clamp(0.5rem,2.5cqmin,1.5rem)]">
-            {showPropertyCard ? (
+            {showAuction && state?.auction ? (
+              <div
+                className={cn(
+                  "w-[min(78cqb,92cqi)] [container-type:size]",
+                  "animate-in fade-in zoom-in-95 duration-300",
+                )}
+              >
+                <AuctionPanel
+                  auction={state.auction}
+                  state={state}
+                  myPlayerId={myPlayerId}
+                  loading={false}
+                  onBid={onPlaceBid}
+                  onPass={onPassAuction}
+                />
+              </div>
+            ) : showPropertyCard && currentPlayer ? (
               <div
                 className={cn(
                   "w-[min(78cqb,92cqi)] [container-type:size]",
@@ -231,6 +263,7 @@ export function Board({ onRoll, onBuy, onDecline, onEndTurn }: BoardProps) {
                   playerCash={currentPlayer.cash}
                   onBuy={onBuy}
                   onDecline={onDecline}
+                  onAuction={onAuction}
                   loading={false}
                 />
               </div>

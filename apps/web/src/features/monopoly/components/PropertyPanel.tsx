@@ -8,6 +8,7 @@ interface PropertyPanelProps {
   position: number;
   onBuy: () => void;
   onDecline: () => void;
+  onAuction: () => void;
   loading: boolean;
   playerCash?: number;
 }
@@ -16,6 +17,7 @@ export function PropertyPanel({
   position,
   onBuy,
   onDecline,
+  onAuction,
   loading,
   playerCash = 0,
 }: PropertyPanelProps) {
@@ -148,9 +150,19 @@ export function PropertyPanel({
             variant="outline"
             size="sm"
             className="h-auto flex-1 border-white/20 py-[clamp(0.4rem,1.4cqmin,0.65rem)] text-[length:var(--board-text-sm)] font-bold text-white/80 hover:bg-white/10"
-            aria-label={`Decline ${tile.name}`}
+            aria-label={`Skip ${tile.name}`}
           >
-            Decline
+            Skip
+          </Button>
+          <Button
+            onClick={onAuction}
+            disabled={loading}
+            variant="outline"
+            size="sm"
+            className="h-auto flex-1 border-amber-400/30 py-[clamp(0.4rem,1.4cqmin,0.65rem)] text-[length:var(--board-text-sm)] font-bold text-amber-200 hover:bg-amber-500/10"
+            aria-label={`Auction ${tile.name}`}
+          >
+            Auction
           </Button>
         </div>
       </div>

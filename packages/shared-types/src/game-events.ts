@@ -18,6 +18,24 @@ export const GameDeclinePropertySchema = z.object({
   roomId: z.string(),
 });
 
+export const GameStartAuctionSchema = z.object({
+  roomId: z.string(),
+});
+
+export const GameStartOwnerAuctionSchema = z.object({
+  roomId: z.string(),
+  position: z.number().int().min(0).max(39),
+});
+
+export const GamePlaceBidSchema = z.object({
+  roomId: z.string(),
+  amount: z.number().int().positive(),
+});
+
+export const GamePassAuctionSchema = z.object({
+  roomId: z.string(),
+});
+
 export const GameEndTurnSchema = z.object({
   roomId: z.string(),
 });
@@ -117,6 +135,45 @@ export const GamePropertyDeclinedSchema = z.object({
   position: z.number().int().min(0).max(39),
 });
 
+export const GameAuctionStartedSchema = z.object({
+  position: z.number().int().min(0).max(39),
+  kind: z.enum(["bank", "owner"]),
+  sellerId: z.string().nullable(),
+});
+
+export const GameAuctionBidSchema = z.object({
+  playerId: z.string(),
+  amount: z.number().int(),
+});
+
+export const GameAuctionPassedSchema = z.object({
+  playerId: z.string(),
+});
+
+export const GameAuctionAutofoldedSchema = z.object({
+  playerId: z.string(),
+});
+
+export const GameAuctionWonSchema = z.object({
+  playerId: z.string(),
+  position: z.number().int().min(0).max(39),
+  amount: z.number().int(),
+});
+
+export const GameAuctionCancelledSchema = z.object({
+  position: z.number().int().min(0).max(39),
+});
+
+export const GameTradeProposedSchema = z.object({
+  tradeId: z.string(),
+  fromPlayerId: z.string(),
+  toPlayerId: z.string(),
+});
+
+export const GameTradeRejectedSchema = z.object({
+  tradeId: z.string(),
+});
+
 export const GameRentPaidSchema = z.object({
   payerId: z.string(),
   ownerId: z.string(),
@@ -214,6 +271,12 @@ export type GameBuyPropertyPayload = z.infer<typeof GameBuyPropertySchema>;
 export type GameDeclinePropertyPayload = z.infer<
   typeof GameDeclinePropertySchema
 >;
+export type GameStartAuctionPayload = z.infer<typeof GameStartAuctionSchema>;
+export type GameStartOwnerAuctionPayload = z.infer<
+  typeof GameStartOwnerAuctionSchema
+>;
+export type GamePlaceBidPayload = z.infer<typeof GamePlaceBidSchema>;
+export type GamePassAuctionPayload = z.infer<typeof GamePassAuctionSchema>;
 export type GameEndTurnPayload = z.infer<typeof GameEndTurnSchema>;
 export type GamePayJailFinePayload = z.infer<typeof GamePayJailFineSchema>;
 export type GameUseGoojfCardPayload = z.infer<typeof GameUseGoojfCardSchema>;
@@ -243,6 +306,20 @@ export type GamePropertyBoughtPayload = z.infer<
 export type GamePropertyDeclinedPayload = z.infer<
   typeof GamePropertyDeclinedSchema
 >;
+export type GameAuctionStartedPayload = z.infer<
+  typeof GameAuctionStartedSchema
+>;
+export type GameAuctionBidPayload = z.infer<typeof GameAuctionBidSchema>;
+export type GameAuctionPassedPayload = z.infer<typeof GameAuctionPassedSchema>;
+export type GameAuctionAutofoldedPayload = z.infer<
+  typeof GameAuctionAutofoldedSchema
+>;
+export type GameAuctionWonPayload = z.infer<typeof GameAuctionWonSchema>;
+export type GameAuctionCancelledPayload = z.infer<
+  typeof GameAuctionCancelledSchema
+>;
+export type GameTradeProposedPayload = z.infer<typeof GameTradeProposedSchema>;
+export type GameTradeRejectedPayload = z.infer<typeof GameTradeRejectedSchema>;
 export type GameRentPaidPayload = z.infer<typeof GameRentPaidSchema>;
 export type GameTaxPaidPayload = z.infer<typeof GameTaxPaidSchema>;
 export type GameSentToJailPayload = z.infer<typeof GameSentToJailSchema>;

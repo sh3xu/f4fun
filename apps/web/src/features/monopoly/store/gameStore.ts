@@ -39,6 +39,12 @@ function positionsFromState(state: GameState): Record<string, number> {
   return positions;
 }
 
+function normalizeGameState(state: GameState): GameState {
+  if (state.auction === undefined) state.auction = null;
+  if (!state.pendingTrades) state.pendingTrades = [];
+  return state;
+}
+
 export const useGameStore = create<GameStore>((set, get) => ({
   state: null,
   displayPositions: {},
@@ -48,9 +54,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   lastEvents: [],
 
   setFromSnapshot: (state) => {
+    const normalized = normalizeGameState(state);
     set({
-      state,
-      displayPositions: positionsFromState(state),
+      state: normalized,
+      displayPositions: positionsFromState(normalized),
       lastEvents: [],
       pendingAnimation: { type: "none" },
       diceAnimationComplete: true,
@@ -63,6 +70,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   applyServerUpdate: (state, events) => {
+    state = normalizeGameState(state);
     const prev = get().state;
     if (!prev) {
       set({

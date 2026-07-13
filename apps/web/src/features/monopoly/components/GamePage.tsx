@@ -1,6 +1,6 @@
 "use client";
 
-import type { GameEvent, GameState } from "@f4fun/monopoly-engine";
+import type { GameEvent, GameState, TradeOffer } from "@f4fun/monopoly-engine";
 import { TILE_BY_POSITION } from "@f4fun/monopoly-engine";
 import { useCallback, useEffect, useState } from "react";
 import { Toaster, toast } from "sonner";
@@ -12,6 +12,8 @@ import { useGameStore } from "../store/gameStore";
 import { GLASS_PANEL } from "../theme/board-theme";
 import { Board } from "./Board";
 import { PlayerHUD } from "./PlayerHUD";
+import { PropertyManagePanel } from "./PropertyManagePanel";
+import { TradeModal } from "./TradeModal";
 import { WinScreen } from "./WinScreen";
 
 const SESSION_KEY = "monopoly_session";
@@ -39,6 +41,7 @@ export function GamePage() {
     useGameStore();
   const [initializing, setInitializing] = useState(true);
   const [winnerId, setWinnerId] = useState<string | null>(null);
+  const [tradeOpen, setTradeOpen] = useState(false);
 
   useEffect(() => {
     if (!roomId && typeof window !== "undefined") {
@@ -123,15 +126,54 @@ export function GamePage() {
           );
           break;
         }
+        case "AUCTION_STARTED": {
+          const tile = TILE_BY_POSITION.get(event.position);
+          toast.info(`Auction started: ${tile?.name ?? event.position}`, {
+            duration: 2500,
+          });
+          break;
+        }
+        case "AUCTION_WON": {
+          const playerName = state?.players[event.playerId]?.name || "Player";
+          const tile = TILE_BY_POSITION.get(event.position);
+          toast.success(
+            `${playerName} won ${tile?.name ?? event.position} for $${event.amount}`,
+            { duration: 3000 },
+          );
+          break;
+        }
+        case "AUCTION_CANCELLED": {
+          toast.info("Auction cancelled — no bids", { duration: 2500 });
+          break;
+        }
+        case "TRADE_COMPLETED": {
+          toast.success("Trade completed", { duration: 2500 });
+          break;
+        }
+        case "TRADE_PROPOSED": {
+          if (event.toPlayerId === myPlayerId) {
+            toast.info("You received a trade offer", { duration: 3000 });
+          }
+          break;
+        }
+        case "HOUSE_BUILT":
+        case "HOTEL_BUILT": {
+          toast.success("Building constructed", { duration: 2000 });
+          break;
+        }
+        case "PROPERTY_MORTGAGED": {
+          toast.info("Property mortgaged", { duration: 2000 });
+          break;
+        }
         case "PLAYER_BANKRUPT": {
           const playerName = state?.players[event.playerId]?.name || "Player";
-          toast.error(`💀 ${playerName} went bankrupt!`, { duration: 4000 });
+          toast.error(`${playerName} went bankrupt!`, { duration: 4000 });
           break;
         }
         case "GAME_WON": {
           const winnerName = state?.players[event.winnerId]?.name || "Winner";
           setWinnerId(event.winnerId);
-          toast.success(`🎉 ${winnerName} won the game!`, { duration: 5000 });
+          toast.success(`${winnerName} won the game!`, { duration: 5000 });
           break;
         }
         case "PASSED_GO": {
@@ -141,7 +183,7 @@ export function GamePage() {
         }
       }
     },
-    [state],
+    [state, myPlayerId],
   );
 
   useEffect(() => {
@@ -161,9 +203,8 @@ export function GamePage() {
       console.log("[GamePage] Setting up listeners now");
 
       const handleStateSnapshot = (data: { state: GameState }) => {
-        console.log("[GamePage] ✓ Received game:stateSnapshot");
+        console.log("[GamePage] Received game:stateSnapshot");
         if (data?.state) {
-          console.log("[GamePage] Setting game state from snapshot");
           setFromSnapshot(data.state);
           setInitializing(false);
         }
@@ -173,7 +214,7 @@ export function GamePage() {
         state: GameState;
         events: GameEvent[];
       }) => {
-        console.log("[GamePage] ✓ Received game:stateUpdated");
+        console.log("[GamePage] Received game:stateUpdated");
         applyServerUpdate(data.state, data.events);
         for (const event of data.events) {
           handleEvent(event);
@@ -183,12 +224,6 @@ export function GamePage() {
       socket.on("game:stateSnapshot", handleStateSnapshot);
       socket.on("game:stateUpdated", handleStateUpdated);
 
-      console.log(
-        "[GamePage] Emitting game:rejoin for roomId:",
-        roomId,
-        "playerId:",
-        myPlayerId,
-      );
       socket.emit("game:rejoin", {
         roomId,
         playerId: myPlayerId,
@@ -262,10 +297,139 @@ export function GamePage() {
     }
   };
 
+  const handleAuction = async () => {
+    if (!roomId) return;
+    try {
+      await emitWithCallback("game:startAuction", { roomId });
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
+  const handlePlaceBid = async (amount: number) => {
+    if (!roomId) return;
+    try {
+      await emitWithCallback("game:placeBid", { roomId, amount });
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
+  const handlePassAuction = async () => {
+    if (!roomId) return;
+    try {
+      await emitWithCallback("game:passAuction", { roomId });
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
   const handleEndTurn = async () => {
     if (!roomId) return;
     try {
       await emitWithCallback("game:endTurn", { roomId });
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
+  const handleBuildHouse = async (position: number) => {
+    if (!roomId) return;
+    try {
+      await emitWithCallback("game:buildHouse", { roomId, position });
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
+  const handleSellHouse = async (position: number) => {
+    if (!roomId) return;
+    try {
+      await emitWithCallback("game:sellHouse", { roomId, position });
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
+  const handleBuildHotel = async (position: number) => {
+    if (!roomId) return;
+    try {
+      await emitWithCallback("game:buildHotel", { roomId, position });
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
+  const handleSellHotel = async (position: number) => {
+    if (!roomId) return;
+    try {
+      await emitWithCallback("game:sellHotel", { roomId, position });
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
+  const handleMortgage = async (position: number) => {
+    if (!roomId) return;
+    try {
+      await emitWithCallback("game:mortgageProperty", { roomId, position });
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
+  const handleUnmortgage = async (position: number) => {
+    if (!roomId) return;
+    try {
+      await emitWithCallback("game:unmortgageProperty", { roomId, position });
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
+  const handleOwnerAuction = async (position: number) => {
+    if (!roomId) return;
+    try {
+      await emitWithCallback("game:startOwnerAuction", { roomId, position });
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
+  const handleProposeTrade = async (
+    toPlayerId: string,
+    offer: TradeOffer,
+    request: TradeOffer,
+  ) => {
+    if (!roomId) return;
+    try {
+      await emitWithCallback("game:proposeTrade", {
+        roomId,
+        tradeId: crypto.randomUUID(),
+        toPlayerId,
+        offer,
+        request,
+      });
+      toast.success("Trade proposed");
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
+  const handleAcceptTrade = async (tradeId: string) => {
+    if (!roomId) return;
+    try {
+      await emitWithCallback("game:acceptTrade", { roomId, tradeId });
+      setTradeOpen(false);
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
+  const handleRejectTrade = async (tradeId: string) => {
+    if (!roomId) return;
+    try {
+      await emitWithCallback("game:rejectTrade", { roomId, tradeId });
     } catch (err) {
       toast.error((err as Error).message);
     }
@@ -284,6 +448,11 @@ export function GamePage() {
   }
 
   const activePlayerId = state.turnOrder[state.activePlayerIndex];
+  const myPlayer = myPlayerId ? state.players[myPlayerId] : null;
+  const canManage =
+    myPlayerId === activePlayerId &&
+    (state.phase === "PRE_ROLL" || state.phase === "END_TURN") &&
+    !!myPlayer;
 
   return (
     <div
@@ -303,6 +472,18 @@ export function GamePage() {
         />
       )}
 
+      {tradeOpen && myPlayerId && (
+        <TradeModal
+          state={state}
+          myPlayerId={myPlayerId}
+          loading={false}
+          onClose={() => setTradeOpen(false)}
+          onPropose={handleProposeTrade}
+          onAccept={handleAcceptTrade}
+          onReject={handleRejectTrade}
+        />
+      )}
+
       {/* NOTE: container-type:size enables cqi/cqb so the board fills the frame as a square without clipping. */}
       <main className="order-1 relative min-h-[min(100vw,calc(100dvh-12rem))] min-w-0 flex-1 [container-type:size] lg:min-h-0">
         <div className="absolute inset-0 flex items-center justify-center">
@@ -317,7 +498,10 @@ export function GamePage() {
               onRoll={handleRoll}
               onBuy={handleBuy}
               onDecline={handleDecline}
+              onAuction={handleAuction}
               onEndTurn={handleEndTurn}
+              onPlaceBid={handlePlaceBid}
+              onPassAuction={handlePassAuction}
             />
           </div>
         </div>
@@ -326,7 +510,7 @@ export function GamePage() {
       <aside
         className={cn(
           "order-2 flex w-full shrink-0 flex-col gap-2.5 overflow-hidden p-3",
-          "max-h-[11rem] lg:max-h-none lg:h-full lg:w-60 xl:w-72",
+          "max-h-[14rem] lg:max-h-none lg:h-full lg:w-60 xl:w-72",
           GLASS_PANEL,
         )}
       >
@@ -342,6 +526,36 @@ export function GamePage() {
             </div>
           )}
         </div>
+
+        {canManage && myPlayer && (
+          <PropertyManagePanel
+            state={state}
+            player={myPlayer}
+            loading={false}
+            onBuildHouse={handleBuildHouse}
+            onSellHouse={handleSellHouse}
+            onBuildHotel={handleBuildHotel}
+            onSellHotel={handleSellHotel}
+            onMortgage={handleMortgage}
+            onUnmortgage={handleUnmortgage}
+            onOwnerAuction={handleOwnerAuction}
+            onOpenTrade={() => setTradeOpen(true)}
+          />
+        )}
+
+        {!canManage && myPlayerId && (
+          <button
+            type="button"
+            onClick={() => setTradeOpen(true)}
+            className="rounded-lg border border-white/15 bg-white/5 px-2 py-1.5 text-xs font-semibold text-white/70 hover:bg-white/10"
+          >
+            Open trades
+            {(state.pendingTrades?.filter((t) => t.toPlayerId === myPlayerId)
+              .length ?? 0) > 0
+              ? " (!)"
+              : ""}
+          </button>
+        )}
 
         <div className="flex min-h-0 w-full flex-1 flex-row gap-2 overflow-x-auto overflow-y-hidden lg:flex-col lg:overflow-x-hidden lg:overflow-y-auto">
           {state.turnOrder.map((playerId) => (

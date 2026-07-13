@@ -23,10 +23,11 @@ const phaseMessages: Record<GamePhase, string> = {
   PRE_ROLL: "Roll the dice to move",
   JAIL_DECISION: "Choose how to get out of jail",
   POST_ROLL: "Moving...",
-  BUY_OR_DECLINE: "Buy or decline property",
+  BUY_OR_DECLINE: "Buy, skip, or auction",
   CARD_DRAWN: "Card drawn",
   POST_BUY: "Processing...",
-  END_TURN: "End your turn",
+  AUCTION: "Auction in progress",
+  END_TURN: "End your turn or manage properties",
   GAME_OVER: "Game Over",
 };
 

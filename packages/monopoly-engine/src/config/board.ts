@@ -421,6 +421,9 @@ export const BOARD_SIZE = 40;
 export const BANK_HOUSE_LIMIT = 32;
 export const BANK_HOTEL_LIMIT = 12;
 
+// NOTE: House rule — sell houses/hotels back to bank at 75% (official is 50%).
+export const HOUSE_SELL_RATE = 0.75;
+
 export const RAILROAD_RENT = [0, 25, 50, 100, 200] as const;
 
 export const UTILITY_MULTIPLIER = [0, 4, 10] as const;
