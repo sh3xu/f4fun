@@ -1,0 +1,43 @@
+apps/web/src/features/monopoly/components/BoardTile.tsx
+  s_3ad5f969ec3032::t_bdbe48283af4bc 243-245
+  s_3ad5f969ec3032::t_34b3cae6a853b3 18-22
+apps/web/src/components/animation/DiceRoller.tsx
+  s_3ad5f969ec3032::t_d57cf6e8c2a200 187
+  s_3ad5f969ec3032::t_93f117eb036556 231,245,254
+  s_3ad5f969ec3032::t_75067db888ca29 4,15-18,114,126-142,155-156,162,164-183,189-191,207-210,212-218,223,228-230,232,237,242-244,246,250,257,261,265,270,293-294
+apps/web/src/features/monopoly/theme/board-theme.ts
+  s_3ad5f969ec3032::t_59f5fa0f1ecb4d 97-103
+  s_3ad5f969ec3032::t_f8ea4742f37904 90-91,93-96
+apps/web/src/features/monopoly/store/gameStore.ts
+  s_3ad5f969ec3032::t_5fed27947a7f71 184-186
+apps/web/src/features/monopoly/components/PlayerHUD.tsx
+  s_3ad5f969ec3032::t_61809927ae8589 7
+  s_3ad5f969ec3032::t_6a006962e8cc74 60-61
+apps/web/src/app/layout.tsx
+  s_3ad5f969ec3032::t_4f32c109b5883e 2,10-14,26-29
+apps/web/src/features/monopoly/components/PropertyPanel.tsx
+  s_3ad5f969ec3032::t_34b3cae6a853b3 5-9
+  s_3ad5f969ec3032::t_c862f3865084b2 48,53,56-57,70-72,77,85-90,92-96,98-102,104-106,114-133,138-141,143-145,151-152,156,161,171,181
+  s_3ad5f969ec3032::t_262a0a28c23f05 74-76,78-79
+apps/web/src/features/monopoly/components/Board.tsx
+  s_3ad5f969ec3032::t_e24791ba210ef9 248,264
+  s_3ad5f969ec3032::t_6593905f48aa85 219
+  s_3ad5f969ec3032::t_72b27b63597dca 10-14
+  s_3ad5f969ec3032::t_2fe706297c7b95 135-136,140,143
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "2730910d1696a0132fda7880ba9e1ca89ae72246",
+  "prompts": {},
+  "sessions": {
+    "s_3ad5f969ec3032": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "656fae46-62d8-4576-bec9-edeae2492aa6",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
