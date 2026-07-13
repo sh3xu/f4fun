@@ -6,9 +6,15 @@ import { Avatar } from "@/components/ui/Avatar";
 import { buildBoardPath, hopCount } from "@/features/monopoly/lib/board-path";
 import { cn } from "@/lib/cn";
 
-const MAX_MOVE_MS = 2800;
-const MIN_HOP_MS = 120;
-const MAX_HOP_MS = 220;
+const MAX_MOVE_MS = 3200;
+const MIN_HOP_MS = 200;
+const MAX_HOP_MS = 320;
+const HOP_DWELL_MS = 200;
+const SLIDE_MIN_MS = 500;
+const SLIDE_MAX_MS = 1400;
+const SLIDE_PER_TILE_MS = 90;
+
+export type PieceMoveMode = "hop" | "slide";
 
 interface PieceMoverProps {
   playerId: string;
@@ -16,6 +22,7 @@ interface PieceMoverProps {
   name: string;
   fromPosition: number;
   toPosition: number;
+  mode?: PieceMoveMode;
   colorHex?: string;
   isActive?: boolean;
   getTileCenter: (position: number) => { x: number; y: number } | null;
@@ -24,13 +31,14 @@ interface PieceMoverProps {
 }
 
 /**
- * GSAP tile-by-tile hop along the board path. Requires a parent positioned over the grid.
+ * GSAP token travel along the board path. Hop pauses on each tile; slide is continuous.
  */
 export function PieceMover({
   token,
   name,
   fromPosition,
   toPosition,
+  mode = "hop",
   colorHex,
   isActive = false,
   getTileCenter,
@@ -80,45 +88,71 @@ export function PieceMover({
       return;
     }
 
-    const hops = hopCount(fromPosition, toPosition) || path.length;
-    const hopDuration = Math.min(
-      MAX_HOP_MS / 1000,
-      Math.max(MIN_HOP_MS / 1000, MAX_MOVE_MS / 1000 / hops),
-    );
-
-    // NOTE: GSAP timeline for multi-hop path; Framer would fight per-step callbacks
+    // NOTE: GSAP timeline for multi-hop / slide; Framer would fight per-step callbacks
     const tl = gsap.timeline({ onComplete: finish });
 
-    for (const position of path) {
-      const center = getTileCenterRef.current(position);
-      if (!center) continue;
-      tl.to(el, {
-        x: center.x,
-        y: center.y,
-        duration: hopDuration * 0.55,
-        ease: "power2.out",
-        onStart: () => {
-          onStepRef.current?.(position);
-        },
-      });
-      tl.to(el, {
-        y: center.y - 10,
-        scale: 1.15,
-        duration: hopDuration * 0.2,
-        ease: "power2.out",
-      });
-      tl.to(el, {
-        y: center.y,
-        scale: 1,
-        duration: hopDuration * 0.25,
-        ease: "bounce.out",
-      });
+    if (mode === "slide") {
+      const hops = hopCount(fromPosition, toPosition) || path.length;
+      const totalDuration = Math.min(
+        SLIDE_MAX_MS / 1000,
+        Math.max(SLIDE_MIN_MS / 1000, (hops * SLIDE_PER_TILE_MS) / 1000),
+      );
+      const segmentDuration = totalDuration / path.length;
+
+      for (const position of path) {
+        const center = getTileCenterRef.current(position);
+        if (!center) continue;
+        tl.to(el, {
+          x: center.x,
+          y: center.y,
+          duration: segmentDuration,
+          ease: "none",
+          onStart: () => {
+            onStepRef.current?.(position);
+          },
+        });
+      }
+    } else {
+      const hops = hopCount(fromPosition, toPosition) || path.length;
+      const hopDuration = Math.min(
+        MAX_HOP_MS / 1000,
+        Math.max(MIN_HOP_MS / 1000, MAX_MOVE_MS / 1000 / hops),
+      );
+      const dwell = HOP_DWELL_MS / 1000;
+
+      for (const position of path) {
+        const center = getTileCenterRef.current(position);
+        if (!center) continue;
+        tl.to(el, {
+          x: center.x,
+          y: center.y,
+          duration: hopDuration * 0.45,
+          ease: "power2.out",
+          onStart: () => {
+            onStepRef.current?.(position);
+          },
+        });
+        tl.to(el, {
+          y: center.y - 12,
+          scale: 1.18,
+          duration: hopDuration * 0.2,
+          ease: "power2.out",
+        });
+        tl.to(el, {
+          y: center.y,
+          scale: 1,
+          duration: hopDuration * 0.25,
+          ease: "bounce.out",
+        });
+        // Pause on the tile before the next hop
+        tl.to({}, { duration: dwell });
+      }
     }
 
     return () => {
       tl.kill();
     };
-  }, [fromPosition, toPosition]);
+  }, [fromPosition, toPosition, mode]);
 
   return (
     <div

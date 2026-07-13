@@ -76,19 +76,9 @@ export function DiceTray({
         onComplete={onDiceAnimationComplete}
       />
 
-      {dice && !isDiceAnimating && (
-        <div className="text-center">
-          <p className="text-[length:var(--board-text-sm)] font-medium text-gray-400">
-            Total:{" "}
-            <span className="ml-1 rounded border border-[#2a3a52] bg-[#1a2332] px-[0.4em] py-[0.1em] text-[length:var(--board-text)] font-extrabold text-white">
-              {dice[0] + dice[1]}
-            </span>
-          </p>
-          {isDoubles && (
-            <div className="mt-1 inline-flex items-center gap-1 rounded-full border border-yellow-500/25 bg-yellow-500/10 px-2 py-0.5 text-[length:var(--board-text-xs)] font-bold text-yellow-400">
-              Doubles!
-            </div>
-          )}
+      {dice && !isDiceAnimating && isDoubles && (
+        <div className="inline-flex items-center gap-1 rounded-full border border-yellow-500/25 bg-yellow-500/10 px-2 py-0.5 text-[length:var(--board-text-xs)] font-bold text-yellow-400">
+          Doubles!
         </div>
       )}
 

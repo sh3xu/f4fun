@@ -1,5 +1,17 @@
-import type { GameEvent, GameState } from "@f4fun/monopoly-engine";
+import {
+  type GameEvent,
+  type GameState,
+  GO_TO_JAIL_POSITION,
+  JAIL_POSITION,
+} from "@f4fun/monopoly-engine";
 import { create } from "zustand";
+import type { PieceMoveMode } from "@/components/animation/PieceMover";
+
+interface PendingNextMove {
+  fromPosition: number;
+  toPosition: number;
+  moveMode: PieceMoveMode;
+}
 
 interface PendingAnimation {
   type: "dice" | "move" | "none";
@@ -7,6 +19,8 @@ interface PendingAnimation {
   dice?: [number, number];
   fromPosition?: number;
   toPosition?: number;
+  moveMode?: PieceMoveMode;
+  nextMove?: PendingNextMove;
 }
 
 interface GameStore {
@@ -20,11 +34,6 @@ interface GameStore {
   setFromSnapshot: (state: GameState) => void;
   applyServerUpdate: (state: GameState, events: GameEvent[]) => void;
   startDiceRoll: () => void;
-  triggerDiceAnimation: (
-    playerId: string,
-    dice: [number, number],
-    newPosition: number,
-  ) => void;
   completeDiceAnimation: () => void;
   setDisplayPosition: (playerId: string, position: number) => void;
   completeMoveAnimation: () => void;
@@ -43,6 +52,51 @@ function normalizeGameState(state: GameState): GameState {
   if (state.auction === undefined) state.auction = null;
   if (!state.pendingTrades) state.pendingTrades = [];
   return state;
+}
+
+function buildDicePendingAnimation(
+  events: GameEvent[],
+  diceEvent: Extract<GameEvent, { type: "DICE_ROLLED" }>,
+  fromPosition: number,
+): PendingAnimation {
+  const sentToJail = events.some((e) => e.type === "SENT_TO_JAIL");
+  const base = {
+    type: "dice" as const,
+    playerId: diceEvent.playerId,
+    dice: diceEvent.dice,
+  };
+
+  // Land on Go To Jail: hop along the dice path to 30, then slide to jail
+  if (sentToJail && diceEvent.newPosition === GO_TO_JAIL_POSITION) {
+    return {
+      ...base,
+      fromPosition,
+      toPosition: GO_TO_JAIL_POSITION,
+      moveMode: "hop",
+      nextMove: {
+        fromPosition: GO_TO_JAIL_POSITION,
+        toPosition: JAIL_POSITION,
+        moveMode: "slide",
+      },
+    };
+  }
+
+  // 3 doubles (or other direct jail): slide to jail without hopping around
+  if (sentToJail && diceEvent.newPosition === JAIL_POSITION) {
+    return {
+      ...base,
+      fromPosition,
+      toPosition: JAIL_POSITION,
+      moveMode: "slide",
+    };
+  }
+
+  return {
+    ...base,
+    fromPosition,
+    toPosition: diceEvent.newPosition,
+    moveMode: "hop",
+  };
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -87,16 +141,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
     );
 
     const pendingAnimation = diceEvent
-      ? {
-          type: "dice" as const,
-          playerId: diceEvent.playerId,
-          dice: diceEvent.dice,
-          fromPosition: prev.players[diceEvent.playerId]?.position ?? 0,
-          toPosition: diceEvent.newPosition,
-        }
+      ? buildDicePendingAnimation(
+          events,
+          diceEvent,
+          prev.players[diceEvent.playerId]?.position ?? 0,
+        )
       : get().pendingAnimation;
 
-    // Keep the rolling player's token at fromPosition until tile hops finish
+    // Keep the rolling player's token at fromPosition until tile hops / slides finish
     const displayPositions = { ...get().displayPositions };
     const animatingId =
       diceEvent?.playerId ??
@@ -124,20 +176,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       rollAnimationKey: diceEvent
         ? get().rollAnimationKey + 1
         : get().rollAnimationKey,
-    });
-  },
-
-  triggerDiceAnimation: (playerId, dice, newPosition) => {
-    const prev = get().state;
-    const fromPosition = prev?.players[playerId]?.position ?? 0;
-    set({
-      pendingAnimation: {
-        type: "dice",
-        playerId,
-        dice,
-        fromPosition,
-        toPosition: newPosition,
-      },
     });
   },
 
@@ -171,9 +209,32 @@ export const useGameStore = create<GameStore>((set, get) => ({
   completeMoveAnimation: () => {
     const pending = get().pendingAnimation;
     const displayPositions = { ...get().displayPositions };
+
     if (pending.playerId !== undefined && pending.toPosition !== undefined) {
       displayPositions[pending.playerId] = pending.toPosition;
     }
+
+    // Promote follow-up move (e.g. Go To Jail hop → slide to jail)
+    if (
+      pending.type === "move" &&
+      pending.nextMove &&
+      pending.playerId !== undefined
+    ) {
+      const { nextMove } = pending;
+      set({
+        displayPositions,
+        pendingAnimation: {
+          type: "move",
+          playerId: pending.playerId,
+          dice: pending.dice,
+          fromPosition: nextMove.fromPosition,
+          toPosition: nextMove.toPosition,
+          moveMode: nextMove.moveMode,
+        },
+      });
+      return;
+    }
+
     set({
       displayPositions,
       pendingAnimation: { type: "none" },
