@@ -255,7 +255,7 @@ export function BoardTile({
         isCorner && "flex-col items-center justify-center",
         isMortgaged && "opacity-50 saturate-[0.55]",
       )}
-      title={`${tile.name}${isOwned && ownerName ? ` (owned by ${ownerName})` : ""}${isMortgaged ? " [Mortgaged]" : ""}`}
+      title={`${getTileLabel(tile.name)}${isOwned && ownerName ? ` (owned by ${ownerName})` : ""}${isMortgaged ? " [Mortgaged]" : ""}`}
     >
       <div className="absolute inset-0 z-0 flex items-center justify-center overflow-hidden rounded-lg">
         {tile.type === "property" && colorStyle ? (

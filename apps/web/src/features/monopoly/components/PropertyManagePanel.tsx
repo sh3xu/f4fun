@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import { GLASS_CARD, PROPERTY_COLORS } from "../theme/board-theme";
+import { getTileLabelAt } from "./tile-labels";
 
 interface PropertyManagePanelProps {
   state: GameState;
@@ -90,11 +91,10 @@ export function PropertyManagePanel({
           aria-label="Select property"
         >
           {player.ownedPositions.map((pos) => {
-            const t = TILE_BY_POSITION.get(pos);
             const mort = state.ownership[pos]?.isMortgaged ? " (M)" : "";
             return (
               <option key={pos} value={pos}>
-                {t?.name ?? `Tile ${pos}`}
+                {getTileLabelAt(pos)}
                 {mort}
               </option>
             );

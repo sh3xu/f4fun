@@ -3,6 +3,7 @@ import { Droplets, Train, Zap } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import { GLASS_CARD, PROPERTY_COLORS } from "../theme/board-theme";
+import { getTileLabel } from "./tile-labels";
 
 interface PropertyPanelProps {
   position: number;
@@ -35,6 +36,7 @@ export function PropertyPanel({
   const canAfford = playerCash >= tile.price;
   const colorClass =
     tile.type === "property" ? PROPERTY_COLORS[tile.colorGroup]?.bg : "";
+  const label = getTileLabel(tile.name);
 
   return (
     <div
@@ -58,7 +60,7 @@ export function PropertyPanel({
             ) : (
               <Droplets className="h-[1em] w-[1em] text-sky-300" />
             ))}
-          {tile.name}
+          {label}
         </h3>
 
         <div className="flex items-baseline gap-2">
@@ -140,7 +142,7 @@ export function PropertyPanel({
             disabled={loading || !canAfford}
             size="sm"
             className="h-auto flex-1 border-0 bg-[#2196f3]/80 py-[clamp(0.4rem,1.4cqmin,0.65rem)] text-[length:var(--board-text-sm)] font-bold backdrop-blur-sm hover:bg-[#2196f3]"
-            aria-label={`Buy ${tile.name}`}
+            aria-label={`Buy ${label}`}
           >
             {canAfford ? "Buy" : "Can't Afford"}
           </Button>
@@ -150,7 +152,7 @@ export function PropertyPanel({
             variant="outline"
             size="sm"
             className="h-auto flex-1 border-white/20 py-[clamp(0.4rem,1.4cqmin,0.65rem)] text-[length:var(--board-text-sm)] font-bold text-white/80 hover:bg-white/10"
-            aria-label={`Skip ${tile.name}`}
+            aria-label={`Skip ${label}`}
           >
             Skip
           </Button>
@@ -160,7 +162,7 @@ export function PropertyPanel({
             variant="outline"
             size="sm"
             className="h-auto flex-1 border-amber-400/30 py-[clamp(0.4rem,1.4cqmin,0.65rem)] text-[length:var(--board-text-sm)] font-bold text-amber-200 hover:bg-amber-500/10"
-            aria-label={`Auction ${tile.name}`}
+            aria-label={`Auction ${label}`}
           >
             Auction
           </Button>

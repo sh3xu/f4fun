@@ -14,6 +14,7 @@ import { Board } from "./Board";
 import { PlayerHUD } from "./PlayerHUD";
 import { PropertyManagePanel } from "./PropertyManagePanel";
 import { TradeModal } from "./TradeModal";
+import { getTileLabel } from "./tile-labels";
 import { WinScreen } from "./WinScreen";
 
 const SESSION_KEY = "monopoly_session";
@@ -109,7 +110,9 @@ export function GamePage() {
         case "PROPERTY_BOUGHT": {
           const playerName = state?.players[event.playerId]?.name || "Player";
           const tile = TILE_BY_POSITION.get(event.position);
-          const propertyName = tile?.name || `Position ${event.position}`;
+          const propertyName = tile
+            ? getTileLabel(tile.name)
+            : `Position ${event.position}`;
           toast.success(`${playerName} bought ${propertyName}`, {
             duration: 3000,
           });
@@ -128,16 +131,19 @@ export function GamePage() {
         }
         case "AUCTION_STARTED": {
           const tile = TILE_BY_POSITION.get(event.position);
-          toast.info(`Auction started: ${tile?.name ?? event.position}`, {
-            duration: 2500,
-          });
+          toast.info(
+            `Auction started: ${tile ? getTileLabel(tile.name) : event.position}`,
+            {
+              duration: 2500,
+            },
+          );
           break;
         }
         case "AUCTION_WON": {
           const playerName = state?.players[event.playerId]?.name || "Player";
           const tile = TILE_BY_POSITION.get(event.position);
           toast.success(
-            `${playerName} won ${tile?.name ?? event.position} for $${event.amount}`,
+            `${playerName} won ${tile ? getTileLabel(tile.name) : event.position} for $${event.amount}`,
             { duration: 3000 },
           );
           break;

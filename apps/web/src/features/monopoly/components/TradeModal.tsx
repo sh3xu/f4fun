@@ -1,11 +1,11 @@
 "use client";
 
 import type { GameState, TradeOffer } from "@f4fun/monopoly-engine";
-import { TILE_BY_POSITION } from "@f4fun/monopoly-engine";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import { GLASS_CARD } from "../theme/board-theme";
+import { getTileLabelAt } from "./tile-labels";
 
 const emptyOffer = (): TradeOffer => ({
   cash: 0,
@@ -164,7 +164,7 @@ export function TradeModal({
                           togglePosition("offer", pos, e.target.checked)
                         }
                       />
-                      {TILE_BY_POSITION.get(pos)?.name ?? pos}
+                      {getTileLabelAt(pos)}
                     </label>
                   ))}
                 </div>
@@ -195,7 +195,7 @@ export function TradeModal({
                           togglePosition("request", pos, e.target.checked)
                         }
                       />
-                      {TILE_BY_POSITION.get(pos)?.name ?? pos}
+                      {getTileLabelAt(pos)}
                     </label>
                   ))}
                 </div>
