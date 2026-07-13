@@ -1,10 +1,13 @@
 "use client";
 
 import { BOARD_TILES, TILE_BY_POSITION } from "@f4fun/monopoly-engine";
+import { type CSSProperties, useCallback, useRef } from "react";
+import { PieceMover } from "@/components/animation/PieceMover";
 import { cn } from "@/lib/cn";
+import { getPlayerColor } from "@/lib/player-colors";
 import { useRoomStore } from "../../room/store/roomStore";
 import { useGameStore } from "../store/gameStore";
-import { GLASS_PANEL, BOARD_TEXT_VARS } from "../theme/board-theme";
+import { BOARD_TEXT_VARS, GLASS_PANEL } from "../theme/board-theme";
 import { BoardTile } from "./BoardTile";
 import { DiceTray } from "./DiceTray";
 import { PropertyPanel } from "./PropertyPanel";
@@ -16,15 +19,61 @@ interface BoardProps {
   onEndTurn: () => void;
 }
 
+function getGridStyles(position: number): CSSProperties {
+  if (position === 0) return { gridRow: 11, gridColumn: 11 };
+  if (position > 0 && position < 10)
+    return { gridRow: 11, gridColumn: 11 - position };
+  if (position === 10) return { gridRow: 11, gridColumn: 1 };
+  if (position > 10 && position < 20)
+    return { gridRow: 11 - (position - 10), gridColumn: 1 };
+  if (position === 20) return { gridRow: 1, gridColumn: 1 };
+  if (position > 20 && position < 30)
+    return { gridRow: 1, gridColumn: position - 20 + 1 };
+  if (position === 30) return { gridRow: 1, gridColumn: 11 };
+  if (position > 30 && position < 40)
+    return { gridRow: position - 30 + 1, gridColumn: 11 };
+  return {};
+}
+
 export function Board({ onRoll, onBuy, onDecline, onEndTurn }: BoardProps) {
-  const { state, pendingAnimation, completeDiceAnimation, diceAnimationComplete, rollAnimationKey } =
-    useGameStore();
+  const {
+    state,
+    displayPositions,
+    pendingAnimation,
+    completeDiceAnimation,
+    completeMoveAnimation,
+    setDisplayPosition,
+    diceAnimationComplete,
+    rollAnimationKey,
+  } = useGameStore();
   const { myPlayerId } = useRoomStore();
+  const boardRef = useRef<HTMLDivElement>(null);
+  const tileRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+
+  const movingPlayerId =
+    pendingAnimation.type === "move" ? pendingAnimation.playerId : undefined;
+
+  const getTileCenter = useCallback((position: number) => {
+    const tile = tileRefs.current.get(position);
+    const board = boardRef.current;
+    if (!tile || !board) return null;
+    const tileRect = tile.getBoundingClientRect();
+    const boardRect = board.getBoundingClientRect();
+    return {
+      x: tileRect.left - boardRect.left + tileRect.width / 2,
+      y: tileRect.top - boardRect.top + tileRect.height / 2,
+    };
+  }, []);
 
   const getPlayersOnTile = (position: number) => {
     if (!state) return [];
     return Object.values(state.players)
-      .filter((p) => p.position === position && !p.isBankrupt)
+      .filter((p) => {
+        if (p.isBankrupt) return false;
+        if (p.id === movingPlayerId) return false;
+        const displayPos = displayPositions[p.id] ?? p.position;
+        return displayPos === position;
+      })
       .map((p) => ({ id: p.id, token: p.token, name: p.name }));
   };
 
@@ -52,34 +101,19 @@ export function Board({ onRoll, onBuy, onDecline, onEndTurn }: BoardProps) {
 
     return {
       ownerId: owner.id,
-      ownerToken: owner.token,
+      ownerName: owner.name,
       isMortgaged,
       houses,
       hotels,
     };
   };
 
-  const getGridStyles = (position: number) => {
-    if (position === 0) return { gridRow: 11, gridColumn: 11 };
-    if (position > 0 && position < 10)
-      return { gridRow: 11, gridColumn: 11 - position };
-    if (position === 10) return { gridRow: 11, gridColumn: 1 };
-    if (position > 10 && position < 20)
-      return { gridRow: 11 - (position - 10), gridColumn: 1 };
-    if (position === 20) return { gridRow: 1, gridColumn: 1 };
-    if (position > 20 && position < 30)
-      return { gridRow: 1, gridColumn: position - 20 + 1 };
-    if (position === 30) return { gridRow: 1, gridColumn: 11 };
-    if (position > 30 && position < 40)
-      return { gridRow: position - 30 + 1, gridColumn: 11 };
-    return {};
-  };
-
   const activePlayerId = state?.turnOrder[state.activePlayerIndex];
   const isMyTurn = activePlayerId === myPlayerId;
   const currentPlayer = activePlayerId ? state?.players[activePlayerId] : null;
   const displayDice = pendingAnimation.dice ?? state?.lastDice ?? null;
-  const isDiceAnimating = !diceAnimationComplete;
+  const isDiceAnimating =
+    !diceAnimationComplete && pendingAnimation.type === "dice";
   const shouldAnimateDice =
     isDiceAnimating && rollAnimationKey > 0 && displayDice !== null;
   const showPropertyCard =
@@ -87,6 +121,15 @@ export function Board({ onRoll, onBuy, onDecline, onEndTurn }: BoardProps) {
     isMyTurn &&
     diceAnimationComplete &&
     !!currentPlayer;
+
+  const movingPlayer =
+    movingPlayerId && state?.players[movingPlayerId]
+      ? state.players[movingPlayerId]
+      : null;
+  const movingColor =
+    movingPlayer && state
+      ? getPlayerColor(movingPlayer.id, state.turnOrder)
+      : null;
 
   return (
     <div
@@ -98,6 +141,7 @@ export function Board({ onRoll, onBuy, onDecline, onEndTurn }: BoardProps) {
       style={BOARD_TEXT_VARS}
     >
       <div
+        ref={boardRef}
         className={cn(
           "absolute inset-0 grid gap-1 p-1.5 sm:gap-1.5 sm:p-2",
           "grid-rows-[minmax(0,2.15fr)_repeat(9,minmax(0,1fr))_minmax(0,2.15fr)]",
@@ -108,6 +152,10 @@ export function Board({ onRoll, onBuy, onDecline, onEndTurn }: BoardProps) {
         {BOARD_TILES.map((tile) => (
           <div
             key={tile.position}
+            ref={(el) => {
+              if (el) tileRefs.current.set(tile.position, el);
+              else tileRefs.current.delete(tile.position);
+            }}
             style={getGridStyles(tile.position)}
             className="min-h-0 min-w-0"
           >
@@ -119,6 +167,28 @@ export function Board({ onRoll, onBuy, onDecline, onEndTurn }: BoardProps) {
             />
           </div>
         ))}
+
+        {movingPlayer &&
+          pendingAnimation.fromPosition !== undefined &&
+          pendingAnimation.toPosition !== undefined && (
+            <div className="pointer-events-none absolute inset-0 z-40">
+              <PieceMover
+                key={`${movingPlayer.id}-${pendingAnimation.fromPosition}-${pendingAnimation.toPosition}`}
+                playerId={movingPlayer.id}
+                token={movingPlayer.token}
+                name={movingPlayer.name}
+                fromPosition={pendingAnimation.fromPosition}
+                toPosition={pendingAnimation.toPosition}
+                colorHex={movingColor?.hex}
+                isActive={movingPlayer.id === activePlayerId}
+                getTileCenter={getTileCenter}
+                onStep={(position) =>
+                  setDisplayPosition(movingPlayer.id, position)
+                }
+                onAnimationComplete={completeMoveAnimation}
+              />
+            </div>
+          )}
 
         <div
           className={cn(
@@ -173,7 +243,9 @@ export function Board({ onRoll, onBuy, onDecline, onEndTurn }: BoardProps) {
                 onEndTurn={onEndTurn}
                 loading={false}
                 isDiceAnimating={shouldAnimateDice}
-                awaitingRoll={isDiceAnimating}
+                awaitingRoll={
+                  !diceAnimationComplete && pendingAnimation.type !== "none"
+                }
                 rollKey={rollAnimationKey}
                 onDiceAnimationComplete={completeDiceAnimation}
               />

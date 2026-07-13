@@ -21,7 +21,7 @@ import { getTileLabel } from "./tile-labels";
 interface BoardTileProps {
   tile: TileData;
   ownerId?: string;
-  ownerToken?: string;
+  ownerName?: string;
   playersOnTile?: Array<{ id: string; token: string; name: string }>;
   isMortgaged?: boolean;
   houses?: number;
@@ -198,7 +198,7 @@ function getTileIcon(tile: TileData) {
 export function BoardTile({
   tile,
   ownerId,
-  ownerToken,
+  ownerName,
   playersOnTile = [],
   isMortgaged = false,
   houses = 0,
@@ -255,7 +255,7 @@ export function BoardTile({
         isCorner && "flex-col items-center justify-center",
         isMortgaged && "opacity-50 saturate-[0.55]",
       )}
-      title={`${tile.name}${isOwned ? ` (owned by ${ownerToken})` : ""}${isMortgaged ? " [Mortgaged]" : ""}`}
+      title={`${tile.name}${isOwned && ownerName ? ` (owned by ${ownerName})` : ""}${isMortgaged ? " [Mortgaged]" : ""}`}
     >
       <div className="absolute inset-0 z-0 flex items-center justify-center overflow-hidden rounded-lg">
         {tile.type === "property" && colorStyle ? (
@@ -322,26 +322,6 @@ export function BoardTile({
         )}
 
         <span className={textMode}>{label}</span>
-
-        {isOwned && ownerToken && ownerColor && (
-          <div
-            className={cn(
-              "absolute z-30 scale-[0.7] overflow-hidden rounded-full border-2 shadow-md",
-              side === "bottom" && "top-0 right-0",
-              side === "top" && "bottom-0 right-0",
-              side === "left" && "top-0 right-0",
-              side === "right" && "top-0 left-0",
-              isCorner && "top-0.5 right-0.5",
-            )}
-            style={{ borderColor: ownerColor.hex }}
-          >
-            <Avatar
-              avatarId={ownerToken}
-              size="xs"
-              backgroundColor={ownerColor.hex}
-            />
-          </div>
-        )}
 
         {playersOnTile.length > 0 && (
           <div

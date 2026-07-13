@@ -46,16 +46,19 @@ export function HomePage() {
         },
       );
 
-      const myPlayer = response.players.find((p) => p.isHost);
-      if (!myPlayer) throw new Error("Player not found in response");
-
-      setMyIdentity(myPlayer.id, name.trim(), selectedAvatar);
+      setMyIdentity(
+        response.playerId,
+        name.trim(),
+        selectedAvatar,
+        response.playerSecret,
+      );
       setRoom(response.roomId, response.roomCode, response.players);
 
       savePlayer({
-        playerId: myPlayer.id,
+        playerId: response.playerId,
         name: name.trim(),
         token: selectedAvatar,
+        playerSecret: response.playerSecret,
       });
       saveRoom({ roomId: response.roomId, roomCode: response.roomCode });
 
@@ -88,16 +91,19 @@ export function HomePage() {
         token: selectedAvatar,
       });
 
-      const myPlayer = response.players.find((p) => p.name === name.trim());
-      if (!myPlayer) throw new Error("Player not found in response");
-
-      setMyIdentity(myPlayer.id, name.trim(), selectedAvatar);
+      setMyIdentity(
+        response.playerId,
+        name.trim(),
+        selectedAvatar,
+        response.playerSecret,
+      );
       setRoom(response.roomId, response.roomCode, response.players);
 
       savePlayer({
-        playerId: myPlayer.id,
+        playerId: response.playerId,
         name: name.trim(),
         token: selectedAvatar,
+        playerSecret: response.playerSecret,
       });
       saveRoom({ roomId: response.roomId, roomCode: response.roomCode });
 

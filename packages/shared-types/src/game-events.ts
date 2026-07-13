@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+export const GameRejoinSchema = z.object({
+  roomId: z.string(),
+  playerId: z.string().min(1),
+  playerSecret: z.string().min(1),
+});
+
 export const GameRollDiceSchema = z.object({
   roomId: z.string(),
 });
@@ -202,6 +208,7 @@ export const GameErrorSchema = z.object({
   message: z.string(),
 });
 
+export type GameRejoinPayload = z.infer<typeof GameRejoinSchema>;
 export type GameRollDicePayload = z.infer<typeof GameRollDiceSchema>;
 export type GameBuyPropertyPayload = z.infer<typeof GameBuyPropertySchema>;
 export type GameDeclinePropertyPayload = z.infer<

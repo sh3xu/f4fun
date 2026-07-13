@@ -1,10 +1,10 @@
 "use client";
 
 import type {
-  RoomCreatedPayload,
   RoomGameStartedPayload,
   RoomPlayerJoinedPayload,
   RoomPlayerLeftPayload,
+  RoomSyncedPayload,
 } from "@f4fun/shared-types";
 import { Copy, Users } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
@@ -41,6 +41,7 @@ export function LobbyPage() {
     players,
     myPlayerId,
     myToken,
+    myPlayerSecret,
     addPlayer,
     updatePlayerConnection,
     setGameId,
@@ -71,23 +72,26 @@ export function LobbyPage() {
       const storedPlayer = loadPlayer();
       const storedRoom = loadRoom();
       const playerId = myPlayerId ?? storedPlayer?.playerId;
+      const playerSecret = myPlayerSecret ?? storedPlayer?.playerSecret;
 
       if (storedPlayer && !myPlayerId) {
         setMyIdentity(
           storedPlayer.playerId,
           storedPlayer.name,
           storedPlayer.token,
+          storedPlayer.playerSecret,
         );
         setMyPlayerId(storedPlayer.playerId);
       }
 
       try {
         connectSocket();
-        const response = await emitWithCallback<RoomCreatedPayload>(
+        const response = await emitWithCallback<RoomSyncedPayload>(
           "room:sync",
           {
             roomCode: code,
             playerId: playerId ?? undefined,
+            playerSecret: playerSecret ?? undefined,
           },
         );
 
@@ -101,13 +105,17 @@ export function LobbyPage() {
             (p) => p.id === storedPlayer.playerId,
           );
           if (me) {
-            setMyIdentity(me.id, me.name, me.token);
+            setMyIdentity(me.id, me.name, me.token, storedPlayer.playerSecret);
             setMyPlayerId(me.id);
           }
-        } else if (storedRoom?.roomId === response.roomId && playerId) {
+        } else if (
+          storedRoom?.roomId === response.roomId &&
+          playerId &&
+          playerSecret
+        ) {
           const me = response.players.find((p) => p.id === playerId);
           if (me) {
-            setMyIdentity(me.id, me.name, me.token);
+            setMyIdentity(me.id, me.name, me.token, playerSecret);
             setMyPlayerId(me.id);
           }
         }
@@ -127,7 +135,14 @@ export function LobbyPage() {
     return () => {
       cancelled = true;
     };
-  }, [activeRoomCode, myPlayerId, setRoom, setMyIdentity, setMyPlayerId]);
+  }, [
+    activeRoomCode,
+    myPlayerId,
+    myPlayerSecret,
+    setRoom,
+    setMyIdentity,
+    setMyPlayerId,
+  ]);
 
   useEffect(() => {
     const socket = getSocket();

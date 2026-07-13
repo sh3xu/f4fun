@@ -43,8 +43,11 @@ export function DiceTray({
   onDiceAnimationComplete,
 }: DiceTrayProps) {
   const isDoubles = dice && dice[0] === dice[1];
-  const phaseHint =
-    awaitingRoll || isDiceAnimating ? "Rolling..." : phaseMessages[phase];
+  const phaseHint = isDiceAnimating
+    ? "Rolling..."
+    : awaitingRoll
+      ? "Moving..."
+      : phaseMessages[phase];
 
   return (
     <div className="flex w-full select-none flex-col items-center gap-[clamp(0.35rem,1.4cqmin,0.65rem)] bg-transparent transition-all">

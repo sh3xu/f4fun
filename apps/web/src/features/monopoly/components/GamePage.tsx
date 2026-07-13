@@ -20,14 +20,23 @@ interface SessionData {
   roomId: string;
   roomCode: string;
   playerId: string;
+  playerSecret: string;
   playerName: string;
   timestamp: number;
 }
 
 export function GamePage() {
-  const { roomId, roomCode, myPlayerId, setRoomId, setMyPlayerId } =
-    useRoomStore();
-  const { state, setFromSnapshot, applyServerUpdate, startDiceRoll } = useGameStore();
+  const {
+    roomId,
+    roomCode,
+    myPlayerId,
+    myPlayerSecret,
+    setRoomId,
+    setMyPlayerId,
+    setMyPlayerSecret,
+  } = useRoomStore();
+  const { state, setFromSnapshot, applyServerUpdate, startDiceRoll } =
+    useGameStore();
   const [initializing, setInitializing] = useState(true);
   const [winnerId, setWinnerId] = useState<string | null>(null);
 
@@ -39,13 +48,14 @@ export function GamePage() {
           const session: SessionData = JSON.parse(stored);
           const age = Date.now() - session.timestamp;
 
-          if (age < 1000 * 60 * 60) {
+          if (age < 1000 * 60 * 60 && session.playerSecret) {
             console.log("[GamePage] Restoring session from storage:", {
               roomId: session.roomId,
               playerId: session.playerId,
             });
             setRoomId(session.roomId);
             setMyPlayerId(session.playerId);
+            setMyPlayerSecret(session.playerSecret);
 
             const socket = getSocket();
             if (!socket.connected) {
@@ -56,6 +66,7 @@ export function GamePage() {
             socket.emit("game:rejoin", {
               roomId: session.roomId,
               playerId: session.playerId,
+              playerSecret: session.playerSecret,
             });
             setInitializing(true);
             return;
@@ -67,17 +78,27 @@ export function GamePage() {
       }
     }
 
-    if (roomId && myPlayerId && roomCode) {
+    if (roomId && myPlayerId && myPlayerSecret && roomCode) {
       const session: SessionData = {
         roomId,
         roomCode,
         playerId: myPlayerId,
+        playerSecret: myPlayerSecret,
         playerName: state?.players[myPlayerId]?.name || "",
         timestamp: Date.now(),
       };
       localStorage.setItem(SESSION_KEY, JSON.stringify(session));
     }
-  }, [roomId, roomCode, myPlayerId, state, setRoomId, setMyPlayerId]);
+  }, [
+    roomId,
+    roomCode,
+    myPlayerId,
+    myPlayerSecret,
+    state,
+    setRoomId,
+    setMyPlayerId,
+    setMyPlayerSecret,
+  ]);
 
   const handleEvent = useCallback(
     (event: GameEvent) => {
@@ -124,7 +145,7 @@ export function GamePage() {
   );
 
   useEffect(() => {
-    if (!roomId || !myPlayerId) return;
+    if (!roomId || !myPlayerId || !myPlayerSecret) return;
 
     const socket = getSocket();
 
@@ -162,19 +183,21 @@ export function GamePage() {
       socket.on("game:stateSnapshot", handleStateSnapshot);
       socket.on("game:stateUpdated", handleStateUpdated);
 
-      // Explicitly request current game snapshot and join room
       console.log(
         "[GamePage] Emitting game:rejoin for roomId:",
         roomId,
         "playerId:",
         myPlayerId,
       );
-      socket.emit("game:rejoin", { roomId, playerId: myPlayerId });
+      socket.emit("game:rejoin", {
+        roomId,
+        playerId: myPlayerId,
+        playerSecret: myPlayerSecret,
+      });
 
-      // Fallback timeout
       const timeout = setTimeout(() => {
         console.warn(
-          "[GamePage] ⏱ Timeout - no snapshot after 5s, stopping initialization",
+          "[GamePage] Timeout - no snapshot after 5s, stopping initialization",
         );
         setInitializing(false);
       }, 5000);
@@ -186,11 +209,9 @@ export function GamePage() {
       };
     }
 
-    // Ensure socket is connected before setting up listeners
     if (!socket.connected) {
       console.log("[GamePage] Connecting socket...");
       socket.connect();
-      // Wait a bit for connection before registering listeners
       waitForConnection = setTimeout(() => {
         setupListeners();
       }, 100);
@@ -204,7 +225,14 @@ export function GamePage() {
         cleanupListeners();
       }
     };
-  }, [roomId, myPlayerId, setFromSnapshot, applyServerUpdate, handleEvent]);
+  }, [
+    roomId,
+    myPlayerId,
+    myPlayerSecret,
+    setFromSnapshot,
+    applyServerUpdate,
+    handleEvent,
+  ]);
 
   const handleRoll = async () => {
     if (!roomId) return;

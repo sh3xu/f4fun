@@ -15,6 +15,18 @@ import {
 import { logGameAction } from "./GameEventLogger.js";
 import { loadGameByRoomId, saveGame } from "./GameStore.js";
 
+function assertRoomMatch(
+  socketRoomId: string,
+  payloadRoomId: string,
+  callback?: (err: string) => void,
+): boolean {
+  if (socketRoomId !== payloadRoomId) {
+    callback?.("Room mismatch");
+    return false;
+  }
+  return true;
+}
+
 export function registerMonopolyHandlers(
   io: Server,
   socket: SocketWithPlayer,
@@ -29,6 +41,7 @@ export function registerMonopolyHandlers(
       callback?.("Not authenticated");
       return;
     }
+    if (!assertRoomMatch(roomId, data.roomId, callback)) return;
 
     try {
       const state = await loadGameByRoomId(data.roomId);
@@ -93,6 +106,7 @@ export function registerMonopolyHandlers(
       callback?.("Not authenticated");
       return;
     }
+    if (!assertRoomMatch(roomId, data.roomId, callback)) return;
 
     try {
       const state = await loadGameByRoomId(data.roomId);
@@ -147,6 +161,7 @@ export function registerMonopolyHandlers(
       callback?.("Not authenticated");
       return;
     }
+    if (!assertRoomMatch(roomId, data.roomId, callback)) return;
 
     try {
       const state = await loadGameByRoomId(data.roomId);
@@ -201,6 +216,7 @@ export function registerMonopolyHandlers(
       callback?.("Not authenticated");
       return;
     }
+    if (!assertRoomMatch(roomId, data.roomId, callback)) return;
 
     try {
       const state = await loadGameByRoomId(data.roomId);

@@ -6,6 +6,7 @@ export interface IRoomPlayer {
   playerId: string;
   name: string;
   token: string;
+  playerSecret: string;
   isHost: boolean;
   isConnected: boolean;
   joinedAt: Date;
@@ -27,6 +28,7 @@ const RoomPlayerSchema = new Schema<IRoomPlayer>(
     playerId: { type: String, required: true },
     name: { type: String, required: true },
     token: { type: String, required: true },
+    playerSecret: { type: String, required: true },
     isHost: { type: Boolean, default: false },
     isConnected: { type: Boolean, default: true },
     joinedAt: { type: Date, default: Date.now },

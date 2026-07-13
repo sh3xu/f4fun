@@ -5,6 +5,7 @@ export interface IPlayer extends Document {
   playerId: string;
   name: string;
   token: string;
+  playerSecret: string;
   roomId: string;
   isConnected: boolean;
   isHost: boolean;
@@ -17,6 +18,7 @@ const PlayerSchema = new Schema<IPlayer>(
     playerId: { type: String, required: true, index: true },
     name: { type: String, required: true },
     token: { type: String, required: true },
+    playerSecret: { type: String, required: true },
     roomId: { type: String, required: true, index: true },
     isConnected: { type: Boolean, default: true },
     isHost: { type: Boolean, default: false },
