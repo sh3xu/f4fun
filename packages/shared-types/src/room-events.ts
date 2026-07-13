@@ -25,6 +25,11 @@ export const RoomStartGameSchema = z.object({
   roomCode: z.string().length(6),
 });
 
+export const RoomSyncSchema = z.object({
+  roomCode: z.string().length(6),
+  playerId: z.string().optional(),
+});
+
 export const RoomCreatedSchema = z.object({
   roomCode: z.string().length(6),
   roomId: z.string(),
@@ -52,6 +57,7 @@ export const RoomErrorSchema = z.object({
 export type RoomCreatePayload = z.infer<typeof RoomCreateSchema>;
 export type RoomJoinPayload = z.infer<typeof RoomJoinSchema>;
 export type RoomStartGamePayload = z.infer<typeof RoomStartGameSchema>;
+export type RoomSyncPayload = z.infer<typeof RoomSyncSchema>;
 export type RoomCreatedPayload = z.infer<typeof RoomCreatedSchema>;
 export type RoomPlayerJoinedPayload = z.infer<typeof RoomPlayerJoinedSchema>;
 export type RoomPlayerLeftPayload = z.infer<typeof RoomPlayerLeftSchema>;

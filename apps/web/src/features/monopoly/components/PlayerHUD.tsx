@@ -24,7 +24,7 @@ export function PlayerHUD({
   return (
     <div
       className={cn(
-        "rounded-lg p-2.5 transition-all relative overflow-hidden flex items-center gap-2.5 select-none w-full",
+        "relative flex w-full items-center gap-2.5 overflow-hidden rounded-xl p-3 select-none transition-all",
         GLASS_CARD,
         isActive ? "shadow-lg brightness-110" : "hover:brightness-105",
         player.isBankrupt && "opacity-40 grayscale",

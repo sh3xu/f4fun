@@ -31,6 +31,7 @@ export function Avatar({
 
   return (
     <div
+      key={avatarId}
       className={cn(
         config.classes,
         "rounded-full overflow-hidden flex-shrink-0 shadow-lg",
@@ -39,6 +40,7 @@ export function Avatar({
       style={{ backgroundColor }}
     >
       <Image
+        key={avatarId}
         src={url}
         alt="Player avatar"
         width={config.size}

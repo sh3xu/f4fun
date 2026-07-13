@@ -27,7 +27,7 @@ interface SessionData {
 export function GamePage() {
   const { roomId, roomCode, myPlayerId, setRoomId, setMyPlayerId } =
     useRoomStore();
-  const { state, setFromSnapshot, applyServerUpdate } = useGameStore();
+  const { state, setFromSnapshot, applyServerUpdate, startDiceRoll } = useGameStore();
   const [initializing, setInitializing] = useState(true);
   const [winnerId, setWinnerId] = useState<string | null>(null);
 
@@ -208,6 +208,7 @@ export function GamePage() {
 
   const handleRoll = async () => {
     if (!roomId) return;
+    startDiceRoll();
     try {
       await emitWithCallback("game:rollDice", { roomId });
     } catch (err) {
@@ -257,7 +258,13 @@ export function GamePage() {
   const activePlayerId = state.turnOrder[state.activePlayerIndex];
 
   return (
-    <div className="min-h-screen overflow-y-auto lg:h-screen lg:overflow-hidden flex flex-col lg:flex-row bg-[#0b0f17] text-gray-100 p-2.5 md:p-3 lg:p-4 gap-3 font-sans select-none">
+    <div
+      className={cn(
+        "flex h-dvh max-h-dvh flex-col overflow-hidden bg-[#0b0f17] font-sans text-gray-100 select-none",
+        "lg:flex-row",
+        "gap-3 p-2 sm:p-3 lg:gap-4 lg:p-4",
+      )}
+    >
       <Toaster position="top-center" richColors />
 
       {winnerId && (
@@ -268,27 +275,39 @@ export function GamePage() {
         />
       )}
 
-      <main className="flex-grow min-h-0 flex items-center justify-center p-1 order-1">
-        <Board
-          onRoll={handleRoll}
-          onBuy={handleBuy}
-          onDecline={handleDecline}
-          onEndTurn={handleEndTurn}
-        />
+      {/* NOTE: container-type:size enables cqi/cqb so the board fills the frame as a square without clipping. */}
+      <main className="order-1 relative min-h-[min(100vw,calc(100dvh-12rem))] min-w-0 flex-1 [container-type:size] lg:min-h-0">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div
+            className="aspect-square max-h-full max-w-full"
+            style={{
+              width: "min(100cqi, 100cqb)",
+              height: "min(100cqi, 100cqb)",
+            }}
+          >
+            <Board
+              onRoll={handleRoll}
+              onBuy={handleBuy}
+              onDecline={handleDecline}
+              onEndTurn={handleEndTurn}
+            />
+          </div>
+        </div>
       </main>
 
       <aside
         className={cn(
-          "shrink-0 lg:w-52 w-full flex flex-col gap-2.5 p-3 rounded-xl overflow-y-auto lg:h-full max-h-[200px] lg:max-h-none order-2",
+          "order-2 flex w-full shrink-0 flex-col gap-2.5 overflow-hidden p-3",
+          "max-h-[11rem] lg:max-h-none lg:h-full lg:w-60 xl:w-72",
           GLASS_PANEL,
         )}
       >
-        <div className="flex items-center justify-between border-b border-white/[0.08] pb-2 px-0.5">
-          <span className="font-black text-base tracking-widest bg-gradient-to-r from-[#4fc3f7] to-[#26c6da] bg-clip-text text-transparent">
+        <div className="flex shrink-0 items-center justify-between border-b border-white/[0.08] px-0.5 pb-2">
+          <span className="bg-gradient-to-r from-[#4fc3f7] to-[#26c6da] bg-clip-text text-base font-black tracking-widest text-transparent">
             f4fun
           </span>
           {roomCode && (
-            <div className="text-[9px] md:text-[10px] text-gray-500 font-medium bg-[#1a2332] px-1.5 py-0.5 rounded border border-[#2a3a52]">
+            <div className="rounded-lg border border-[#2a3a52] bg-[#1a2332] px-2 py-0.5 text-[9px] font-medium text-gray-500 md:text-[10px]">
               <span className="font-mono font-bold text-[#4fc3f7]">
                 {roomCode}
               </span>
@@ -296,11 +315,11 @@ export function GamePage() {
           )}
         </div>
 
-        <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible w-full">
+        <div className="flex min-h-0 w-full flex-1 flex-row gap-2 overflow-x-auto overflow-y-hidden lg:flex-col lg:overflow-x-hidden lg:overflow-y-auto">
           {state.turnOrder.map((playerId) => (
             <div
               key={playerId}
-              className="min-w-[140px] lg:min-w-0 w-full shrink-0"
+              className="w-full min-w-[150px] shrink-0 lg:min-w-0"
             >
               <PlayerHUD
                 player={state.players[playerId]}

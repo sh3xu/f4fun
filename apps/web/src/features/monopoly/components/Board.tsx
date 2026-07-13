@@ -4,7 +4,7 @@ import { BOARD_TILES, TILE_BY_POSITION } from "@f4fun/monopoly-engine";
 import { cn } from "@/lib/cn";
 import { useRoomStore } from "../../room/store/roomStore";
 import { useGameStore } from "../store/gameStore";
-import { GLASS_CARD, GLASS_PANEL } from "../theme/board-theme";
+import { GLASS_PANEL, BOARD_TEXT_VARS } from "../theme/board-theme";
 import { BoardTile } from "./BoardTile";
 import { DiceTray } from "./DiceTray";
 import { PropertyPanel } from "./PropertyPanel";
@@ -17,7 +17,8 @@ interface BoardProps {
 }
 
 export function Board({ onRoll, onBuy, onDecline, onEndTurn }: BoardProps) {
-  const { state } = useGameStore();
+  const { state, pendingAnimation, completeDiceAnimation, diceAnimationComplete, rollAnimationKey } =
+    useGameStore();
   const { myPlayerId } = useRoomStore();
 
   const getPlayersOnTile = (position: number) => {
@@ -77,15 +78,38 @@ export function Board({ onRoll, onBuy, onDecline, onEndTurn }: BoardProps) {
   const activePlayerId = state?.turnOrder[state.activePlayerIndex];
   const isMyTurn = activePlayerId === myPlayerId;
   const currentPlayer = activePlayerId ? state?.players[activePlayerId] : null;
+  const displayDice = pendingAnimation.dice ?? state?.lastDice ?? null;
+  const isDiceAnimating = !diceAnimationComplete;
+  const shouldAnimateDice =
+    isDiceAnimating && rollAnimationKey > 0 && displayDice !== null;
+  const showPropertyCard =
+    state?.phase === "BUY_OR_DECLINE" &&
+    isMyTurn &&
+    diceAnimationComplete &&
+    !!currentPlayer;
 
   return (
-    <div className="relative w-full max-w-[min(100vw-2rem,82vh)] max-h-[min(100vw-2rem,82vh)] aspect-square bg-[#0d1420] border border-white/[0.08] rounded-lg shadow-[0_4px_24px_rgba(0,0,0,0.5)] overflow-hidden shrink-0 mx-auto">
-      <div className="absolute inset-0 grid grid-rows-[2.2fr_repeat(9,1fr)_2.2fr] grid-cols-[2.2fr_repeat(9,1fr)_2.2fr] gap-px p-px bg-[#1e2a3d]/80">
+    <div
+      className={cn(
+        "relative h-full w-full overflow-hidden [container-type:size]",
+        "rounded-2xl border border-white/[0.1] bg-[#0d1420]",
+        "shadow-[0_8px_40px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.06)]",
+      )}
+      style={BOARD_TEXT_VARS}
+    >
+      <div
+        className={cn(
+          "absolute inset-0 grid gap-1 p-1.5 sm:gap-1.5 sm:p-2",
+          "grid-rows-[minmax(0,2.15fr)_repeat(9,minmax(0,1fr))_minmax(0,2.15fr)]",
+          "grid-cols-[minmax(0,2.15fr)_repeat(9,minmax(0,1fr))_minmax(0,2.15fr)]",
+          "bg-gradient-to-br from-[#1a2740]/90 via-[#121a2a]/95 to-[#0d1420]",
+        )}
+      >
         {BOARD_TILES.map((tile) => (
           <div
             key={tile.position}
             style={getGridStyles(tile.position)}
-            className="w-full h-full"
+            className="min-h-0 min-w-0"
           >
             <BoardTile
               tile={tile}
@@ -98,37 +122,38 @@ export function Board({ onRoll, onBuy, onDecline, onEndTurn }: BoardProps) {
 
         <div
           className={cn(
-            "col-start-2 col-end-11 row-start-2 row-end-11 flex flex-col items-center justify-between py-3 px-2 md:py-5 relative overflow-hidden",
+            "relative col-start-2 col-end-11 row-start-2 row-end-11 min-h-0 overflow-hidden",
+            "rounded-xl [container-type:size]",
             GLASS_PANEL,
           )}
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-[#1a2744]/60 via-[#111827]/40 to-[#0d1420]/60 pointer-events-none" />
-          <div className="text-center shrink-0 z-10 select-none">
-            <h1 className="text-lg md:text-2xl font-black tracking-wider">
-              <span className="bg-gradient-to-r from-[#4fc3f7] via-[#29b6f6] to-[#26c6da] bg-clip-text text-transparent">
-                MONOPOLY
-              </span>
-            </h1>
-            <p className="text-[7px] md:text-[9px] text-gray-500 font-semibold uppercase tracking-[0.2em] mt-0.5">
-              Board Game House
-            </p>
-          </div>
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#1a2744]/55 via-[#111827]/35 to-[#0d1420]/55" />
 
-          <div className="w-full flex flex-col justify-center items-center z-10 shrink-0 relative">
-            <DiceTray
-              dice={state?.lastDice ?? null}
-              isMyTurn={isMyTurn}
-              phase={state?.phase ?? "PRE_ROLL"}
-              onRoll={onRoll}
-              onEndTurn={onEndTurn}
-              loading={false}
-            />
+          {!showPropertyCard && (
+            <>
+              <div className="absolute top-0 right-0 left-0 z-10 shrink-0 px-[clamp(0.4rem,2cqmin,1rem)] pt-[clamp(0.5rem,2.2cqmin,1.5rem)] text-center select-none">
+                <h1 className="text-[length:var(--board-text-xl)] font-black tracking-wider">
+                  <span className="bg-gradient-to-r from-[#4fc3f7] via-[#29b6f6] to-[#26c6da] bg-clip-text text-transparent">
+                    MONOPOLY
+                  </span>
+                </h1>
+                <p className="mt-0.5 text-[length:var(--board-text-sm)] font-semibold uppercase tracking-[0.2em] text-gray-500">
+                  Board Game House
+                </p>
+              </div>
 
-            {state?.phase === "BUY_OR_DECLINE" && isMyTurn && currentPlayer && (
+              <div className="absolute right-0 bottom-0 left-0 z-10 shrink-0 px-[clamp(0.4rem,2cqmin,1rem)] pb-[clamp(0.5rem,2.2cqmin,1.5rem)] text-center text-[length:var(--board-text-xs)] font-medium text-gray-600 select-none">
+                {state?.turnOrder.length || 0} Players active
+              </div>
+            </>
+          )}
+
+          <div className="absolute inset-0 z-20 flex items-center justify-center p-[clamp(0.5rem,2.5cqmin,1.5rem)]">
+            {showPropertyCard ? (
               <div
                 className={cn(
-                  "absolute left-1/2 -translate-x-1/2 bottom-0 w-[240px] md:w-[320px] max-w-[90vw] animate-in fade-in zoom-in-95 duration-200 rounded-lg p-2 z-30",
-                  GLASS_CARD,
+                  "w-[min(78cqb,92cqi)] [container-type:size]",
+                  "animate-in fade-in zoom-in-95 duration-300",
                 )}
               >
                 <PropertyPanel
@@ -139,11 +164,20 @@ export function Board({ onRoll, onBuy, onDecline, onEndTurn }: BoardProps) {
                   loading={false}
                 />
               </div>
+            ) : (
+              <DiceTray
+                dice={displayDice}
+                isMyTurn={isMyTurn}
+                phase={state?.phase ?? "PRE_ROLL"}
+                onRoll={onRoll}
+                onEndTurn={onEndTurn}
+                loading={false}
+                isDiceAnimating={shouldAnimateDice}
+                awaitingRoll={isDiceAnimating}
+                rollKey={rollAnimationKey}
+                onDiceAnimationComplete={completeDiceAnimation}
+              />
             )}
-          </div>
-
-          <div className="text-[7px] md:text-[9px] text-gray-600 font-medium z-10 select-none shrink-0">
-            {state?.turnOrder.length || 0} Players active
           </div>
         </div>
       </div>

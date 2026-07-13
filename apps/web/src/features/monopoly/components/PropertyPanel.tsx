@@ -35,30 +35,41 @@ export function PropertyPanel({
     tile.type === "property" ? PROPERTY_COLORS[tile.colorGroup]?.bg : "";
 
   return (
-    <div className={cn("overflow-hidden rounded-lg", GLASS_CARD)}>
-      {colorClass && <div className={cn("w-full h-2", colorClass)} />}
+    <div
+      className={cn(
+        "overflow-hidden rounded-[clamp(0.5rem,1.5cqmin,0.85rem)]",
+        GLASS_CARD,
+      )}
+    >
+      {colorClass && (
+        <div className={cn("h-[clamp(4px,1cqmin,8px)] w-full", colorClass)} />
+      )}
 
-      <div className="p-3 flex flex-col gap-3">
-        <h3 className="text-base font-bold text-white/90 flex items-center gap-2">
+      <div className="flex flex-col gap-[clamp(0.4rem,1.5cqmin,0.75rem)] p-[clamp(0.5rem,2cqmin,0.85rem)]">
+        <h3 className="flex items-center gap-1.5 text-[length:var(--board-text)] font-bold text-white/90">
           {tile.type === "railroad" && (
-            <Train className="w-4 h-4 text-white/70" />
+            <Train className="h-[1em] w-[1em] text-white/70" />
           )}
           {tile.type === "utility" &&
             (tile.name.includes("Electric") ? (
-              <Zap className="w-4 h-4 text-yellow-300" />
+              <Zap className="h-[1em] w-[1em] text-yellow-300" />
             ) : (
-              <Droplets className="w-4 h-4 text-sky-300" />
+              <Droplets className="h-[1em] w-[1em] text-sky-300" />
             ))}
           {tile.name}
         </h3>
 
         <div className="flex items-baseline gap-2">
-          <span className="text-xs text-white/50">Purchase Price:</span>
-          <span className="text-2xl font-black text-white">${tile.price}</span>
+          <span className="text-[length:var(--board-text-sm)] text-white/50">
+            Purchase Price:
+          </span>
+          <span className="text-[length:var(--board-text-lg)] font-black text-white">
+            ${tile.price}
+          </span>
         </div>
 
         {tile.type === "property" && (
-          <div className="bg-white/[0.05] rounded-lg p-2.5 space-y-1 text-xs border border-white/[0.06]">
+          <div className="space-y-1 rounded-lg border border-white/[0.06] bg-white/[0.05] p-[clamp(0.5rem,1.8cqmin,0.9rem)] text-[length:var(--board-text-sm)]">
             <div className="flex justify-between">
               <span className="text-white/50">Base rent:</span>
               <span className="font-bold text-white/90">${tile.rent}</span>
@@ -81,8 +92,8 @@ export function PropertyPanel({
         )}
 
         {tile.type === "railroad" && (
-          <div className="bg-white/[0.05] rounded-lg p-2.5 space-y-1 text-xs border border-white/[0.06]">
-            <p className="font-semibold text-white/70 mb-1">Rent by count:</p>
+          <div className="space-y-1 rounded-lg border border-white/[0.06] bg-white/[0.05] p-[clamp(0.5rem,1.8cqmin,0.9rem)] text-[length:var(--board-text-sm)]">
+            <p className="mb-1 font-semibold text-white/70">Rent by count:</p>
             <div className="flex justify-between">
               <span className="text-white/50">1 Railroad:</span>
               <span className="font-bold text-white/90">$25</span>
@@ -103,7 +114,7 @@ export function PropertyPanel({
         )}
 
         {tile.type === "utility" && (
-          <div className="bg-white/[0.05] rounded-lg p-2.5 space-y-1 text-xs border border-white/[0.06]">
+          <div className="space-y-1 rounded-lg border border-white/[0.06] bg-white/[0.05] p-[clamp(0.5rem,1.8cqmin,0.9rem)] text-[length:var(--board-text-sm)]">
             <div className="flex justify-between">
               <span className="text-white/50">1 Utility:</span>
               <span className="font-bold text-white/90">4x dice roll</span>
@@ -116,16 +127,17 @@ export function PropertyPanel({
         )}
 
         {!canAfford && (
-          <div className="bg-rose-500/10 border border-rose-400/20 rounded-lg p-2.5 text-xs text-rose-300 font-semibold">
+          <div className="rounded-lg border border-rose-400/20 bg-rose-500/10 p-[clamp(0.5rem,1.8cqmin,0.9rem)] text-[length:var(--board-text-sm)] font-semibold text-rose-300">
             Insufficient funds (need ${tile.price - playerCash} more)
           </div>
         )}
 
-        <div className="flex gap-2">
+        <div className="flex gap-[clamp(0.35rem,1.2cqmin,0.5rem)]">
           <Button
             onClick={onBuy}
             disabled={loading || !canAfford}
-            className="flex-1 font-bold bg-[#2196f3]/80 backdrop-blur-sm hover:bg-[#2196f3] border-0"
+            size="sm"
+            className="h-auto flex-1 border-0 bg-[#2196f3]/80 py-[clamp(0.4rem,1.4cqmin,0.65rem)] text-[length:var(--board-text-sm)] font-bold backdrop-blur-sm hover:bg-[#2196f3]"
             aria-label={`Buy ${tile.name}`}
           >
             {canAfford ? "Buy" : "Can't Afford"}
@@ -134,7 +146,8 @@ export function PropertyPanel({
             onClick={onDecline}
             disabled={loading}
             variant="outline"
-            className="flex-1 font-bold border-white/20 text-white/80 hover:bg-white/10"
+            size="sm"
+            className="h-auto flex-1 border-white/20 py-[clamp(0.4rem,1.4cqmin,0.65rem)] text-[length:var(--board-text-sm)] font-bold text-white/80 hover:bg-white/10"
             aria-label={`Decline ${tile.name}`}
           >
             Decline

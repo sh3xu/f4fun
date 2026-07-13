@@ -163,7 +163,7 @@ export function HomePage() {
                 <span className="text-xs font-bold text-slate-300 uppercase tracking-widest px-0.5">
                   Choose Your Character
                 </span>
-                <div className="grid grid-cols-4 gap-2.5 max-h-[140px] overflow-y-auto pr-1 select-none">
+                <div className="grid max-h-[140px] grid-cols-4 gap-2.5 overflow-y-auto pr-1 select-none">
                   {AVATARS.map((avatar) => {
                     const isSelected = selectedAvatar === avatar.id;
                     return (
@@ -241,6 +241,18 @@ export function HomePage() {
             </>
           ) : (
             <>
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-950/50 border border-slate-800">
+                <Avatar avatarId={selectedAvatar} size="md" />
+                <div className="min-w-0">
+                  <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">
+                    Joining as
+                  </p>
+                  <p className="text-sm font-bold text-slate-100 truncate">
+                    {name.trim() || "Player"}
+                  </p>
+                </div>
+              </div>
+
               {/* Form 4: Enter Room Code */}
               <div className="flex flex-col gap-2.5">
                 <span className="text-xs font-bold text-slate-300 uppercase tracking-widest px-0.5">

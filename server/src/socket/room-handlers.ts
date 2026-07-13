@@ -4,6 +4,7 @@ import {
   RoomCreateSchema,
   RoomJoinSchema,
   RoomStartGameSchema,
+  RoomSyncSchema,
 } from "@f4fun/shared-types";
 import type { Server } from "socket.io";
 import { createGame, generateGameId } from "../games/monopoly/GameStore.js";
@@ -11,7 +12,9 @@ import { cancelGrace } from "../rooms/DisconnectGrace.js";
 import {
   createRoom,
   getRoom,
+  getRoomByCode,
   joinRoom,
+  setPlayerConnected,
   setRoomGameStarted,
 } from "../rooms/RoomManager.js";
 import type { SocketWithPlayer } from "./middleware.js";
@@ -19,6 +22,24 @@ import { validatePayload } from "./middleware.js";
 
 function generatePlayerId(): string {
   return randomBytes(8).toString("hex");
+}
+
+function toPlayerInfoList(
+  players: Array<{
+    playerId: string;
+    name: string;
+    token: string;
+    isHost: boolean;
+    isConnected: boolean;
+  }>,
+) {
+  return players.map((p) => ({
+    id: p.playerId,
+    name: p.name,
+    token: p.token,
+    isHost: p.isHost,
+    isConnected: p.isConnected,
+  }));
 }
 
 export function registerRoomHandlers(
@@ -40,13 +61,7 @@ export function registerRoomHandlers(
       callback(null, {
         roomCode: room.code,
         roomId: room.roomId,
-        players: room.players.map((p) => ({
-          id: p.playerId,
-          name: p.name,
-          token: p.token,
-          isHost: p.isHost,
-          isConnected: p.isConnected,
-        })),
+        players: toPlayerInfoList(room.players),
       });
     } catch (err) {
       callback((err as Error).message);
@@ -87,16 +102,47 @@ export function registerRoomHandlers(
       callback(null, {
         roomCode: room.code,
         roomId: room.roomId,
-        players: room.players.map((p) => ({
-          id: p.playerId,
-          name: p.name,
-          token: p.token,
-          isHost: p.isHost,
-          isConnected: p.isConnected,
-        })),
+        players: toPlayerInfoList(room.players),
       });
 
       socket.to(room.roomId).emit("room:playerJoined", { player: playerInfo });
+    } catch (err) {
+      callback((err as Error).message);
+    }
+  });
+
+  socket.on("room:sync", async (payload, callback) => {
+    const data = validatePayload(RoomSyncSchema)(payload, callback);
+    if (!data) return;
+
+    try {
+      const room = await getRoomByCode(data.roomCode);
+      if (!room) {
+        callback("Room not found");
+        return;
+      }
+
+      if (room.status !== "lobby") {
+        callback("Game already started");
+        return;
+      }
+
+      if (data.playerId) {
+        const member = room.players.find((p) => p.playerId === data.playerId);
+        if (member) {
+          socket.playerId = data.playerId;
+          socket.roomId = room.roomId;
+          await socket.join(room.roomId);
+          await setPlayerConnected(room.roomId, data.playerId, true);
+          await cancelGrace(room.roomId, data.playerId);
+        }
+      }
+
+      callback(null, {
+        roomId: room.roomId,
+        roomCode: room.code,
+        players: toPlayerInfoList(room.players),
+      });
     } catch (err) {
       callback((err as Error).message);
     }
