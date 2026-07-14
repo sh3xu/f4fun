@@ -1,0 +1,39 @@
+.github/workflows/ci.yml
+  s_d71fd4fedd90ac::t_6bf8b96993758b 1-56
+apps/web/src/features/monopoly/store/gameStore.animation.test.ts
+  s_d71fd4fedd90ac::t_45d4f8250c3570 43-45,66-70,82-84
+packages/monopoly-engine/package.json
+  s_d71fd4fedd90ac::t_eca1d77fec929d 10
+server/package.json
+  s_d71fd4fedd90ac::t_2d9ac493230e48 8
+package.json
+  s_d71fd4fedd90ac::t_ca4430378da711 5,11-17,22-23
+apps/web/next-env.d.ts
+  s_d71fd4fedd90ac::t_8ffe01dc66540c 1-6
+packages/shared-types/package.json
+  s_d71fd4fedd90ac::t_0873a46fe96043 9-10
+apps/web/package.json
+  s_d71fd4fedd90ac::t_33ddadace9333c 8
+  s_d71fd4fedd90ac::t_1ab2c076647474 9
+  s_d71fd4fedd90ac::t_aba4bd07dde9ff 12-18,25-26,29,34-35
+.husky/pre-commit
+  s_d71fd4fedd90ac::t_e7ef0260bcac4d 1
+pnpm-lock.yaml
+  s_d71fd4fedd90ac::t_cd59d763287a2b 17-22,93-95,108,945-948,953-956,961-964,1020-1027,1046-1052,1121-1123,1146-1149,1184-1186,1242-1245,1280-1284,1300-1303,1392-1400,1404-1407,1450-1453,1555-1558,1621-1627,1692-1703,1745-1748,1753-1760,1765-1768,1809-1812,1959-1962,1986-1990,2522,2528,2566-2569,2572-2573,2578-2579,2637-2645,2662-2665,2719-2720,2761-2762,2812-2813,2884-2885,2926-2927,2938-2941,2999-3016,3019-3026,3057-3058,3142-3145,3200-3206,3352-3363,3424-3425,3432-3442,3447-3450,3478-3479,3521,3527,3542,3556,3558,3562,3580-3581,3617-3622,3631-3632
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "efccd870ceb8079c5a9afa3c5a3a35fde84473c6",
+  "prompts": {},
+  "sessions": {
+    "s_d71fd4fedd90ac": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1dbe6e62-aa50-416d-a0d2-1c9714c7051e",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
