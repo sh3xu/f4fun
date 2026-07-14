@@ -14,7 +14,7 @@
     "@f4fun/shared-types": "workspace:*",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "mongoose": "^9.7.3",
+    "mongoose": "^9.7.4",
     "socket.io": "^4.8.1",
     "zod": "^3.24.1"
   },
