@@ -6,7 +6,8 @@
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "typecheck": "tsc -b --pretty false"
   },
   "dependencies": {
     "zod": "^3.24.1"
