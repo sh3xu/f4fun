@@ -1,0 +1,21 @@
+.github/workflows/ci.yml
+  s_d71fd4fedd90ac::t_dc2b837b9db882 57-78
+packages/monopoly-engine/tsconfig.json
+  s_d71fd4fedd90ac::t_ffce23558cd81e 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "feb497d20b45d935d150ac22c44fd8d7be944b34",
+  "prompts": {},
+  "sessions": {
+    "s_d71fd4fedd90ac": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1dbe6e62-aa50-416d-a0d2-1c9714c7051e",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
