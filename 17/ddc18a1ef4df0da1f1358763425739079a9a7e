@@ -1,0 +1,25 @@
+packages/shared-types/package.json
+  s_d71fd4fedd90ac::t_a27cd1ccd882be 5-12,14
+packages/monopoly-engine/package.json
+  s_d71fd4fedd90ac::t_f0ba2125c20332 5-12,14
+package.json
+  s_d71fd4fedd90ac::t_3735d1b716a34b 13
+apps/web/vitest.config.ts
+  s_d71fd4fedd90ac::t_87330cb1ce7570 15-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "17ddc18a1ef4df0da1f1358763425739079a9a7e",
+  "prompts": {},
+  "sessions": {
+    "s_d71fd4fedd90ac": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1dbe6e62-aa50-416d-a0d2-1c9714c7051e",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
