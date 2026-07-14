@@ -16,13 +16,20 @@ interface RoomStore {
   myPlayerId: string | null;
   myName: string | null;
   myToken: string | null;
+  myPlayerSecret: string | null;
   isConnected: boolean;
 
   setRoom: (roomId: string, roomCode: string, players: RoomPlayer[]) => void;
-  setMyIdentity: (playerId: string, name: string, token: string) => void;
+  setMyIdentity: (
+    playerId: string,
+    name: string,
+    token: string,
+    playerSecret: string,
+  ) => void;
   setGameId: (gameId: string) => void;
   setRoomId: (roomId: string) => void;
   setMyPlayerId: (playerId: string) => void;
+  setMyPlayerSecret: (playerSecret: string) => void;
   addPlayer: (player: RoomPlayer) => void;
   updatePlayerConnection: (playerId: string, isConnected: boolean) => void;
   setConnected: (connected: boolean) => void;
@@ -37,14 +44,20 @@ export const useRoomStore = create<RoomStore>((set) => ({
   myPlayerId: null,
   myName: null,
   myToken: null,
+  myPlayerSecret: null,
   isConnected: false,
 
   setRoom: (roomId, roomCode, players) => {
     set({ roomId, roomCode, players });
   },
 
-  setMyIdentity: (playerId, name, token) => {
-    set({ myPlayerId: playerId, myName: name, myToken: token });
+  setMyIdentity: (playerId, name, token, playerSecret) => {
+    set({
+      myPlayerId: playerId,
+      myName: name,
+      myToken: token,
+      myPlayerSecret: playerSecret,
+    });
   },
 
   setGameId: (gameId) => {
@@ -57,6 +70,10 @@ export const useRoomStore = create<RoomStore>((set) => ({
 
   setMyPlayerId: (playerId) => {
     set({ myPlayerId: playerId });
+  },
+
+  setMyPlayerSecret: (playerSecret) => {
+    set({ myPlayerSecret: playerSecret });
   },
 
   addPlayer: (player) => {
@@ -94,6 +111,7 @@ export const useRoomStore = create<RoomStore>((set) => ({
       myPlayerId: null,
       myName: null,
       myToken: null,
+      myPlayerSecret: null,
       isConnected: false,
     });
   },

@@ -4,7 +4,7 @@ import { CounterTicker } from "@/components/animation/CounterTicker";
 import { Avatar } from "@/components/ui/Avatar";
 import { cn } from "@/lib/cn";
 import { getPlayerColor } from "@/lib/player-colors";
-import { GLASS_CARD } from "../theme/board-theme";
+import { BOARD_MONEY_CLASS, GLASS_CARD } from "../theme/board-theme";
 
 interface PlayerHUDProps {
   player: PlayerState;
@@ -57,7 +57,8 @@ export function PlayerHUD({
         <CounterTicker
           value={player.cash}
           className={cn(
-            "text-sm font-extrabold tracking-tight mt-0.5",
+            BOARD_MONEY_CLASS,
+            "mt-0.5 text-sm",
             player.cash < 200
               ? "text-rose-400"
               : player.cash > 1000

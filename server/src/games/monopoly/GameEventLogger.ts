@@ -1,7 +1,22 @@
 import type { GameEvent, GameState } from "@f4fun/monopoly-engine";
 import { GameEventModel } from "../../db/index.js";
 
-let sequenceCounter = 0;
+function isDuplicateKeyError(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "code" in err &&
+    (err as { code: number }).code === 11000
+  );
+}
+
+async function nextSequence(gameId: string): Promise<number> {
+  const last = await GameEventModel.findOne({ gameId })
+    .sort({ sequence: -1 })
+    .select({ sequence: 1 })
+    .lean();
+  return (last?.sequence ?? -1) + 1;
+}
 
 export async function logGameAction(
   gameId: string,
@@ -12,18 +27,29 @@ export async function logGameAction(
   stateAfter: GameState,
   events: GameEvent[],
 ): Promise<void> {
-  await GameEventModel.create({
-    gameId,
-    roomId,
-    sequence: sequenceCounter++,
-    turn: stateAfter.activePlayerIndex,
-    playerId,
-    action,
-    events,
-    stateBefore: stateToLog(stateBefore),
-    stateAfter: stateToLog(stateAfter),
-    timestamp: new Date(),
-  });
+  // NOTE: Sequence must come from DB (not process memory) so hot-reload / restart
+  // does not reuse (gameId, sequence) pairs already stored.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const sequence = await nextSequence(gameId);
+    try {
+      await GameEventModel.create({
+        gameId,
+        roomId,
+        sequence,
+        turn: stateAfter.activePlayerIndex,
+        playerId,
+        action,
+        events,
+        stateBefore: stateToLog(stateBefore),
+        stateAfter: stateToLog(stateAfter),
+        timestamp: new Date(),
+      });
+      return;
+    } catch (err) {
+      if (isDuplicateKeyError(err) && attempt < 2) continue;
+      throw err;
+    }
+  }
 }
 
 export async function getGameEventLog(

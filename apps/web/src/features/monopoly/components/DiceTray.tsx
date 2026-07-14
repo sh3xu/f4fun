@@ -23,10 +23,11 @@ const phaseMessages: Record<GamePhase, string> = {
   PRE_ROLL: "Roll the dice to move",
   JAIL_DECISION: "Choose how to get out of jail",
   POST_ROLL: "Moving...",
-  BUY_OR_DECLINE: "Buy or decline property",
+  BUY_OR_DECLINE: "Buy, skip, or auction",
   CARD_DRAWN: "Card drawn",
   POST_BUY: "Processing...",
-  END_TURN: "End your turn",
+  AUCTION: "Auction in progress",
+  END_TURN: "End your turn or manage properties",
   GAME_OVER: "Game Over",
 };
 
@@ -43,8 +44,11 @@ export function DiceTray({
   onDiceAnimationComplete,
 }: DiceTrayProps) {
   const isDoubles = dice && dice[0] === dice[1];
-  const phaseHint =
-    awaitingRoll || isDiceAnimating ? "Rolling..." : phaseMessages[phase];
+  const phaseHint = isDiceAnimating
+    ? "Rolling..."
+    : awaitingRoll
+      ? "Moving..."
+      : phaseMessages[phase];
 
   return (
     <div className="flex w-full select-none flex-col items-center gap-[clamp(0.35rem,1.4cqmin,0.65rem)] bg-transparent transition-all">
@@ -72,19 +76,9 @@ export function DiceTray({
         onComplete={onDiceAnimationComplete}
       />
 
-      {dice && !isDiceAnimating && (
-        <div className="text-center">
-          <p className="text-[length:var(--board-text-sm)] font-medium text-gray-400">
-            Total:{" "}
-            <span className="ml-1 rounded border border-[#2a3a52] bg-[#1a2332] px-[0.4em] py-[0.1em] text-[length:var(--board-text)] font-extrabold text-white">
-              {dice[0] + dice[1]}
-            </span>
-          </p>
-          {isDoubles && (
-            <div className="mt-1 inline-flex items-center gap-1 rounded-full border border-yellow-500/25 bg-yellow-500/10 px-2 py-0.5 text-[length:var(--board-text-xs)] font-bold text-yellow-400">
-              Doubles!
-            </div>
-          )}
+      {dice && !isDiceAnimating && isDoubles && (
+        <div className="inline-flex items-center gap-1 rounded-full border border-yellow-500/25 bg-yellow-500/10 px-2 py-0.5 text-[length:var(--board-text-xs)] font-bold text-yellow-400">
+          Doubles!
         </div>
       )}
 

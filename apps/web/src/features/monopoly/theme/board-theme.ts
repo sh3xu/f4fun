@@ -87,4 +87,17 @@ export const BOARD_TEXT_VARS: Record<string, string> = {
   "--board-text": "clamp(12px, 2.1cqmin, 24px)",
   "--board-text-lg": "clamp(1.1rem, 4.8cqmin, 3rem)",
   "--board-text-xl": "clamp(1.35rem, 6cqmin, 3.5rem)",
+  // Money on tiles — small but legible mono digits
+  "--board-money": "clamp(7px, 1.2cqmin, 11px)",
 };
+
+/** Clear tabular money figures for board prices and cash readouts. */
+export const BOARD_MONEY_CLASS =
+  "font-mono tabular-nums tracking-tight font-semibold";
+
+/**
+ * Buy / auction overlay — width tracks board cqmin so the card scales with the board.
+ * Do not nest another container-type inside; keep cq units on the board/center.
+ */
+export const BOARD_OVERLAY_PANEL_CLASS =
+  "w-[clamp(9.5rem,38cqmin,18rem)] max-h-[min(78cqb,90%)] max-w-[92%] origin-center overflow-x-hidden overflow-y-auto";

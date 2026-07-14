@@ -1,4 +1,11 @@
+import {
+  passAuction,
+  placeBid,
+  startBankAuction,
+  startOwnerAuction,
+} from "./auction.js";
 import { checkBankruptcy } from "./bankruptcy.js";
+import { buildHotel, buildHouse, sellHotel, sellHouse } from "./building.js";
 import {
   BANK_HOTEL_LIMIT,
   BANK_HOUSE_LIMIT,
@@ -9,9 +16,11 @@ import {
   TILE_BY_POSITION,
 } from "./config/board.js";
 import { diceSum, rollDice } from "./dice.js";
+import { mortgageProperty, unmortgageProperty } from "./mortgage.js";
 import { applyMove } from "./movement.js";
 import { buyProperty, canBuyProperty } from "./property.js";
 import { chargeRent } from "./rent.js";
+import { acceptTrade, proposeTrade, rejectTrade } from "./trade.js";
 import { advanceTurn, getActivePlayer } from "./turn.js";
 import type {
   ApplyResult,
@@ -20,6 +29,7 @@ import type {
   GameEvent,
   GameState,
   PlayerConfig,
+  PlayerId,
   PlayerState,
   RNG,
 } from "./types.js";
@@ -33,6 +43,10 @@ function shuffleDeck(cards: readonly string[], rng: RNG): string[] {
     [deck[i], deck[j]] = [deck[j], deck[i]];
   }
   return deck;
+}
+
+function managementPhaseOk(phase: GameState["phase"]): boolean {
+  return phase === "PRE_ROLL" || phase === "END_TURN";
 }
 
 export function createInitialState(
@@ -92,19 +106,28 @@ export function createInitialState(
       discardPile: [],
     },
     pendingCard: null,
+    auction: null,
+    pendingTrades: [],
     config: finalConfig,
     winnerId: null,
     startedAt: new Date().toISOString(),
   };
 }
 
+/**
+ * @param actorId - Player performing the action. Defaults to the active turn player.
+ *   Required for auction bids/passes and trade accept/reject by non-active players.
+ */
 export function applyAction(
   state: GameState,
   action: GameAction,
   rng: RNG = Math.random,
+  actorId?: PlayerId,
 ): ApplyResult {
   const activePlayerId = getActivePlayer(state);
-  if (!activePlayerId) {
+  const playerId = actorId ?? activePlayerId;
+
+  if (!playerId) {
     return { state, events: [], error: "No active player" };
   }
 
@@ -113,6 +136,9 @@ export function applyAction(
   try {
     switch (action.type) {
       case "ROLL_DICE": {
+        if (playerId !== activePlayerId) {
+          return { state, events: [], error: "Not your turn" };
+        }
         if (state.phase !== "PRE_ROLL") {
           return { state, events: [], error: "Cannot roll dice now" };
         }
@@ -235,6 +261,9 @@ export function applyAction(
       }
 
       case "BUY_PROPERTY": {
+        if (playerId !== activePlayerId) {
+          return { state, events: [], error: "Not your turn" };
+        }
         if (state.phase !== "BUY_OR_DECLINE") {
           return { state, events: [], error: "Cannot buy property now" };
         }
@@ -261,6 +290,9 @@ export function applyAction(
       }
 
       case "DECLINE_PROPERTY": {
+        if (playerId !== activePlayerId) {
+          return { state, events: [], error: "Not your turn" };
+        }
         if (state.phase !== "BUY_OR_DECLINE") {
           return { state, events: [], error: "Cannot decline property now" };
         }
@@ -279,7 +311,180 @@ export function applyAction(
         return { state, events };
       }
 
+      case "START_AUCTION": {
+        if (playerId !== activePlayerId) {
+          return { state, events: [], error: "Not your turn" };
+        }
+        const player = state.players[activePlayerId];
+        const result = startBankAuction(state, player.position);
+        if (result.error) {
+          return { state, events: [], error: result.error };
+        }
+        events.push(...result.events);
+        return { state, events };
+      }
+
+      case "START_OWNER_AUCTION": {
+        if (playerId !== activePlayerId) {
+          return { state, events: [], error: "Not your turn" };
+        }
+        if (!managementPhaseOk(state.phase)) {
+          return { state, events: [], error: "Cannot start owner auction now" };
+        }
+        const result = startOwnerAuction(state, playerId, action.position);
+        if (result.error) {
+          return { state, events: [], error: result.error };
+        }
+        events.push(...result.events);
+        return { state, events };
+      }
+
+      case "PLACE_BID": {
+        const result = placeBid(state, playerId, action.amount);
+        if (result.error) {
+          return { state, events: [], error: result.error };
+        }
+        events.push(...result.events);
+        return { state, events };
+      }
+
+      case "PASS_AUCTION": {
+        const result = passAuction(state, playerId);
+        if (result.error) {
+          return { state, events: [], error: result.error };
+        }
+        events.push(...result.events);
+        return { state, events };
+      }
+
+      case "BUILD_HOUSE": {
+        if (playerId !== activePlayerId) {
+          return { state, events: [], error: "Not your turn" };
+        }
+        if (!managementPhaseOk(state.phase)) {
+          return { state, events: [], error: "Cannot build now" };
+        }
+        const result = buildHouse(state, playerId, action.position);
+        if (result.error) {
+          return { state, events: [], error: result.error };
+        }
+        events.push(...result.events);
+        return { state, events };
+      }
+
+      case "SELL_HOUSE": {
+        if (playerId !== activePlayerId) {
+          return { state, events: [], error: "Not your turn" };
+        }
+        if (!managementPhaseOk(state.phase)) {
+          return { state, events: [], error: "Cannot sell house now" };
+        }
+        const result = sellHouse(state, playerId, action.position);
+        if (result.error) {
+          return { state, events: [], error: result.error };
+        }
+        events.push(...result.events);
+        return { state, events };
+      }
+
+      case "BUILD_HOTEL": {
+        if (playerId !== activePlayerId) {
+          return { state, events: [], error: "Not your turn" };
+        }
+        if (!managementPhaseOk(state.phase)) {
+          return { state, events: [], error: "Cannot build hotel now" };
+        }
+        const result = buildHotel(state, playerId, action.position);
+        if (result.error) {
+          return { state, events: [], error: result.error };
+        }
+        events.push(...result.events);
+        return { state, events };
+      }
+
+      case "SELL_HOTEL": {
+        if (playerId !== activePlayerId) {
+          return { state, events: [], error: "Not your turn" };
+        }
+        if (!managementPhaseOk(state.phase)) {
+          return { state, events: [], error: "Cannot sell hotel now" };
+        }
+        const result = sellHotel(state, playerId, action.position);
+        if (result.error) {
+          return { state, events: [], error: result.error };
+        }
+        events.push(...result.events);
+        return { state, events };
+      }
+
+      case "MORTGAGE_PROPERTY": {
+        if (playerId !== activePlayerId) {
+          return { state, events: [], error: "Not your turn" };
+        }
+        if (!managementPhaseOk(state.phase)) {
+          return { state, events: [], error: "Cannot mortgage now" };
+        }
+        const result = mortgageProperty(state, playerId, action.position);
+        if (result.error) {
+          return { state, events: [], error: result.error };
+        }
+        events.push(...result.events);
+        return { state, events };
+      }
+
+      case "UNMORTGAGE_PROPERTY": {
+        if (playerId !== activePlayerId) {
+          return { state, events: [], error: "Not your turn" };
+        }
+        if (!managementPhaseOk(state.phase)) {
+          return { state, events: [], error: "Cannot unmortgage now" };
+        }
+        const result = unmortgageProperty(state, playerId, action.position);
+        if (result.error) {
+          return { state, events: [], error: result.error };
+        }
+        events.push(...result.events);
+        return { state, events };
+      }
+
+      case "PROPOSE_TRADE": {
+        const result = proposeTrade(
+          state,
+          playerId,
+          action.tradeId,
+          action.toPlayerId,
+          action.offer,
+          action.request,
+        );
+        if (result.error) {
+          return { state, events: [], error: result.error };
+        }
+        events.push(...result.events);
+        return { state, events };
+      }
+
+      case "ACCEPT_TRADE": {
+        const result = acceptTrade(state, playerId, action.tradeId);
+        if (result.error) {
+          return { state, events: [], error: result.error };
+        }
+        events.push(...result.events);
+        return { state, events };
+      }
+
+      case "REJECT_TRADE": {
+        const result = rejectTrade(state, playerId, action.tradeId);
+        if (result.error) {
+          return { state, events: [], error: result.error };
+        }
+        events.push(...result.events);
+        return { state, events };
+      }
+
       case "END_TURN": {
+        if (playerId !== activePlayerId) {
+          return { state, events: [], error: "Not your turn" };
+        }
         if (state.phase !== "END_TURN") {
           return { state, events: [], error: "Cannot end turn now" };
         }
@@ -298,12 +503,27 @@ export function applyAction(
   }
 }
 
+export {
+  getCurrentAuctionBidder,
+  passAuction,
+  placeBid,
+  startBankAuction,
+  startOwnerAuction,
+} from "./auction.js";
 export { checkBankruptcy } from "./bankruptcy.js";
+export {
+  buildHotel,
+  buildHouse,
+  sellHotel,
+  sellHouse,
+} from "./building.js";
 export * from "./config/board.js";
 export { diceSum, rollDice } from "./dice.js";
+export { mortgageProperty, unmortgageProperty } from "./mortgage.js";
 export { applyMove, movePlayer, setPlayerPosition } from "./movement.js";
 export { buyProperty, canBuyProperty } from "./property.js";
 export { calculateRent, chargeRent, ownsColorGroup } from "./rent.js";
+export { acceptTrade, proposeTrade, rejectTrade } from "./trade.js";
 export { advanceTurn, getActivePlayer } from "./turn.js";
 export * from "./types.js";
 export { checkWinCondition, getWinner } from "./win.js";

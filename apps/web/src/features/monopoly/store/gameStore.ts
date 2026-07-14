@@ -1,5 +1,17 @@
-import type { GameEvent, GameState } from "@f4fun/monopoly-engine";
+import {
+  type GameEvent,
+  type GameState,
+  GO_TO_JAIL_POSITION,
+  JAIL_POSITION,
+} from "@f4fun/monopoly-engine";
 import { create } from "zustand";
+import type { PieceMoveMode } from "@/components/animation/PieceMover";
+
+interface PendingNextMove {
+  fromPosition: number;
+  toPosition: number;
+  moveMode: PieceMoveMode;
+}
 
 interface PendingAnimation {
   type: "dice" | "move" | "none";
@@ -7,10 +19,13 @@ interface PendingAnimation {
   dice?: [number, number];
   fromPosition?: number;
   toPosition?: number;
+  moveMode?: PieceMoveMode;
+  nextMove?: PendingNextMove;
 }
 
 interface GameStore {
   state: GameState | null;
+  displayPositions: Record<string, number>;
   pendingAnimation: PendingAnimation;
   diceAnimationComplete: boolean;
   rollAnimationKey: number;
@@ -19,25 +34,84 @@ interface GameStore {
   setFromSnapshot: (state: GameState) => void;
   applyServerUpdate: (state: GameState, events: GameEvent[]) => void;
   startDiceRoll: () => void;
-  triggerDiceAnimation: (
-    playerId: string,
-    dice: [number, number],
-    newPosition: number,
-  ) => void;
   completeDiceAnimation: () => void;
+  setDisplayPosition: (playerId: string, position: number) => void;
+  completeMoveAnimation: () => void;
   reset: () => void;
+}
+
+function positionsFromState(state: GameState): Record<string, number> {
+  const positions: Record<string, number> = {};
+  for (const player of Object.values(state.players)) {
+    positions[player.id] = player.position;
+  }
+  return positions;
+}
+
+function normalizeGameState(state: GameState): GameState {
+  if (state.auction === undefined) state.auction = null;
+  if (!state.pendingTrades) state.pendingTrades = [];
+  return state;
+}
+
+function buildDicePendingAnimation(
+  events: GameEvent[],
+  diceEvent: Extract<GameEvent, { type: "DICE_ROLLED" }>,
+  fromPosition: number,
+): PendingAnimation {
+  const sentToJail = events.some((e) => e.type === "SENT_TO_JAIL");
+  const base = {
+    type: "dice" as const,
+    playerId: diceEvent.playerId,
+    dice: diceEvent.dice,
+  };
+
+  // Land on Go To Jail: hop along the dice path to 30, then slide to jail
+  if (sentToJail && diceEvent.newPosition === GO_TO_JAIL_POSITION) {
+    return {
+      ...base,
+      fromPosition,
+      toPosition: GO_TO_JAIL_POSITION,
+      moveMode: "hop",
+      nextMove: {
+        fromPosition: GO_TO_JAIL_POSITION,
+        toPosition: JAIL_POSITION,
+        moveMode: "slide",
+      },
+    };
+  }
+
+  // 3 doubles (or other direct jail): slide to jail without hopping around
+  if (sentToJail && diceEvent.newPosition === JAIL_POSITION) {
+    return {
+      ...base,
+      fromPosition,
+      toPosition: JAIL_POSITION,
+      moveMode: "slide",
+    };
+  }
+
+  return {
+    ...base,
+    fromPosition,
+    toPosition: diceEvent.newPosition,
+    moveMode: "hop",
+  };
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
   state: null,
+  displayPositions: {},
   pendingAnimation: { type: "none" },
   diceAnimationComplete: true,
   rollAnimationKey: 0,
   lastEvents: [],
 
   setFromSnapshot: (state) => {
+    const normalized = normalizeGameState(state);
     set({
-      state,
+      state: normalized,
+      displayPositions: positionsFromState(normalized),
       lastEvents: [],
       pendingAnimation: { type: "none" },
       diceAnimationComplete: true,
@@ -50,9 +124,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   applyServerUpdate: (state, events) => {
+    state = normalizeGameState(state);
     const prev = get().state;
     if (!prev) {
-      set({ state, lastEvents: events });
+      set({
+        state,
+        displayPositions: positionsFromState(state),
+        lastEvents: events,
+      });
       return;
     }
 
@@ -62,17 +141,35 @@ export const useGameStore = create<GameStore>((set, get) => ({
     );
 
     const pendingAnimation = diceEvent
-      ? {
-          type: "dice" as const,
-          playerId: diceEvent.playerId,
-          dice: diceEvent.dice,
-          fromPosition: prev.players[diceEvent.playerId]?.position ?? 0,
-          toPosition: diceEvent.newPosition,
-        }
+      ? buildDicePendingAnimation(
+          events,
+          diceEvent,
+          prev.players[diceEvent.playerId]?.position ?? 0,
+        )
       : get().pendingAnimation;
+
+    // Keep the rolling player's token at fromPosition until tile hops / slides finish
+    const displayPositions = { ...get().displayPositions };
+    const animatingId =
+      diceEvent?.playerId ??
+      (get().pendingAnimation.type !== "none"
+        ? get().pendingAnimation.playerId
+        : undefined);
+
+    for (const player of Object.values(state.players)) {
+      if (diceEvent && player.id === diceEvent.playerId) {
+        displayPositions[player.id] =
+          prev.players[diceEvent.playerId]?.position ?? player.position;
+      } else if (player.id === animatingId) {
+        // Mid-animation: leave displayPositions alone
+      } else {
+        displayPositions[player.id] = player.position;
+      }
+    }
 
     set({
       state,
+      displayPositions,
       lastEvents: events,
       pendingAnimation,
       diceAnimationComplete: diceEvent ? false : get().diceAnimationComplete,
@@ -82,27 +179,75 @@ export const useGameStore = create<GameStore>((set, get) => ({
     });
   },
 
-  triggerDiceAnimation: (playerId, dice, newPosition) => {
-    const prev = get().state;
-    const fromPosition = prev?.players[playerId]?.position ?? 0;
-    set({
-      pendingAnimation: {
-        type: "dice",
-        playerId,
-        dice,
-        fromPosition,
-        toPosition: newPosition,
-      },
-    });
+  completeDiceAnimation: () => {
+    const pending = get().pendingAnimation;
+    // Ignore duplicate completes (e.g. Strict Mode / remount) once we've left the dice phase
+    if (pending.type !== "dice") return;
+
+    if (
+      pending.playerId &&
+      pending.fromPosition !== undefined &&
+      pending.toPosition !== undefined &&
+      pending.fromPosition !== pending.toPosition
+    ) {
+      set({
+        pendingAnimation: {
+          ...pending,
+          type: "move",
+        },
+      });
+      return;
+    }
+
+    set({ pendingAnimation: { type: "none" }, diceAnimationComplete: true });
   },
 
-  completeDiceAnimation: () => {
-    set({ pendingAnimation: { type: "none" }, diceAnimationComplete: true });
+  setDisplayPosition: (playerId, position) => {
+    set((s) => ({
+      displayPositions: { ...s.displayPositions, [playerId]: position },
+    }));
+  },
+
+  completeMoveAnimation: () => {
+    const pending = get().pendingAnimation;
+    const displayPositions = { ...get().displayPositions };
+
+    if (pending.playerId !== undefined && pending.toPosition !== undefined) {
+      displayPositions[pending.playerId] = pending.toPosition;
+    }
+
+    // Promote follow-up move (e.g. Go To Jail hop → slide to jail)
+    if (
+      pending.type === "move" &&
+      pending.nextMove &&
+      pending.playerId !== undefined
+    ) {
+      const { nextMove } = pending;
+      set({
+        displayPositions,
+        pendingAnimation: {
+          type: "move",
+          playerId: pending.playerId,
+          dice: pending.dice,
+          fromPosition: nextMove.fromPosition,
+          toPosition: nextMove.toPosition,
+          moveMode: nextMove.moveMode,
+        },
+      });
+      return;
+    }
+
+    set({
+      displayPositions,
+      pendingAnimation: { type: "none" },
+      diceAnimationComplete: true,
+    });
   },
 
   reset: () => {
     set({
       state: null,
+      displayPositions: {},
       pendingAnimation: { type: "none" },
       diceAnimationComplete: true,
       rollAnimationKey: 0,

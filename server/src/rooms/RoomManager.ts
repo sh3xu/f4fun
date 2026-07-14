@@ -27,10 +27,15 @@ function generateId(): string {
   return randomBytes(8).toString("hex");
 }
 
+export function generatePlayerSecret(): string {
+  return randomBytes(24).toString("hex");
+}
+
 export async function createRoom(
   playerId: string,
   name: string,
   token: string,
+  playerSecret: string,
 ): Promise<Room> {
   const roomId = generateId();
   const code = generateRoomCode();
@@ -39,6 +44,7 @@ export async function createRoom(
     playerId,
     name,
     token,
+    playerSecret,
     isHost: true,
     isConnected: true,
     joinedAt: new Date(),
@@ -61,6 +67,7 @@ export async function joinRoom(
   playerId: string,
   name: string,
   token: string,
+  playerSecret: string,
 ): Promise<Room> {
   const doc = await RoomModel.findOne({ code: code.toUpperCase() });
   if (!doc) throw new Error("Room not found");
@@ -68,6 +75,9 @@ export async function joinRoom(
 
   const existing = doc.players.find((p) => p.playerId === playerId);
   if (existing) {
+    if (existing.playerSecret !== playerSecret) {
+      throw new Error("Invalid player credentials");
+    }
     existing.isConnected = true;
     await doc.save();
     return docToRoom(doc);
@@ -79,6 +89,7 @@ export async function joinRoom(
     playerId,
     name,
     token,
+    playerSecret,
     isHost: false,
     isConnected: true,
     joinedAt: new Date(),
@@ -128,6 +139,25 @@ export async function getRoomByPlayerId(
 ): Promise<Room | null> {
   const doc = await RoomModel.findOne({
     "players.playerId": playerId,
+    status: { $in: ["lobby", "playing"] },
+  });
+  return doc ? docToRoom(doc) : null;
+}
+
+/** Verifies player owns this seat; returns room only when secret and roomId match. */
+export async function verifyPlayerSession(
+  roomId: string,
+  playerId: string,
+  playerSecret: string,
+): Promise<Room | null> {
+  const doc = await RoomModel.findOne({
+    roomId,
+    players: {
+      $elemMatch: {
+        playerId,
+        playerSecret,
+      },
+    },
     status: { $in: ["lobby", "playing"] },
   });
   return doc ? docToRoom(doc) : null;

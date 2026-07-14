@@ -13,7 +13,8 @@ export function validatePayload<T extends z.ZodTypeAny>(schema: T) {
   ): z.infer<T> | null => {
     // NOTE: Catch stale/missing package builds so a bad schema never kills the process
     if (!schema || typeof schema.safeParse !== "function") {
-      const error = "Validation schema is missing — rebuild @f4fun/shared-types";
+      const error =
+        "Validation schema is missing — rebuild @f4fun/shared-types";
       console.error(`[Socket] ${error}`);
       if (callback) callback(error);
       return null;

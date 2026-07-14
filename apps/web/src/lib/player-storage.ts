@@ -5,6 +5,7 @@ export interface StoredPlayer {
   playerId: string;
   name: string;
   token: string;
+  playerSecret: string;
 }
 
 export interface StoredRoom {
@@ -22,7 +23,10 @@ export function loadPlayer(): StoredPlayer | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(PLAYER_KEY);
-    return raw ? (JSON.parse(raw) as StoredPlayer) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as StoredPlayer;
+    if (!parsed.playerSecret) return null;
+    return parsed;
   } catch {
     return null;
   }

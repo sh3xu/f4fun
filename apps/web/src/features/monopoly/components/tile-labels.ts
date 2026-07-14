@@ -1,43 +1,63 @@
-/** Compact board labels — full name stays on the tile title tooltip. */
+/**
+ * Engine keeps classic street names; UI shows these labels.
+ */
+import { TILE_BY_POSITION } from "@f4fun/monopoly-engine";
+
 const SHORT_NAMES: Record<string, string> = {
-  "Mediterranean Avenue": "Mediterranean",
-  "Baltic Avenue": "Baltic",
-  "Oriental Avenue": "Oriental",
-  "Vermont Avenue": "Vermont",
-  "Connecticut Avenue": "Connecticut",
-  "St. Charles Place": "St. Charles",
-  "States Avenue": "States",
-  "Virginia Avenue": "Virginia",
-  "St. James Place": "St. James",
-  "Tennessee Avenue": "Tennessee",
-  "New York Avenue": "New York",
-  "Kentucky Avenue": "Kentucky",
-  "Indiana Avenue": "Indiana",
-  "Illinois Avenue": "Illinois",
-  "Atlantic Avenue": "Atlantic",
-  "Ventnor Avenue": "Ventnor",
-  "Marvin Gardens": "Marvin G.",
-  "Pacific Avenue": "Pacific",
-  "North Carolina Avenue": "N. Carolina",
-  "Pennsylvania Avenue": "Pennsylvania",
-  "Park Place": "Park Place",
-  Boardwalk: "Boardwalk",
-  "Reading Railroad": "Reading RR",
-  "Pennsylvania Railroad": "Penn. RR",
-  "B&O Railroad": "B&O RR",
-  "Short Line Railroad": "Short Line",
-  "Electric Company": "Electric",
-  "Water Works": "Water Works",
+  // Brown — Brazil
+  "Mediterranean Avenue": "Rio",
+  "Baltic Avenue": "Belem",
+  // Light blue — India
+  "Oriental Avenue": "Goa",
+  "Vermont Avenue": "Pune",
+  "Connecticut Avenue": "Agra",
+  // Pink — South Korea
+  "St. Charles Place": "Seoul",
+  "States Avenue": "Busan",
+  "Virginia Avenue": "Daegu",
+  // Orange — Japan
+  "St. James Place": "Tokyo",
+  "Tennessee Avenue": "Osaka",
+  "New York Avenue": "Kyoto",
+  // Red — Italy
+  "Kentucky Avenue": "Rome",
+  "Indiana Avenue": "Milan",
+  "Illinois Avenue": "Pisa",
+  // Yellow — France
+  "Atlantic Avenue": "Paris",
+  "Ventnor Avenue": "Lyon",
+  "Marvin Gardens": "Nice",
+  // Green — Spain
+  "Pacific Avenue": "Leon",
+  "North Carolina Avenue": "Vigo",
+  "Pennsylvania Avenue": "Cadiz",
+  // Dark blue — UAE
+  "Park Place": "Dubai",
+  Boardwalk: "Ajman",
+  // Railroads — USA
+  "Reading Railroad": "Reno Rail",
+  "Pennsylvania Railroad": "Tulsa Rail",
+  "B&O Railroad": "Omaha Rail",
+  "Short Line Railroad": "Boise Rail",
+  // Utilities — Norway
+  "Electric Company": "Electricity",
+  "Water Works": "Water Co.",
+  // Specials
   "Community Chest": "Chest",
   Chance: "Chance",
-  "Income Tax": "Income Tax",
-  "Luxury Tax": "Luxury Tax",
+  "Income Tax": "Tax",
+  "Luxury Tax": "Lux. Tax",
   "Jail / Just Visiting": "Jail",
-  "Free Parking": "Free Parking",
-  "Go To Jail": "Go To Jail",
+  "Free Parking": "Parking",
+  "Go To Jail": "Go Jail",
   GO: "GO",
 };
 
 export function getTileLabel(name: string): string {
   return SHORT_NAMES[name] ?? name;
+}
+
+export function getTileLabelAt(position: number): string {
+  const tile = TILE_BY_POSITION.get(position);
+  return tile ? getTileLabel(tile.name) : `Tile ${position}`;
 }

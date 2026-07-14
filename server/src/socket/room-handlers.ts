@@ -11,11 +11,13 @@ import { createGame, generateGameId } from "../games/monopoly/GameStore.js";
 import { cancelGrace } from "../rooms/DisconnectGrace.js";
 import {
   createRoom,
+  generatePlayerSecret,
   getRoom,
   getRoomByCode,
   joinRoom,
   setPlayerConnected,
   setRoomGameStarted,
+  verifyPlayerSession,
 } from "../rooms/RoomManager.js";
 import type { SocketWithPlayer } from "./middleware.js";
 import { validatePayload } from "./middleware.js";
@@ -52,7 +54,13 @@ export function registerRoomHandlers(
 
     try {
       const playerId = generatePlayerId();
-      const room = await createRoom(playerId, data.playerName, data.token);
+      const playerSecret = generatePlayerSecret();
+      const room = await createRoom(
+        playerId,
+        data.playerName,
+        data.token,
+        playerSecret,
+      );
 
       socket.playerId = playerId;
       socket.roomId = room.roomId;
@@ -61,6 +69,8 @@ export function registerRoomHandlers(
       callback(null, {
         roomCode: room.code,
         roomId: room.roomId,
+        playerId,
+        playerSecret,
         players: toPlayerInfoList(room.players),
       });
     } catch (err) {
@@ -73,18 +83,17 @@ export function registerRoomHandlers(
     if (!data) return;
 
     try {
-      let playerId = socket.playerId;
-      if (!playerId) {
-        playerId = generatePlayerId();
-        socket.playerId = playerId;
-      }
+      const playerId = generatePlayerId();
+      const playerSecret = generatePlayerSecret();
 
       const room = await joinRoom(
         data.roomCode,
         playerId,
         data.playerName,
         data.token,
+        playerSecret,
       );
+      socket.playerId = playerId;
       socket.roomId = room.roomId;
       await socket.join(room.roomId);
 
@@ -102,6 +111,8 @@ export function registerRoomHandlers(
       callback(null, {
         roomCode: room.code,
         roomId: room.roomId,
+        playerId,
+        playerSecret,
         players: toPlayerInfoList(room.players),
       });
 
@@ -127,9 +138,13 @@ export function registerRoomHandlers(
         return;
       }
 
-      if (data.playerId) {
-        const member = room.players.find((p) => p.playerId === data.playerId);
-        if (member) {
+      if (data.playerId && data.playerSecret) {
+        const verified = await verifyPlayerSession(
+          room.roomId,
+          data.playerId,
+          data.playerSecret,
+        );
+        if (verified) {
           socket.playerId = data.playerId;
           socket.roomId = room.roomId;
           await socket.join(room.roomId);
