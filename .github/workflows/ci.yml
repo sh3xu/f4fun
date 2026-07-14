@@ -22,6 +22,8 @@ jobs:
             command: pnpm typecheck
           - name: Lint
             command: pnpm lint
+          - name: Test
+            command: pnpm test
           - name: Build
             command: pnpm build
     steps:
