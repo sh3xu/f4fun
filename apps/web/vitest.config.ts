@@ -12,6 +12,15 @@ export default {
   resolve: {
     alias: {
       "@": path.resolve(root, "./src"),
+      // NOTE: Resolve workspace packages to source so Vitest works without a prior dist build.
+      "@f4fun/monopoly-engine": path.resolve(
+        root,
+        "../../packages/monopoly-engine/src/index.ts",
+      ),
+      "@f4fun/shared-types": path.resolve(
+        root,
+        "../../packages/shared-types/src/index.ts",
+      ),
     },
   },
 };
