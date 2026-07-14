@@ -25,6 +25,9 @@ interface BoardProps {
   onEndTurn: () => void;
   onPlaceBid: (amount: number) => void;
   onPassAuction: () => void;
+  onPayJailFine: () => void;
+  onUseGoojfCard: () => void;
+  onRollForJail: () => void;
 }
 
 function getGridStyles(position: number): CSSProperties {
@@ -51,6 +54,9 @@ export function Board({
   onEndTurn,
   onPlaceBid,
   onPassAuction,
+  onPayJailFine,
+  onUseGoojfCard,
+  onRollForJail,
 }: BoardProps) {
   const {
     state,
@@ -281,6 +287,11 @@ export function Board({
                 phase={state?.phase ?? "PRE_ROLL"}
                 onRoll={onRoll}
                 onEndTurn={onEndTurn}
+                onPayJailFine={onPayJailFine}
+                onUseGoojfCard={onUseGoojfCard}
+                onRollForJail={onRollForJail}
+                goojfCards={currentPlayer?.goojfCards ?? 0}
+                cash={currentPlayer?.cash ?? 0}
                 loading={false}
                 isDiceAnimating={shouldAnimateDice}
                 awaitingRoll={

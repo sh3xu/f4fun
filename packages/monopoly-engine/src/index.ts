@@ -4,22 +4,20 @@ import {
   startBankAuction,
   startOwnerAuction,
 } from "./auction.js";
-import { checkBankruptcy } from "./bankruptcy.js";
 import { buildHotel, buildHouse, sellHotel, sellHouse } from "./building.js";
 import {
   BANK_HOTEL_LIMIT,
   BANK_HOUSE_LIMIT,
   CHANCE_CARDS,
   COMMUNITY_CHEST_CARDS,
-  GO_TO_JAIL_POSITION,
   JAIL_POSITION,
-  TILE_BY_POSITION,
 } from "./config/board.js";
 import { diceSum, rollDice } from "./dice.js";
+import { payJailFine, rollForJail, spendGoojfCard } from "./jail.js";
 import { mortgageProperty, unmortgageProperty } from "./mortgage.js";
 import { applyMove } from "./movement.js";
 import { buyProperty, canBuyProperty } from "./property.js";
-import { chargeRent } from "./rent.js";
+import { resolveLanding } from "./resolveLanding.js";
 import { acceptTrade, proposeTrade, rejectTrade } from "./trade.js";
 import { advanceTurn, getActivePlayer } from "./turn.js";
 import type {
@@ -34,7 +32,6 @@ import type {
   RNG,
 } from "./types.js";
 import { DEFAULT_GAME_CONFIG } from "./types.js";
-import { checkWinCondition } from "./win.js";
 
 function shuffleDeck(cards: readonly string[], rng: RNG): string[] {
   const deck = [...cards];
@@ -46,7 +43,9 @@ function shuffleDeck(cards: readonly string[], rng: RNG): string[] {
 }
 
 function managementPhaseOk(phase: GameState["phase"]): boolean {
-  return phase === "PRE_ROLL" || phase === "END_TURN";
+  return (
+    phase === "PRE_ROLL" || phase === "END_TURN" || phase === "JAIL_DECISION"
+  );
 }
 
 export function createInitialState(
@@ -184,79 +183,11 @@ export function applyAction(
           newPosition: player.position,
         });
 
-        if (player.position === GO_TO_JAIL_POSITION) {
-          player.position = JAIL_POSITION;
-          player.isInJail = true;
-          player.jailState = { turnsInJail: 0, hasGetOutOfJailFreeCard: false };
-          events.push({ type: "SENT_TO_JAIL", playerId: activePlayerId });
-          state.phase = "END_TURN";
-          return { state, events };
-        }
-
-        const tile = TILE_BY_POSITION.get(player.position);
-        if (tile?.type === "tax") {
-          player.cash -= tile.amount;
-          events.push({
-            type: "TAX_PAID",
-            playerId: activePlayerId,
-            amount: tile.amount,
-          });
-
-          const bankruptEvents = checkBankruptcy(state, activePlayerId, null);
-          events.push(...bankruptEvents);
-
-          const winEvents = checkWinCondition(state);
-          events.push(...winEvents);
-
-          if (state.winnerId !== null) {
-            return { state, events };
-          }
-
-          state.phase = isDoubles ? "PRE_ROLL" : "END_TURN";
-          return { state, events };
-        }
-
-        const ownership = state.ownership[player.position];
-        if (ownership && ownership.ownerId !== activePlayerId) {
-          const rentEvents = chargeRent(
-            state,
-            activePlayerId,
-            ownership.ownerId,
-            player.position,
-            spaces,
-          );
-          events.push(...rentEvents);
-
-          const bankruptEvents = checkBankruptcy(
-            state,
-            activePlayerId,
-            ownership.ownerId,
-          );
-          events.push(...bankruptEvents);
-
-          const winEvents = checkWinCondition(state);
-          events.push(...winEvents);
-
-          if (state.winnerId !== null) {
-            return { state, events };
-          }
-
-          state.phase = isDoubles ? "PRE_ROLL" : "END_TURN";
-          return { state, events };
-        }
-
-        if (
-          tile &&
-          (tile.type === "property" ||
-            tile.type === "railroad" ||
-            tile.type === "utility") &&
-          !ownership
-        ) {
-          state.phase = "BUY_OR_DECLINE";
-          return { state, events };
-        }
-
-        state.phase = isDoubles ? "PRE_ROLL" : "END_TURN";
+        events.push(
+          ...resolveLanding(state, activePlayerId, spaces, {
+            allowDoublesReroll: true,
+          }),
+        );
         return { state, events };
       }
 
@@ -481,6 +412,27 @@ export function applyAction(
         return { state, events };
       }
 
+      case "PAY_JAIL_FINE": {
+        if (!activePlayerId) {
+          return { state, events: [], error: "No active player" };
+        }
+        return payJailFine(state, playerId, activePlayerId);
+      }
+
+      case "USE_GOOJF_CARD": {
+        if (!activePlayerId) {
+          return { state, events: [], error: "No active player" };
+        }
+        return spendGoojfCard(state, playerId, activePlayerId);
+      }
+
+      case "ROLL_FOR_JAIL": {
+        if (!activePlayerId) {
+          return { state, events: [], error: "No active player" };
+        }
+        return rollForJail(state, playerId, activePlayerId, rng);
+      }
+
       case "END_TURN": {
         if (playerId !== activePlayerId) {
           return { state, events: [], error: "Not your turn" };
@@ -519,10 +471,12 @@ export {
 } from "./building.js";
 export * from "./config/board.js";
 export { diceSum, rollDice } from "./dice.js";
+export { payJailFine, rollForJail, spendGoojfCard } from "./jail.js";
 export { mortgageProperty, unmortgageProperty } from "./mortgage.js";
 export { applyMove, movePlayer, setPlayerPosition } from "./movement.js";
 export { buyProperty, canBuyProperty } from "./property.js";
 export { calculateRent, chargeRent, ownsColorGroup } from "./rent.js";
+export { resolveLanding } from "./resolveLanding.js";
 export { acceptTrade, proposeTrade, rejectTrade } from "./trade.js";
 export { advanceTurn, getActivePlayer } from "./turn.js";
 export * from "./types.js";

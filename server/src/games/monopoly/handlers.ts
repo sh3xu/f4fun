@@ -14,15 +14,18 @@ import {
   GameEndTurnSchema,
   GameMortgagePropertySchema,
   GamePassAuctionSchema,
+  GamePayJailFineSchema,
   GamePlaceBidSchema,
   GameProposeTradeSchema,
   GameRejectTradeSchema,
   GameRollDiceSchema,
+  GameRollForJailSchema,
   GameSellHotelSchema,
   GameSellHouseSchema,
   GameStartAuctionSchema,
   GameStartOwnerAuctionSchema,
   GameUnmortgagePropertySchema,
+  GameUseGoojfCardSchema,
 } from "@f4fun/shared-types";
 import type { Server } from "socket.io";
 import type { ZodType } from "zod";
@@ -298,6 +301,32 @@ export function registerMonopolyHandlers(
       type: "REJECT_TRADE",
       tradeId: data.tradeId as string,
     }),
+  });
+
+  registerIntent(io, socket, "game:payJailFine", GamePayJailFineSchema, {
+    actionName: "PAY_JAIL_FINE",
+    buildAction: () => ({ type: "PAY_JAIL_FINE" }),
+  });
+
+  registerIntent(io, socket, "game:useGoojfCard", GameUseGoojfCardSchema, {
+    actionName: "USE_GOOJF_CARD",
+    buildAction: () => ({ type: "USE_GOOJF_CARD" }),
+  });
+
+  registerIntent(io, socket, "game:rollForJail", GameRollForJailSchema, {
+    actionName: "ROLL_FOR_JAIL",
+    buildAction: () => ({ type: "ROLL_FOR_JAIL" }),
+    onEvents: (server, roomId, events) => {
+      for (const event of events) {
+        if (event.type === "DICE_ROLLED") {
+          server.to(roomId).emit("game:diceRolled", {
+            playerId: event.playerId,
+            dice: event.dice,
+            newPosition: event.newPosition,
+          });
+        }
+      }
+    },
   });
 
   registerIntent(io, socket, "game:endTurn", GameEndTurnSchema, {

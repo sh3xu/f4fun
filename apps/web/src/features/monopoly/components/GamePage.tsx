@@ -189,6 +189,24 @@ export function GamePage() {
           toast.success(`${playerName} passed GO! +$200`, { duration: 2000 });
           break;
         }
+        case "SENT_TO_JAIL": {
+          const playerName = players?.[event.playerId]?.name || "Player";
+          toast.info(`${playerName} was sent to Jail`, { duration: 3000 });
+          break;
+        }
+        case "RELEASED_FROM_JAIL": {
+          const playerName = players?.[event.playerId]?.name || "Player";
+          const methodLabel =
+            event.method === "fine"
+              ? "paid $50"
+              : event.method === "card"
+                ? "used a Jail Free card"
+                : "rolled doubles";
+          toast.success(`${playerName} left Jail (${methodLabel})`, {
+            duration: 3000,
+          });
+          break;
+        }
       }
     },
     [myPlayerId],
@@ -339,6 +357,34 @@ export function GamePage() {
     }
   };
 
+  const handlePayJailFine = async () => {
+    if (!roomId) return;
+    try {
+      await emitWithCallback("game:payJailFine", { roomId });
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
+  const handleUseGoojfCard = async () => {
+    if (!roomId) return;
+    try {
+      await emitWithCallback("game:useGoojfCard", { roomId });
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
+  const handleRollForJail = async () => {
+    if (!roomId) return;
+    startDiceRoll();
+    try {
+      await emitWithCallback("game:rollForJail", { roomId });
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
   const handleBuildHouse = async (position: number) => {
     if (!roomId) return;
     try {
@@ -457,7 +503,9 @@ export function GamePage() {
   const myPlayer = myPlayerId ? state.players[myPlayerId] : null;
   const canManage =
     myPlayerId === activePlayerId &&
-    (state.phase === "PRE_ROLL" || state.phase === "END_TURN") &&
+    (state.phase === "PRE_ROLL" ||
+      state.phase === "END_TURN" ||
+      state.phase === "JAIL_DECISION") &&
     !!myPlayer;
 
   return (
@@ -508,6 +556,9 @@ export function GamePage() {
               onEndTurn={handleEndTurn}
               onPlaceBid={handlePlaceBid}
               onPassAuction={handlePassAuction}
+              onPayJailFine={handlePayJailFine}
+              onUseGoojfCard={handleUseGoojfCard}
+              onRollForJail={handleRollForJail}
             />
           </div>
         </div>
