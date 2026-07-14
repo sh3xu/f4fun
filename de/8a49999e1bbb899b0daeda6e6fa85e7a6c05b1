@@ -1,0 +1,37 @@
+pnpm-workspace.yaml
+  s_6f11992f3e29a2::t_9e3a9047710d49 12-22
+package.json
+  s_6f11992f3e29a2::t_58b87654286b0e 24
+packages/shared-types/package.json
+  s_6f11992f3e29a2::t_38849da09dc95b 21
+packages/monopoly-engine/package.json
+  s_6f11992f3e29a2::t_88199998726e79 22
+server/package.json
+  s_6f11992f3e29a2::t_737aaf2963a7f8 25
+apps/web/package.json
+  s_6f11992f3e29a2::t_421ff75207f7ab 35
+  s_6f11992f3e29a2::t_3f7886dab9f9a1 20
+apps/web/next.config.ts
+  s_6f11992f3e29a2::t_c6b68ab0dace72 1
+  s_6f11992f3e29a2::t_a9b39ce643a913 2-4
+apps/web/next-env.d.ts
+  s_6f11992f3e29a2::t_9e3a9047710d49 4
+pnpm-lock.yaml
+  s_6f11992f3e29a2::t_664343db4ac95e 24-25,51-52,91-92,104-105,117-118,154-155,555-556,558-559,564-565,570-571,577-578,584-585,591-592,598-599,604-605,908-1027,1639-1640,1700-1701,1973-1975,2384,2386,2389,2392,2395,2398,2401,2404,2407,2634-2693,3286,3288,3292,3297-3304,3338,3693-3714
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "de8a49999e1bbb899b0daeda6e6fa85e7a6c05b1",
+  "prompts": {},
+  "sessions": {
+    "s_6f11992f3e29a2": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "25043aec-c25f-4168-a1d2-bf90ae222863",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
