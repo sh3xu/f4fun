@@ -1,0 +1,62 @@
+packages/monopoly-engine/src/jail.ts
+  s_8803a1c1cca771::t_6b333200b4fdb7 1,13,156,162-165
+  s_8803a1c1cca771::t_d26d63d94c6088 84
+  s_8803a1c1cca771::t_9a93e894dd0cac 2-12,14-37,59-83,85-124,128-138,152-155,157-160,166
+  s_8803a1c1cca771::t_993f2bddbf34d0 38-58,125-127,139-151,161
+apps/web/src/features/monopoly/components/Board.tsx
+  s_8803a1c1cca771::t_523fb3378d3726 57-59
+  s_8803a1c1cca771::t_2be1ee8ff5a465 28-30
+  s_8803a1c1cca771::t_c44cf14c638d30 290-294
+apps/web/src/features/monopoly/components/GamePage.tsx
+  s_8803a1c1cca771::t_b6821db718f84b 559-561
+  s_8803a1c1cca771::t_7f4adc6d7e7b48 360-387
+  s_8803a1c1cca771::t_6d0c5ae1a9aa9b 192-209
+  s_8803a1c1cca771::t_386c7c0b69b7a3 506-508
+packages/monopoly-engine/src/__tests__/jail.test.ts
+  s_8803a1c1cca771::t_ef5f22cd8ef9d4 1-16,22-25,27-174,176-186
+  s_8803a1c1cca771::t_0a36a2772018cb 17-21,26,175
+packages/monopoly-engine/src/resolveLanding.ts
+  s_8803a1c1cca771::t_d14457ace62396 1-98
+packages/monopoly-engine/src/index.ts
+  s_8803a1c1cca771::t_fc93148e529a72 16
+  s_8803a1c1cca771::t_a7562cc969f37d 20
+  s_8803a1c1cca771::t_8bc21c1969aa13 46-48
+  s_8803a1c1cca771::t_c4ae0c61415fd7 426
+  s_8803a1c1cca771::t_9f650d4bb20d67 416-418,423-425,430-432
+  s_8803a1c1cca771::t_949e1c0e5a505d 186-190
+  s_8803a1c1cca771::t_474c9c41451443 415,419-422,427-429,433-435
+  s_8803a1c1cca771::t_9ff4117fc201f5 479
+  s_8803a1c1cca771::t_5c19a0c1d5d49a 474
+packages/monopoly-engine/src/config/board.ts
+  s_8803a1c1cca771::t_9b8093f7594019 417
+server/src/games/monopoly/handlers.ts
+  s_8803a1c1cca771::t_ac7b347fce3811 306-331
+  s_8803a1c1cca771::t_0deb6000116de9 17,22,28
+apps/web/src/features/monopoly/components/DiceTray.tsx
+  s_8803a1c1cca771::t_ec015d4a867df5 4,15-19,46-50,63-64,110-141
+  s_d71fd4fedd90ac::t_61b24bdf3452e9 142-143
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "aaf5676d00689ab809d049bbdf2cabe51f4c59e1",
+  "prompts": {},
+  "sessions": {
+    "s_8803a1c1cca771": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "20fd0e47-5372-4cb0-84a6-6f3349999e21",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    },
+    "s_d71fd4fedd90ac": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1dbe6e62-aa50-416d-a0d2-1c9714c7051e",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
