@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "next typegen && tsc --noEmit --pretty false"
+    "typecheck": "next typegen && tsc --noEmit --pretty false",
+    "test": "vitest run"
   },
   "dependencies": {
     "@f4fun/monopoly-engine": "workspace:*",

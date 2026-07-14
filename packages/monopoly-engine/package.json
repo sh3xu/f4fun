@@ -7,7 +7,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "typecheck": "tsc -b --pretty false",
+    "typecheck": "tsc -b --pretty false && tsc -p tsconfig.test.json --pretty false",
     "test": "vitest run"
   },
   "dependencies": {
