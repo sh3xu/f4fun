@@ -2,17 +2,25 @@
   "name": "f4fun",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@11.5.2",
   "scripts": {
     "dev": "pnpm --filter @f4fun/shared-types build && pnpm --filter @f4fun/monopoly-engine build && concurrently -n server,web -c blue,magenta \"pnpm --filter @f4fun/server dev\" \"pnpm --filter @f4fun/web dev\"",
     "build": "pnpm -r build",
     "start": "pnpm --filter @f4fun/server start",
     "lint": "biome check .",
-    "format": "biome format --write .",
-    "test": "pnpm -r test"
+    "format": "biome check --write .",
+    "typecheck": "pnpm --filter @f4fun/shared-types typecheck && pnpm --filter @f4fun/monopoly-engine typecheck && pnpm --filter @f4fun/server typecheck && pnpm --filter @f4fun/web typecheck",
+    "test": "pnpm --filter @f4fun/shared-types --filter @f4fun/monopoly-engine build && pnpm -r test",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*": "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
     "concurrently": "^8.2.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "typescript": "^5.7.3"
   }
 }

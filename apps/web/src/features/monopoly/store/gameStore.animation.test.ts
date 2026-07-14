@@ -40,9 +40,9 @@ describe("gameStore animation gating", () => {
     expect(store.rollAnimationKey).toBeGreaterThan(0);
 
     // Property card gate: must not settle yet
-    expect(store.diceAnimationComplete && store.pendingAnimation.type === "none").toBe(
-      false,
-    );
+    expect(
+      store.diceAnimationComplete && store.pendingAnimation.type === "none",
+    ).toBe(false);
 
     useGameStore.getState().completeDiceAnimation();
     store = useGameStore.getState();
@@ -63,7 +63,11 @@ describe("gameStore animation gating", () => {
     useGameStore.getState().setFromSnapshot(initial);
     useGameStore.getState().startDiceRoll();
 
-    const roll = applyAction(initial, { type: "ROLL_DICE" }, seededRng([0.2, 0.4]));
+    const roll = applyAction(
+      initial,
+      { type: "ROLL_DICE" },
+      seededRng([0.2, 0.4]),
+    );
     useGameStore.getState().applyServerUpdate(roll.state, roll.events);
     expect(useGameStore.getState().pendingAnimation.type).toBe("dice");
 
@@ -75,8 +79,8 @@ describe("gameStore animation gating", () => {
     expect(store.pendingAnimation.type).toBe("none");
     expect(store.diceAnimationComplete).toBe(true);
     // This is the early property-card unlock the UI currently hits
-    expect(store.diceAnimationComplete && store.pendingAnimation.type === "none").toBe(
-      true,
-    );
+    expect(
+      store.diceAnimationComplete && store.pendingAnimation.type === "none",
+    ).toBe(true);
   });
 });
