@@ -184,6 +184,7 @@ function registerIntent(
           // NOTE: Still persist backfilled expiry stamps if we touched legacy trades.
           if (backfilled) {
             await saveGame(state.gameId, state, 0);
+            afterGameStateCommit(io, roomId, state);
           }
           callback?.(result.error);
           return;

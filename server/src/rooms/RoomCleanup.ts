@@ -1,8 +1,13 @@
 import { clearAllRoomTimers } from "../games/monopoly/DeadlineTimers.js";
 import { deleteGameEventsByRoomId } from "../games/monopoly/GameEventLogger.js";
 import { deleteGamesByRoomId } from "../games/monopoly/GameStore.js";
+import { clearRoomLock } from "../games/monopoly/roomMutex.js";
 import { cancelAllRoomGraces, hasAnyRoomGrace } from "./DisconnectGrace.js";
-import { allPlayersDisconnected, deleteRoom, getRoom } from "./RoomManager.js";
+import {
+  allPlayersDisconnected,
+  deleteRoomIfAbandoned,
+  getRoom,
+} from "./RoomManager.js";
 
 /**
  * Destroy room + game + event data when every seat is disconnected and no
@@ -17,12 +22,16 @@ export async function destroyRoomIfAbandoned(roomId: string): Promise<boolean> {
   const abandoned = await allPlayersDisconnected(roomId);
   if (!abandoned) return false;
 
+  // NOTE: Atomic delete — aborts if any player reconnected since the check above.
+  const deleted = await deleteRoomIfAbandoned(roomId);
+  if (!deleted) return false;
+
   cancelAllRoomGraces(roomId);
   clearAllRoomTimers(roomId);
+  clearRoomLock(roomId);
 
   const gameIds = await deleteGamesByRoomId(roomId);
   await deleteGameEventsByRoomId(roomId);
-  await deleteRoom(roomId);
 
   console.log(
     `[RoomCleanup] Destroyed abandoned room=${roomId} games=${gameIds.length}`,

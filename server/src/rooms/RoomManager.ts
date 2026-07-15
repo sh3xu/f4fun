@@ -140,6 +140,19 @@ export async function allPlayersDisconnected(roomId: string): Promise<boolean> {
   return doc.players.every((p) => !p.isConnected);
 }
 
+/**
+ * Atomically delete the room only if every player is still disconnected.
+ * Returns false if someone reconnected (or the room is already gone).
+ */
+export async function deleteRoomIfAbandoned(roomId: string): Promise<boolean> {
+  const result = await RoomModel.findOneAndDelete({
+    roomId,
+    // NOTE: Fail if any seat has isConnected: true (reconnect race).
+    players: { $not: { $elemMatch: { isConnected: true } } },
+  });
+  return result !== null;
+}
+
 export async function deleteRoom(roomId: string): Promise<boolean> {
   const result = await RoomModel.deleteOne({ roomId });
   return result.deletedCount > 0;

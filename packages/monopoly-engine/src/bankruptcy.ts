@@ -15,7 +15,7 @@ export function checkBankruptcy(
 
   player.isBankrupt = true;
 
-  for (const pos of player.ownedPositions) {
+  for (const pos of [...player.ownedPositions]) {
     if (creditorId && state.ownership[pos]) {
       const ownershipEntry = state.ownership[pos];
       if (ownershipEntry) {
@@ -24,6 +24,10 @@ export function checkBankruptcy(
       const creditor = state.players[creditorId];
       if (creditor) {
         creditor.ownedPositions.push(pos);
+        // NOTE: Keep ownership.isMortgaged and creditor.mortgaged in sync.
+        if (ownershipEntry?.isMortgaged && !creditor.mortgaged.includes(pos)) {
+          creditor.mortgaged.push(pos);
+        }
       }
     } else {
       delete state.ownership[pos];
