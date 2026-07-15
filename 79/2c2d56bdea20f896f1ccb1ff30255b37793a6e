@@ -1,0 +1,20 @@
+apps/web/src/features/monopoly/components/GamePage.tsx
+  s_040e39cbfb9643::t_c7e80764b5c5e8 542,548-549
+  s_040e39cbfb9643::t_3eab583eb9bbf7 456-460
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "792c2d56bdea20f896f1ccb1ff30255b37793a6e",
+  "prompts": {},
+  "sessions": {
+    "s_040e39cbfb9643": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "5d9f25f1-f373-45db-840f-dd09542b53a4",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
