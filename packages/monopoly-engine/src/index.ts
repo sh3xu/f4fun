@@ -566,6 +566,7 @@ export {
 export * from "./config/board.js";
 export { diceSum, rollDice } from "./dice.js";
 export { payJailFine, rollForJail, spendGoojfCard } from "./jail.js";
+export { autoLiquidateAssets } from "./liquidate.js";
 export { mortgageProperty, unmortgageProperty } from "./mortgage.js";
 export { applyMove, movePlayer, setPlayerPosition } from "./movement.js";
 export { buyProperty, canBuyProperty } from "./property.js";

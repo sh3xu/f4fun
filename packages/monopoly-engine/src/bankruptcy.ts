@@ -1,3 +1,4 @@
+import { autoLiquidateAssets } from "./liquidate.js";
 import type { GameEvent, GameState, PlayerId } from "./types.js";
 
 export function checkBankruptcy(
@@ -7,6 +8,10 @@ export function checkBankruptcy(
 ): GameEvent[] {
   const player = state.players[playerId];
   if (!player || player.cash >= 0) return [];
+
+  // NOTE: Auto-raise cash so timer-driven debt cannot soft-lock the game.
+  const events = autoLiquidateAssets(state, playerId, creditorId);
+  if (player.cash >= 0) return events;
 
   player.isBankrupt = true;
 
@@ -30,5 +35,6 @@ export function checkBankruptcy(
   player.hotels = {};
   player.mortgaged = [];
 
-  return [{ type: "PLAYER_BANKRUPT", playerId, creditorId }];
+  events.push({ type: "PLAYER_BANKRUPT", playerId, creditorId });
+  return events;
 }

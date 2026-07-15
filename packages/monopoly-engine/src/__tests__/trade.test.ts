@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  acceptTrade,
   applyAction,
   createInitialState,
   expiredTradeIds,
@@ -95,6 +96,26 @@ describe("trade", () => {
 
     expect(state.ownership[1]).toEqual({ ownerId: "p2", isMortgaged: true });
     expect(state.players.p2.mortgaged).toContain(1);
+  });
+
+  it("rejects accepting an expired trade", () => {
+    const state = createInitialState("test", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    const now = Date.parse("2026-01-01T00:00:00.000Z");
+    proposeTrade(
+      state,
+      "p1",
+      "t-expired",
+      "p2",
+      { cash: 10, positions: [], goojfCards: 0 },
+      { cash: 0, positions: [], goojfCards: 0 },
+      now,
+    );
+    const expired = acceptTrade(state, "p2", "t-expired", now + 60_001);
+    expect(expired.error).toBe("Trade offer expired");
+    expect(state.pendingTrades).toHaveLength(1);
   });
 
   it("rejects trade", () => {

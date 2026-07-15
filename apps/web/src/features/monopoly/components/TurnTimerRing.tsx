@@ -1,8 +1,8 @@
 "use client";
 
 import { Clock } from "lucide-react";
-import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
+import { useDeadlineRemainingMs } from "../hooks/useDeadlineRemainingMs";
 
 interface TurnTimerRingProps {
   deadlineAt: string | null | undefined;
@@ -25,33 +25,6 @@ function ringColor(progress: number): string {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-function useRemainingMs(
-  deadlineAt: string | null | undefined,
-  pausedMs: number | null | undefined,
-): number | null {
-  const [remainingMs, setRemainingMs] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (pausedMs != null) {
-      setRemainingMs(Math.max(0, pausedMs));
-      return;
-    }
-    if (!deadlineAt) {
-      setRemainingMs(null);
-      return;
-    }
-
-    const tick = () => {
-      setRemainingMs(Math.max(0, new Date(deadlineAt).getTime() - Date.now()));
-    };
-    tick();
-    const id = window.setInterval(tick, 100);
-    return () => window.clearInterval(id);
-  }, [deadlineAt, pausedMs]);
-
-  return remainingMs;
-}
-
 /** Circular green→red countdown ring with a clock icon — replaces the Active badge. */
 export function TurnTimerRing({
   deadlineAt,
@@ -59,7 +32,7 @@ export function TurnTimerRing({
   durationSecs,
   className,
 }: TurnTimerRingProps) {
-  const remainingMs = useRemainingMs(deadlineAt, pausedMs);
+  const remainingMs = useDeadlineRemainingMs(deadlineAt, pausedMs, 100);
   const totalMs =
     durationSecs != null && durationSecs > 0 ? durationSecs * 1000 : null;
 
@@ -74,9 +47,9 @@ export function TurnTimerRing({
   const isPaused = pausedMs != null;
 
   return (
-    <div
+    <span
       className={cn(
-        "relative flex shrink-0 items-center justify-center",
+        "relative inline-flex shrink-0 items-center justify-center align-middle",
         className,
       )}
       style={{ width: size, height: size }}
@@ -123,6 +96,6 @@ export function TurnTimerRing({
         strokeWidth={2.5}
         aria-hidden
       />
-    </div>
+    </span>
   );
 }

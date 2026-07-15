@@ -7,8 +7,9 @@ import {
   ensureTradeExpiries,
   mergeGameConfig,
 } from "../games/monopoly/DeadlineTimers.js";
-import { loadGame } from "../games/monopoly/GameStore.js";
+import { loadGame, saveGame } from "../games/monopoly/GameStore.js";
 import { registerMonopolyHandlers } from "../games/monopoly/handlers.js";
+import { withRoomLock } from "../games/monopoly/roomMutex.js";
 import { startGrace } from "../rooms/DisconnectGrace.js";
 import {
   setPlayerConnected,
@@ -62,8 +63,10 @@ export function createSocketServer(httpServer: HttpServer): Server {
         await setPlayerConnected(data.roomId, data.playerId, true);
 
         if (room.gameId) {
-          const state = await loadGame(room.gameId);
-          if (state) {
+          await withRoomLock(data.roomId, async () => {
+            const state = await loadGame(room.gameId as string);
+            if (!state) return;
+
             if (state.auction === undefined) state.auction = null;
             if (state.pendingTrades === undefined) state.pendingTrades = [];
             if (state.actionDeadlineAt === undefined) {
@@ -73,11 +76,14 @@ export function createSocketServer(httpServer: HttpServer): Server {
               state.actionDeadlinePausedMs = null;
             }
             mergeGameConfig(state);
-            ensureTradeExpiries(state);
+            const backfilled = ensureTradeExpiries(state);
+            if (backfilled) {
+              await saveGame(state.gameId, state, 0);
+            }
             socket.emit("game:stateSnapshot", { state });
             // NOTE: Rejoin re-arms in-memory timers after server restart / cold room.
             afterGameStateCommit(io, data.roomId, state as GameState);
-          }
+          });
         }
 
         socket.to(data.roomId).emit("room:playerJoined", {

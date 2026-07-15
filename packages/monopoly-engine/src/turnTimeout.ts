@@ -43,11 +43,15 @@ export function timeoutActionForState(state: GameState): TimeoutAction | null {
     case "PRE_ROLL": {
       const actorId = getActivePlayer(state);
       if (!actorId) return null;
+      // NOTE: Explicit policy — auto-roll keeps the game moving. Landing may
+      // charge rent/tax/cards as a normal consequence of the forced roll.
       return { action: { type: "ROLL_DICE" }, actorId };
     }
     case "JAIL_DECISION": {
       const actorId = getActivePlayer(state);
       if (!actorId) return null;
+      // NOTE: Explicit policy — free double attempt, never auto-pay fine/card.
+      // A third failed attempt may still force the $50 exit per jail rules.
       return { action: { type: "ROLL_FOR_JAIL" }, actorId };
     }
     case "BUY_OR_DECLINE": {

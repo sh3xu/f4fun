@@ -15,13 +15,13 @@ describe("bankruptcy", () => {
     expect(player.isBankrupt).toBe(false);
   });
 
-  it("bankrupts player with negative cash", () => {
+  it("bankrupts player with negative cash and no recoverable assets", () => {
     const state = createInitialState("test", [
       { id: "p1", name: "Alice", token: "car" },
     ]);
     const player = state.players.p1;
     player.cash = -50;
-    player.ownedPositions = [1, 3];
+    player.ownedPositions = [];
 
     const events = checkBankruptcy(state, "p1", null);
 
@@ -44,7 +44,7 @@ describe("bankruptcy", () => {
 
     const events = checkBankruptcy(state, "p1", "p2");
 
-    expect(events).toHaveLength(1);
+    expect(events.some((e) => e.type === "PLAYER_BANKRUPT")).toBe(true);
     expect(state.ownership[1]?.ownerId).toBe("p2");
     expect(state.ownership[3]?.ownerId).toBe("p2");
     expect(state.players.p2.ownedPositions).toContain(1);
@@ -56,14 +56,15 @@ describe("bankruptcy", () => {
       { id: "p1", name: "Alice", token: "car" },
     ]);
 
-    state.players.p1.cash = -100;
+    // Debt too large for mortgages + bank half-sales to fully cover.
+    state.players.p1.cash = -500;
     state.players.p1.ownedPositions = [1, 3];
     state.ownership[1] = { ownerId: "p1", isMortgaged: false };
     state.ownership[3] = { ownerId: "p1", isMortgaged: false };
 
     const events = checkBankruptcy(state, "p1", null);
 
-    expect(events).toHaveLength(1);
+    expect(events.some((e) => e.type === "PLAYER_BANKRUPT")).toBe(true);
     expect(state.ownership[1]).toBeUndefined();
     expect(state.ownership[3]).toBeUndefined();
   });

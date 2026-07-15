@@ -249,6 +249,12 @@ export type GameEvent =
       amount: number;
     }
   | { type: "AUCTION_CANCELLED"; position: number }
+  | {
+      type: "PROPERTY_SOLD_TO_BANK";
+      playerId: PlayerId;
+      position: number;
+      amount: number;
+    }
   | { type: "PLAYER_BANKRUPT"; playerId: PlayerId; creditorId: PlayerId | null }
   | { type: "TURN_ADVANCED"; playerId: PlayerId }
   | { type: "GAME_WON"; winnerId: PlayerId };

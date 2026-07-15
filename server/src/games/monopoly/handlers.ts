@@ -48,6 +48,7 @@ import {
 } from "./DeadlineTimers.js";
 import { logGameAction } from "./GameEventLogger.js";
 import { loadGameByRoomId, saveGame } from "./GameStore.js";
+import { withRoomLock } from "./roomMutex.js";
 
 function assertRoomMatch(
   socketRoomId: string,
@@ -61,17 +62,28 @@ function assertRoomMatch(
   return true;
 }
 
-/** Backfill fields added after older persisted games. */
-function normalizeState(state: GameState): GameState {
-  if (state.auction === undefined) state.auction = null;
-  if (state.pendingTrades === undefined) state.pendingTrades = [];
-  if (state.actionDeadlineAt === undefined) state.actionDeadlineAt = null;
+/** Backfill fields added after older persisted games. Returns true if mutated. */
+function normalizeState(state: GameState): boolean {
+  let changed = false;
+  if (state.auction === undefined) {
+    state.auction = null;
+    changed = true;
+  }
+  if (state.pendingTrades === undefined) {
+    state.pendingTrades = [];
+    changed = true;
+  }
+  if (state.actionDeadlineAt === undefined) {
+    state.actionDeadlineAt = null;
+    changed = true;
+  }
   if (state.actionDeadlinePausedMs === undefined) {
     state.actionDeadlinePausedMs = null;
+    changed = true;
   }
   mergeGameConfig(state);
-  ensureTradeExpiries(state);
-  return state;
+  if (ensureTradeExpiries(state)) changed = true;
+  return changed;
 }
 
 function refreshActionDeadline(
@@ -147,56 +159,63 @@ function registerIntent(
     if (!assertRoomMatch(roomId, data.roomId, callback)) return;
 
     try {
-      const loaded = await loadGameByRoomId(data.roomId);
-      if (!loaded) {
-        callback?.("Game not found");
-        return;
-      }
-      const state = normalizeState(loaded);
-
-      if (options.requireActiveTurn !== false) {
-        const activePlayerId = getActivePlayer(state);
-        if (activePlayerId !== playerId) {
-          callback?.("Not your turn");
+      await withRoomLock(roomId, async () => {
+        const loaded = await loadGameByRoomId(data.roomId);
+        if (!loaded) {
+          callback?.("Game not found");
           return;
         }
-      }
+        const backfilled = normalizeState(loaded);
+        const state = loaded;
 
-      const stateBefore = JSON.parse(JSON.stringify(state)) as GameState;
-      const action = options.buildAction(data as Record<string, unknown>);
-      const result = applyAction(state, action, Math.random, playerId);
+        if (options.requireActiveTurn !== false) {
+          const activePlayerId = getActivePlayer(state);
+          if (activePlayerId !== playerId) {
+            callback?.("Not your turn");
+            return;
+          }
+        }
 
-      if (result.error) {
-        callback?.(result.error);
-        return;
-      }
+        const stateBefore = JSON.parse(JSON.stringify(state)) as GameState;
+        const action = options.buildAction(data as Record<string, unknown>);
+        const result = applyAction(state, action, Math.random, playerId);
 
-      refreshActionDeadline(stateBefore, result.state, result.events);
-      await saveGame(state.gameId, result.state, options.turnCountDelta ?? 0);
-      try {
-        await logGameAction(
-          state.gameId,
-          roomId,
-          playerId,
-          options.actionName,
-          stateBefore,
-          result.state,
-          result.events,
-        );
-      } catch (logErr) {
-        // NOTE: Audit log must not block gameplay after state is already persisted.
-        console.error("[GameEventLogger] Failed to log action:", logErr);
-      }
+        if (result.error) {
+          // NOTE: Still persist backfilled expiry stamps if we touched legacy trades.
+          if (backfilled) {
+            await saveGame(state.gameId, state, 0);
+          }
+          callback?.(result.error);
+          return;
+        }
 
-      io.to(roomId).emit("game:stateUpdated", {
-        state: result.state,
-        events: result.events,
+        refreshActionDeadline(stateBefore, result.state, result.events);
+        await saveGame(state.gameId, result.state, options.turnCountDelta ?? 0);
+        try {
+          await logGameAction(
+            state.gameId,
+            roomId,
+            playerId,
+            options.actionName,
+            stateBefore,
+            result.state,
+            result.events,
+          );
+        } catch (logErr) {
+          // NOTE: Audit log must not block gameplay after state is already persisted.
+          console.error("[GameEventLogger] Failed to log action:", logErr);
+        }
+
+        io.to(roomId).emit("game:stateUpdated", {
+          state: result.state,
+          events: result.events,
+        });
+
+        options.onEvents?.(io, roomId, result.events);
+        afterGameStateCommit(io, roomId, result.state, result.events);
+
+        callback?.(null, { events: result.events });
       });
-
-      options.onEvents?.(io, roomId, result.events);
-      afterGameStateCommit(io, roomId, result.state, result.events);
-
-      callback?.(null, { events: result.events });
     } catch (err) {
       callback?.((err as Error).message);
     }

@@ -53,10 +53,10 @@ export function PlayerHUD({
       />
 
       <div className="min-w-0 flex-1">
-        <p className="flex items-center gap-1.5 truncate text-sm font-bold text-gray-100">
-          <span>{player.name}</span>
+        <div className="flex min-w-0 items-center gap-1.5 text-sm font-bold text-gray-100">
+          <span className="truncate">{player.name}</span>
           {isMe && (
-            <span className="rounded border border-[#4fc3f7]/20 bg-[#4fc3f7]/10 px-1 py-px text-[9px] font-semibold text-[#4fc3f7]">
+            <span className="shrink-0 rounded border border-[#4fc3f7]/20 bg-[#4fc3f7]/10 px-1 py-px text-[9px] font-semibold text-[#4fc3f7]">
               you
             </span>
           )}
@@ -68,7 +68,7 @@ export function PlayerHUD({
               className="ml-0.5"
             />
           )}
-        </p>
+        </div>
         <CounterTicker
           value={player.cash}
           className={cn(

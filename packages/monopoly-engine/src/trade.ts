@@ -95,6 +95,8 @@ export function proposeTrade(
   }
 
   if (state.pendingTrades.length > 0) {
+    // NOTE: Secondary safety net for direct proposeTrade callers.
+    // applyAction already blocks non accept/reject actions when a trade is pending.
     return { error: "Only one trade at a time", events: [] };
   }
 
@@ -152,6 +154,7 @@ export function acceptTrade(
   state: GameState,
   actorId: PlayerId,
   tradeId: string,
+  nowMs: number = Date.now(),
 ): { error?: string; events: GameEvent[] } {
   const index = state.pendingTrades.findIndex((t) => t.tradeId === tradeId);
   if (index < 0) return { error: "Trade not found", events: [] };
@@ -159,6 +162,10 @@ export function acceptTrade(
   const trade = state.pendingTrades[index];
   if (trade.toPlayerId !== actorId) {
     return { error: "Only the recipient can accept", events: [] };
+  }
+
+  if (new Date(trade.expiresAt).getTime() <= nowMs) {
+    return { error: "Trade offer expired", events: [] };
   }
 
   const offerErr = validateOfferSide(
