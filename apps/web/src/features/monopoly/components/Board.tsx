@@ -1,7 +1,7 @@
 "use client";
 
 import { BOARD_TILES, TILE_BY_POSITION } from "@f4fun/monopoly-engine";
-import { type CSSProperties, useCallback, useRef } from "react";
+import { type CSSProperties, useCallback, useRef, useState } from "react";
 import { PieceMover } from "@/components/animation/PieceMover";
 import { cn } from "@/lib/cn";
 import { getPlayerColor } from "@/lib/player-colors";
@@ -28,6 +28,13 @@ interface BoardProps {
   onPayJailFine: () => void;
   onUseGoojfCard: () => void;
   onRollForJail: () => void;
+  onBuildHouse: (position: number) => void;
+  onSellHouse: (position: number) => void;
+  onBuildHotel: (position: number) => void;
+  onSellHotel: (position: number) => void;
+  onMortgage: (position: number) => void;
+  onUnmortgage: (position: number) => void;
+  onOwnerAuction: (position: number) => void;
 }
 
 function getGridStyles(position: number): CSSProperties {
@@ -57,6 +64,13 @@ export function Board({
   onPayJailFine,
   onUseGoojfCard,
   onRollForJail,
+  onBuildHouse,
+  onSellHouse,
+  onBuildHotel,
+  onSellHotel,
+  onMortgage,
+  onUnmortgage,
+  onOwnerAuction,
 }: BoardProps) {
   const {
     state,
@@ -71,6 +85,8 @@ export function Board({
   const { myPlayerId } = useRoomStore();
   const boardRef = useRef<HTMLDivElement>(null);
   const tileRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+
+  const [viewedPosition, setViewedPosition] = useState<number | null>(null);
 
   const movingPlayerId =
     pendingAnimation.type === "move" ? pendingAnimation.playerId : undefined;
@@ -147,6 +163,14 @@ export function Board({
     !!currentPlayer;
   const showAuction =
     state?.phase === "AUCTION" && !!state.auction && animationsSettled;
+  const canManageProperties =
+    isMyTurn && (state?.phase === "PRE_ROLL" || state?.phase === "END_TURN");
+  const viewedOwnerInfo =
+    viewedPosition !== null ? getOwnerInfo(viewedPosition) : {};
+  const viewingOwnProperty =
+    !!myPlayerId &&
+    !!viewedOwnerInfo.ownerId &&
+    viewedOwnerInfo.ownerId === myPlayerId;
 
   const movingPlayer =
     movingPlayerId && state?.players[movingPlayerId]
@@ -191,6 +215,15 @@ export function Board({
               tile={tile}
               playersOnTile={getPlayersOnTile(tile.position)}
               turnOrder={state?.turnOrder || []}
+              onClick={() => {
+                if (
+                  tile.type === "property" ||
+                  tile.type === "railroad" ||
+                  tile.type === "utility"
+                ) {
+                  setViewedPosition(tile.position);
+                }
+              }}
               {...getOwnerInfo(tile.position)}
             />
           </div>
@@ -272,6 +305,7 @@ export function Board({
                 )}
               >
                 <PropertyPanel
+                  mode="buy"
                   position={currentPlayer.position}
                   playerCash={currentPlayer.cash}
                   onBuy={onBuy}
@@ -279,6 +313,48 @@ export function Board({
                   onAuction={onAuction}
                   loading={false}
                 />
+              </div>
+            ) : viewedPosition !== null ? (
+              <div
+                className={cn(
+                  BOARD_OVERLAY_PANEL_CLASS,
+                  "animate-in fade-in zoom-in-95 duration-300",
+                )}
+              >
+                {viewingOwnProperty && canManageProperties ? (
+                  <PropertyPanel
+                    mode="manage"
+                    position={viewedPosition}
+                    loading={false}
+                    isMortgaged={viewedOwnerInfo.isMortgaged ?? false}
+                    houses={viewedOwnerInfo.houses ?? 0}
+                    hotels={viewedOwnerInfo.hotels ?? 0}
+                    onBuild={() => {
+                      const houses = viewedOwnerInfo.houses ?? 0;
+                      if (houses >= 4) onBuildHotel(viewedPosition);
+                      else onBuildHouse(viewedPosition);
+                    }}
+                    onSell={() => {
+                      const hotels = viewedOwnerInfo.hotels ?? 0;
+                      if (hotels > 0) onSellHotel(viewedPosition);
+                      else onSellHouse(viewedPosition);
+                    }}
+                    onMortgage={() => onMortgage(viewedPosition)}
+                    onUnmortgage={() => onUnmortgage(viewedPosition)}
+                    onOwnerAuction={() => onOwnerAuction(viewedPosition)}
+                    onClose={() => setViewedPosition(null)}
+                  />
+                ) : (
+                  <PropertyPanel
+                    mode="view"
+                    position={viewedPosition}
+                    onClose={() => setViewedPosition(null)}
+                    ownerName={viewedOwnerInfo.ownerName}
+                    isMortgaged={viewedOwnerInfo.isMortgaged}
+                    houses={viewedOwnerInfo.houses}
+                    hotels={viewedOwnerInfo.hotels}
+                  />
+                )}
               </div>
             ) : (
               <DiceTray

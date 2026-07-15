@@ -13,8 +13,8 @@ interface DiceRollerProps {
 }
 
 /** Tumble duration after backend result arrives, before faces settle. */
-const ROLL_DURATION_S = 2;
-const SETTLE_DURATION_S = 0.35;
+const ROLL_DURATION_S = 0.9;
+const SETTLE_DURATION_S = 0.3;
 
 const diceFaces: Record<number, string[][]> = {
   1: [
@@ -69,6 +69,7 @@ function DiceFace({ value, transform }: { value: number; transform: string }) {
         transform,
         backfaceVisibility: "hidden",
         WebkitBackfaceVisibility: "hidden",
+        willChange: "transform",
       }}
     >
       <div className="grid h-full w-full grid-rows-3 gap-[8%]">
@@ -111,7 +112,7 @@ function CubeDie({
     <div
       ref={innerRef}
       className="relative h-[var(--die-size)] w-[var(--die-size)]"
-      style={{ transformStyle: "preserve-3d" }}
+      style={{ transformStyle: "preserve-3d", willChange: "transform" }}
     >
       <DiceFace value={1} transform={`rotateY(0deg) translateZ(${half})`} />
       <DiceFace value={6} transform={`rotateY(180deg) translateZ(${half})`} />
@@ -136,6 +137,7 @@ function applyFace(
     x: 0,
     y: 0,
     scale: 1,
+    force3D: true,
     ...extras,
   });
 }
@@ -166,8 +168,18 @@ export function DiceRoller({
     if (!d1 || !d2) return;
 
     if (!dice) {
-      gsap.set(d1, { rotationX: 20, rotationY: 35, rotationZ: 0 });
-      gsap.set(d2, { rotationX: -20, rotationY: -45, rotationZ: 0 });
+      gsap.set(d1, {
+        rotationX: 20,
+        rotationY: 35,
+        rotationZ: 0,
+        force3D: true,
+      });
+      gsap.set(d2, {
+        rotationX: -20,
+        rotationY: -45,
+        rotationZ: 0,
+        force3D: true,
+      });
       return;
     }
 
@@ -205,17 +217,17 @@ export function DiceRoller({
     const target2 = faceRotations[dice[1]] || faceRotations[1];
 
     // Start from a neutral tumble pose — do not flash the backend result first.
-    gsap.set([d1, d2], { x: 0, y: 0, scale: 1, rotationZ: 0 });
-    gsap.set(d1, { rotationX: 15, rotationY: -40 });
-    gsap.set(d2, { rotationX: -25, rotationY: 50 });
+    gsap.set([d1, d2], { x: 0, y: 0, scale: 1, rotationZ: 0, force3D: true });
+    gsap.set(d1, { rotationX: 15, rotationY: -40, force3D: true });
+    gsap.set(d2, { rotationX: -25, rotationY: 50, force3D: true });
 
-    // NOTE: GSAP tumble runs a full 2s after backend values arrive, then settles faces.
-    const spinsX1 = 720 + Math.random() * 720 + target1.x;
-    const spinsY1 = 1080 + Math.random() * 720 + target1.y;
-    const spinsZ1 = 360 + Math.random() * 360;
-    const spinsX2 = 1080 + Math.random() * 720 + target2.x;
-    const spinsY2 = 720 + Math.random() * 720 + target2.y;
-    const spinsZ2 = -(360 + Math.random() * 360);
+    // NOTE: GSAP tumble runs a full 0.9s after backend values arrive, then settles faces.
+    const spinsX1 = 360 + Math.random() * 360 + target1.x;
+    const spinsY1 = 540 + Math.random() * 360 + target1.y;
+    const spinsZ1 = 180 + Math.random() * 180;
+    const spinsX2 = 540 + Math.random() * 360 + target2.x;
+    const spinsY2 = 360 + Math.random() * 360 + target2.y;
+    const spinsZ2 = -(180 + Math.random() * 180);
 
     const tl = gsap.timeline({ onComplete: finish });
 
@@ -230,6 +242,7 @@ export function DiceRoller({
         x: -8,
         duration: ROLL_DURATION_S,
         ease: "power1.inOut",
+        force3D: true,
       },
       0,
     )
@@ -244,6 +257,7 @@ export function DiceRoller({
           x: 8,
           duration: ROLL_DURATION_S,
           ease: "power1.inOut",
+          force3D: true,
         },
         0,
       )
@@ -253,6 +267,7 @@ export function DiceRoller({
         scale: 1,
         duration: SETTLE_DURATION_S * 0.4,
         ease: "bounce.out",
+        force3D: true,
       })
       .to(d1, {
         rotationX: target1.x,
@@ -260,6 +275,7 @@ export function DiceRoller({
         rotationZ: 0,
         duration: SETTLE_DURATION_S,
         ease: "power2.inOut",
+        force3D: true,
       })
       .to(
         d2,
@@ -269,6 +285,7 @@ export function DiceRoller({
           rotationZ: 0,
           duration: SETTLE_DURATION_S,
           ease: "power2.inOut",
+          force3D: true,
         },
         "<",
       );
