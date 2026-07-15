@@ -8,7 +8,6 @@ import {
   GLASS_CARD,
   PROPERTY_COLORS,
 } from "../theme/board-theme";
-import { ActionCountdown } from "./ActionCountdown";
 import { PropertyActions } from "./PropertyActions";
 import { PropertyCoverImage } from "./PropertyCoverImage";
 import { getTileLabel } from "./tile-labels";
@@ -18,8 +17,6 @@ interface PropertyPanelBuyProps {
   position: number;
   playerCash: number;
   loading: boolean;
-  deadlineAt?: string | null;
-  deadlinePausedMs?: number | null;
   onBuy: () => void;
   onDecline: () => void;
   onAuction: () => void;
@@ -231,22 +228,15 @@ export function PropertyPanel(props: PropertyPanelProps) {
         )}
 
         {props.mode === "buy" && (
-          <>
-            <ActionCountdown
-              deadlineAt={props.deadlineAt}
-              pausedMs={props.deadlinePausedMs}
-              className="text-center text-[length:var(--board-text-sm)]"
-            />
-            <PropertyActions
-              mode="buy"
-              label={label}
-              canAfford={canAfford}
-              loading={props.loading}
-              onBuy={props.onBuy}
-              onDecline={props.onDecline}
-              onAuction={props.onAuction}
-            />
-          </>
+          <PropertyActions
+            mode="buy"
+            label={label}
+            canAfford={canAfford}
+            loading={props.loading}
+            onBuy={props.onBuy}
+            onDecline={props.onDecline}
+            onAuction={props.onAuction}
+          />
         )}
 
         {props.mode === "manage" && (

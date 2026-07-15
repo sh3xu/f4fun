@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import { GLASS_CARD } from "../theme/board-theme";
-import { ActionCountdown } from "./ActionCountdown";
 import { getTileLabel } from "./tile-labels";
 
 interface AuctionPanelProps {
@@ -53,17 +52,9 @@ export function AuctionPanel({
       )}
     >
       <div className="flex flex-col gap-[clamp(0.4rem,1.5cqmin,0.75rem)] p-[clamp(0.5rem,2cqmin,0.85rem)]">
-        <div className="flex items-center justify-between gap-2">
-          <h3 className="text-[length:var(--board-text)] font-bold text-amber-200">
-            Auction:{" "}
-            {tile ? getTileLabel(tile.name) : `Tile ${auction.position}`}
-          </h3>
-          <ActionCountdown
-            deadlineAt={state.actionDeadlineAt}
-            pausedMs={state.actionDeadlinePausedMs}
-            className="text-[length:var(--board-text-sm)]"
-          />
-        </div>
+        <h3 className="text-[length:var(--board-text)] font-bold text-amber-200">
+          Auction: {tile ? getTileLabel(tile.name) : `Tile ${auction.position}`}
+        </h3>
 
         <div className="space-y-1 rounded-lg border border-white/[0.06] bg-white/[0.05] p-[clamp(0.5rem,1.8cqmin,0.9rem)] text-[length:var(--board-text-sm)]">
           <div className="flex justify-between">

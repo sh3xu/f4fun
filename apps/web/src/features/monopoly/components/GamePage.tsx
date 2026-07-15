@@ -1,7 +1,7 @@
 "use client";
 
 import type { GameEvent, GameState, TradeOffer } from "@f4fun/monopoly-engine";
-import { TILE_BY_POSITION } from "@f4fun/monopoly-engine";
+import { TILE_BY_POSITION, timeoutSecsForPhase } from "@f4fun/monopoly-engine";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Toaster, toast } from "sonner";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -632,6 +632,19 @@ export function GamePage() {
                 isActive={playerId === activePlayerId}
                 isMe={playerId === myPlayerId}
                 turnOrder={state.turnOrder}
+                deadlineAt={
+                  playerId === activePlayerId ? state.actionDeadlineAt : null
+                }
+                deadlinePausedMs={
+                  playerId === activePlayerId
+                    ? state.actionDeadlinePausedMs
+                    : null
+                }
+                timerDurationSecs={
+                  playerId === activePlayerId
+                    ? timeoutSecsForPhase(state.phase, state.config)
+                    : null
+                }
               />
             </div>
           ))}

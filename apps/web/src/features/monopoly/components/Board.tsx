@@ -319,8 +319,6 @@ export function Board({
                   mode="buy"
                   position={currentPlayer.position}
                   playerCash={currentPlayer.cash}
-                  deadlineAt={state.actionDeadlineAt}
-                  deadlinePausedMs={state.actionDeadlinePausedMs}
                   onBuy={onBuy}
                   onDecline={onDecline}
                   onAuction={onAuction}
@@ -374,8 +372,6 @@ export function Board({
                 dice={displayDice}
                 isMyTurn={isMyTurn}
                 phase={state?.phase ?? "PRE_ROLL"}
-                deadlineAt={state?.actionDeadlineAt}
-                deadlinePausedMs={state?.actionDeadlinePausedMs}
                 onRoll={onRoll}
                 onEndTurn={onEndTurn}
                 onPayJailFine={onPayJailFine}
