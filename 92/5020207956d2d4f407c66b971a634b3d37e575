@@ -1,0 +1,30 @@
+server/src/games/monopoly/roomMutex.ts
+  s_9e8392e15145aa::t_69f69cd5e6034d 9-13,15-28
+server/src/games/monopoly/handlers.ts
+  s_9e8392e15145aa::t_a3d442a1820bec 187
+server/src/rooms/RoomCleanup.ts
+  s_9e8392e15145aa::t_94168ca3698cd3 4,6-10,25-28,31
+server/src/rooms/RoomManager.ts
+  s_9e8392e15145aa::t_503c1518b2898d 143-155
+packages/monopoly-engine/src/bankruptcy.ts
+  s_9e8392e15145aa::t_de497129cbee93 18,27-30
+packages/monopoly-engine/src/__tests__/bankruptcy.test.ts
+  s_9e8392e15145aa::t_a205277caa4244 40,53-58
+  s_9e8392e15145aa::t_9a8b16fb63dbc8 34,41,43-44,52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "925020207956d2d4f407c66b971a634b3d37e575",
+  "prompts": {},
+  "sessions": {
+    "s_9e8392e15145aa": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "2c4d389e-7a56-4f9d-b45e-52f5cdc0fba3",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
