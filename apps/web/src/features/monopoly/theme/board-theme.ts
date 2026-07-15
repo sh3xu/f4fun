@@ -82,9 +82,9 @@ export const GLASS_CARD =
 
 /** NOTE: Board-level text tokens — cqmin here tracks the full board, not individual tiles. */
 export const BOARD_TEXT_VARS: Record<string, string> = {
-  "--board-text-xs": "clamp(8px, 1.3cqmin, 16px)",
-  "--board-text-sm": "clamp(10px, 1.7cqmin, 20px)",
-  "--board-text": "clamp(12px, 2.1cqmin, 24px)",
+  "--board-text-xs": "clamp(7px, 1.15cqmin, 14px)",
+  "--board-text-sm": "clamp(9px, 1.45cqmin, 18px)",
+  "--board-text": "clamp(11px, 1.9cqmin, 22px)",
   "--board-text-lg": "clamp(1.1rem, 4.8cqmin, 3rem)",
   "--board-text-xl": "clamp(1.35rem, 6cqmin, 3.5rem)",
   // Money on tiles — small but legible mono digits
@@ -100,4 +100,4 @@ export const BOARD_MONEY_CLASS =
  * Do not nest another container-type inside; keep cq units on the board/center.
  */
 export const BOARD_OVERLAY_PANEL_CLASS =
-  "w-[clamp(9.5rem,38cqmin,18rem)] max-h-[min(78cqb,90%)] max-w-[92%] origin-center overflow-x-hidden overflow-y-auto";
+  "w-[clamp(11.5rem,42cqmin,21rem)] max-h-[min(82cqb,92%)] max-w-[94%] origin-center overflow-x-hidden overflow-y-auto";

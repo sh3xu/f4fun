@@ -15,11 +15,13 @@ import {
 import { Avatar } from "@/components/ui/Avatar";
 import { cn } from "@/lib/cn";
 import { getPlayerColor } from "@/lib/player-colors";
+import { PROPERTY_IMAGES } from "../lib/property-images";
 import {
   BOARD_MONEY_CLASS,
   GLASS_TILE,
   PROPERTY_COLORS,
 } from "../theme/board-theme";
+import { PropertyCoverImage } from "./PropertyCoverImage";
 import { getTileLabel } from "./tile-labels";
 
 interface BoardTileProps {
@@ -31,6 +33,7 @@ interface BoardTileProps {
   houses?: number;
   hotels?: number;
   turnOrder?: string[];
+  onClick?: () => void;
 }
 
 type BoardSide = "bottom" | "left" | "top" | "right" | "corner";
@@ -208,6 +211,7 @@ export function BoardTile({
   houses = 0,
   hotels = 0,
   turnOrder = [],
+  onClick,
 }: BoardTileProps) {
   const colorStyle =
     tile.type === "property" ? PROPERTY_COLORS[tile.colorGroup] : null;
@@ -230,11 +234,16 @@ export function BoardTile({
   const taxAmount =
     tile.type === "tax" && "amount" in tile ? `$${tile.amount}` : null;
   const displayPrice = price ?? taxAmount;
+  const isClickable =
+    tile.type === "property" ||
+    tile.type === "railroad" ||
+    tile.type === "utility";
 
   const textMode = cn(
     "text-center font-bold uppercase leading-[1.05] tracking-wide text-white/95",
     "drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]",
     "text-[length:var(--board-text-sm)]",
+    "break-words line-clamp-2 overflow-hidden text-ellipsis px-0.5 max-w-full",
     // vertical-rl: letters stack top→bottom on upper/lower rows
     isVerticalText && "[writing-mode:vertical-rl] rotate-180",
   );
@@ -246,23 +255,38 @@ export function BoardTile({
     isVerticalText && "[writing-mode:vertical-rl] rotate-180",
   );
 
-  return (
-    <div
-      className={cn(
-        "relative flex h-full w-full overflow-hidden rounded-lg select-none",
-        "shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]",
-        "transition-[filter] duration-200 hover:z-20 hover:brightness-110",
-        // NOTE: Same card chrome on every edge; only flex axis + writing-mode change per side.
-        side === "bottom" && "flex-col",
-        side === "top" && "flex-col-reverse",
-        side === "left" && "flex-row-reverse",
-        side === "right" && "flex-row",
-        isCorner && "flex-col items-center justify-center",
-        isMortgaged && "opacity-50 saturate-[0.55]",
-      )}
-      title={`${getTileLabel(tile.name)}${isOwned && ownerName ? ` (owned by ${ownerName})` : ""}${isMortgaged ? " [Mortgaged]" : ""}`}
-    >
+  const tileTitle = `${getTileLabel(tile.name)}${isOwned && ownerName ? ` (owned by ${ownerName})` : ""}${isMortgaged ? " [Mortgaged]" : ""}`;
+
+  const rootClassName = cn(
+    "relative flex h-full w-full overflow-hidden rounded-lg select-none",
+    "shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]",
+    "transition-all duration-200",
+    isClickable &&
+      "cursor-pointer appearance-none border-0 bg-transparent p-0 text-left hover:z-20 hover:brightness-110 hover:ring-2 hover:ring-sky-400/60",
+    !isClickable && "hover:z-20 hover:brightness-105",
+    // NOTE: Same card chrome on every edge; only flex axis + writing-mode change per side.
+    side === "bottom" && "flex-col",
+    side === "top" && "flex-col-reverse",
+    side === "left" && "flex-row-reverse",
+    side === "right" && "flex-row",
+    isCorner && "flex-col items-center justify-center",
+    isMortgaged && "opacity-50 saturate-[0.55]",
+  );
+
+  const content = (
+    <>
       <div className="absolute inset-0 z-0 flex items-center justify-center overflow-hidden rounded-lg">
+        {PROPERTY_IMAGES[tile.position] && (
+          <>
+            <PropertyCoverImage
+              src={PROPERTY_IMAGES[tile.position]}
+              alt=""
+              className="opacity-40 transition-opacity duration-200"
+              sizes="80px"
+            />
+            <div className="absolute inset-0 bg-black/35" />
+          </>
+        )}
         {tile.type === "property" && colorStyle ? (
           <>
             <div className={cn("absolute inset-0", colorStyle.tint)} />
@@ -378,6 +402,26 @@ export function BoardTile({
           {displayPrice && <span className={priceMode}>{displayPrice}</span>}
         </div>
       )}
+    </>
+  );
+
+  if (isClickable) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        title={tileTitle}
+        aria-label={tileTitle}
+        className={rootClassName}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <div title={tileTitle} className={rootClassName}>
+      {content}
     </div>
   );
 }

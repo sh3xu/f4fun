@@ -508,6 +508,13 @@ export function GamePage() {
               onEndTurn={handleEndTurn}
               onPlaceBid={handlePlaceBid}
               onPassAuction={handlePassAuction}
+              onBuildHouse={handleBuildHouse}
+              onSellHouse={handleSellHouse}
+              onBuildHotel={handleBuildHotel}
+              onSellHotel={handleSellHotel}
+              onMortgage={handleMortgage}
+              onUnmortgage={handleUnmortgage}
+              onOwnerAuction={handleOwnerAuction}
             />
           </div>
         </div>
@@ -563,12 +570,9 @@ export function GamePage() {
           </button>
         )}
 
-        <div className="flex min-h-0 w-full flex-1 flex-row gap-2 overflow-x-auto overflow-y-hidden lg:flex-col lg:overflow-x-hidden lg:overflow-y-auto">
+        <div className="grid grid-cols-2 gap-2 min-h-0 w-full flex-1 overflow-y-auto overflow-x-hidden lg:flex lg:flex-col lg:overflow-y-auto">
           {state.turnOrder.map((playerId) => (
-            <div
-              key={playerId}
-              className="w-full min-w-[150px] shrink-0 lg:min-w-0"
-            >
+            <div key={playerId} className="w-full lg:min-w-0">
               <PlayerHUD
                 player={state.players[playerId]}
                 isActive={playerId === activePlayerId}
