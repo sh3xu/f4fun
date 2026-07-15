@@ -1,0 +1,63 @@
+apps/web/src/features/monopoly/components/TurnTimerRing.tsx
+  s_9e8392e15145aa::t_b2c5353a5283e2 5,35,50,52,99
+server/src/games/monopoly/handlers.ts
+  s_9e8392e15145aa::t_64483398e7255a 162-165,168-177,179-181,183-218
+  s_9e8392e15145aa::t_2007361715c8dd 65-79,82,85-86
+  s_9e8392e15145aa::t_c19fc8dd45557b 51
+packages/monopoly-engine/src/__tests__/trade.test.ts
+  s_9e8392e15145aa::t_efd8193097adea 3
+  s_9e8392e15145aa::t_b2ae1362f4d2b9 101-115,117,119
+  s_9e8392e15145aa::t_1ade24b8a520f2 116,118,120
+packages/monopoly-engine/src/types.ts
+  s_9e8392e15145aa::t_8a14f21aadfd57 252-257
+packages/monopoly-engine/src/bankruptcy.ts
+  s_9e8392e15145aa::t_c3e972887726d4 1,12,14-15,38-39
+  s_9e8392e15145aa::t_76513aa7401c6d 13
+apps/web/src/features/monopoly/hooks/useDeadlineRemainingMs.ts
+  s_9e8392e15145aa::t_7204e3d651a418 1-43
+server/src/socket/bootstrap.ts
+  s_9e8392e15145aa::t_abd7636694008f 66-69,79-82,86
+  s_9e8392e15145aa::t_34ace335152e42 10,12
+packages/monopoly-engine/src/trade.ts
+  s_9e8392e15145aa::t_073e5967d80c0f 157,167-168
+  s_9e8392e15145aa::t_8f426b4aa32460 98-99
+  s_9e8392e15145aa::t_adf01769397a75 169-170
+server/src/games/monopoly/DeadlineTimers.ts
+  s_9e8392e15145aa::t_e3f1f55c1a1ca4 14,32-35,40,44-45,51,54,97-99,104,112,159-171,173-174,176-181,183-190,192-194,197-198,200-214,216-228,231-232,244,247-255,257-261,264-267,269-287,289-295
+packages/monopoly-engine/src/__tests__/liquidate.test.ts
+  s_9e8392e15145aa::t_2a817f73de8b18 1-37,39-42,61-97
+  s_9e8392e15145aa::t_ac249924cec132 38,43-60
+packages/monopoly-engine/src/__tests__/bankruptcy.test.ts
+  s_9e8392e15145aa::t_f2d7c56a2211b1 47,59-60,67
+  s_9e8392e15145aa::t_9a356f8c2da552 18,24
+packages/monopoly-engine/src/index.ts
+  s_9e8392e15145aa::t_1c23310582bf39 569
+apps/web/src/features/monopoly/components/PlayerHUD.tsx
+  s_9e8392e15145aa::t_6896319065d2af 56-57,59,71
+server/src/games/monopoly/GameStore.ts
+  s_9e8392e15145aa::t_e4a39dfc930761 36-46,51-66,68-72,74-75,80-81
+apps/web/src/features/monopoly/components/ActionCountdown.tsx
+  s_9e8392e15145aa::t_bc7982c9ba8de4 4,20-23
+packages/monopoly-engine/src/liquidate.ts
+  s_9e8392e15145aa::t_1c23310582bf39 1-134
+packages/monopoly-engine/src/turnTimeout.ts
+  s_9e8392e15145aa::t_929c400463717f 46-47,53-54
+server/src/games/monopoly/roomMutex.ts
+  s_9e8392e15145aa::t_50b30926c4fa59 1-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "440b60add38f161d784251b7a49dce7788160ea7",
+  "prompts": {},
+  "sessions": {
+    "s_9e8392e15145aa": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "2c4d389e-7a56-4f9d-b45e-52f5cdc0fba3",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
