@@ -1,0 +1,34 @@
+server/src/socket/bootstrap.ts
+  s_9e8392e15145aa::t_4edaee99023e6a 14
+  s_9e8392e15145aa::t_11d1a4591f4cf3 130-131
+  s_9e8392e15145aa::t_64b63b3bc116bf 65
+  s_9e8392e15145aa::t_465a33e62be1ef 13
+server/src/games/monopoly/DeadlineTimers.ts
+  s_9e8392e15145aa::t_a373c99f53420f 65-79
+server/src/games/monopoly/GameStore.ts
+  s_9e8392e15145aa::t_21cae3e272163a 89-98
+server/src/rooms/DisconnectGrace.ts
+  s_9e8392e15145aa::t_2c4e75c9ada1c7 50-65
+server/src/rooms/RoomCleanup.ts
+  s_9e8392e15145aa::t_465a33e62be1ef 1-31
+server/src/games/monopoly/GameEventLogger.ts
+  s_9e8392e15145aa::t_1b3fed58d4bc81 83-86
+server/src/rooms/RoomManager.ts
+  s_9e8392e15145aa::t_5cff834d035356 137-147
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "97e5aea0431e6986e43191cbe049f688dbd5291f",
+  "prompts": {},
+  "sessions": {
+    "s_9e8392e15145aa": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "2c4d389e-7a56-4f9d-b45e-52f5cdc0fba3",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
