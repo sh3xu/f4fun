@@ -23,7 +23,7 @@ interface ManageActionsProps {
   onMortgage: () => void;
   onUnmortgage: () => void;
   onOwnerAuction: () => void;
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 interface ViewActionsProps {
@@ -116,7 +116,7 @@ export function PropertyActions(props: PropertyActionsProps) {
           <>
             <Button
               size="sm"
-              disabled={loading || isMortgaged}
+              disabled={loading || isMortgaged || hotels > 0}
               onClick={onBuild}
               className={`${btnClass} border-0 bg-[#2196f3]/70`}
               aria-label={
@@ -162,15 +162,17 @@ export function PropertyActions(props: PropertyActionsProps) {
           Auction
         </Button>
       </div>
-      <Button
-        onClick={onClose}
-        size="sm"
-        variant="outline"
-        className={`${btnClass} w-full border-white/15 text-white/70`}
-        aria-label="Close"
-      >
-        Close
-      </Button>
+      {onClose && (
+        <Button
+          onClick={onClose}
+          size="sm"
+          variant="outline"
+          className={`${btnClass} w-full border-white/15 text-white/70`}
+          aria-label="Close"
+        >
+          Close
+        </Button>
+      )}
     </div>
   );
 }

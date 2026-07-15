@@ -4,8 +4,9 @@ import { cn } from "@/lib/cn";
 interface PropertyCoverImageProps {
   src: string;
   alt: string;
+  /** NOTE: Required — fill images need an accurate layout size hint for srcset. */
+  sizes: string;
   className?: string;
-  sizes?: string;
 }
 
 /** Fill-parent Unsplash/property cover using next/image. */
@@ -13,7 +14,7 @@ export function PropertyCoverImage({
   src,
   alt,
   className,
-  sizes = "120px",
+  sizes,
 }: PropertyCoverImageProps) {
   return (
     <Image

@@ -6,7 +6,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import { GLASS_CARD, PROPERTY_COLORS } from "../theme/board-theme";
-import { getTileLabelAt } from "./tile-labels";
+import { PropertyActions } from "./PropertyActions";
+import { getTileLabel, getTileLabelAt } from "./tile-labels";
 
 interface PropertyManagePanelProps {
   state: GameState;
@@ -61,9 +62,9 @@ export function PropertyManagePanel({
   const ownership = state.ownership[position];
   const houses = player.houses[position] ?? 0;
   const hotels = player.hotels[position] ?? 0;
-  const hasBuildings = houses > 0 || hotels > 0;
   const isMortgaged = ownership?.isMortgaged ?? false;
   const isProperty = tile?.type === "property";
+  const label = tile ? getTileLabel(tile.name) : getTileLabelAt(position);
   const colorClass =
     tile?.type === "property" ? PROPERTY_COLORS[tile.colorGroup]?.bg : "";
 
@@ -106,53 +107,24 @@ export function PropertyManagePanel({
           {isProperty ? ` · ${houses}H ${hotels}Hotel` : ""}
         </p>
 
-        <div className="grid grid-cols-2 gap-1.5">
-          {isProperty && (
-            <>
-              <Button
-                size="sm"
-                disabled={loading || isMortgaged}
-                onClick={() =>
-                  houses >= 4 ? onBuildHotel(position) : onBuildHouse(position)
-                }
-                className="border-0 bg-[#2196f3]/70 text-xs font-bold"
-              >
-                Build
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={loading || !hasBuildings}
-                onClick={() =>
-                  hotels > 0 ? onSellHotel(position) : onSellHouse(position)
-                }
-                className="border-white/20 text-xs font-bold text-white/80"
-              >
-                Sell
-              </Button>
-            </>
-          )}
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={loading || (isMortgaged ? false : hasBuildings)}
-            onClick={() =>
-              isMortgaged ? onUnmortgage(position) : onMortgage(position)
-            }
-            className="border-white/20 text-xs font-bold text-white/80"
-          >
-            {isMortgaged ? "Unmortgage" : "Mortgage"}
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={loading || hasBuildings}
-            onClick={() => onOwnerAuction(position)}
-            className="border-amber-400/30 text-xs font-bold text-amber-200"
-          >
-            Auction
-          </Button>
-        </div>
+        <PropertyActions
+          mode="manage"
+          label={label}
+          loading={loading}
+          isProperty={isProperty}
+          isMortgaged={isMortgaged}
+          houses={houses}
+          hotels={hotels}
+          onBuild={() =>
+            houses >= 4 ? onBuildHotel(position) : onBuildHouse(position)
+          }
+          onSell={() =>
+            hotels > 0 ? onSellHotel(position) : onSellHouse(position)
+          }
+          onMortgage={() => onMortgage(position)}
+          onUnmortgage={() => onUnmortgage(position)}
+          onOwnerAuction={() => onOwnerAuction(position)}
+        />
       </div>
     </div>
   );

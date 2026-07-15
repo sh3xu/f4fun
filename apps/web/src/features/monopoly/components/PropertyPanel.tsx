@@ -1,5 +1,6 @@
 import { TILE_BY_POSITION } from "@f4fun/monopoly-engine";
 import { Droplets, Train, Zap } from "lucide-react";
+import { Fragment } from "react";
 import { cn } from "@/lib/cn";
 import { PROPERTY_IMAGES } from "../lib/property-images";
 import {
@@ -144,8 +145,27 @@ export function PropertyPanel(props: PropertyPanelProps) {
         {tile.type === "property" && (
           <div className="space-y-0.5 rounded-md border border-white/[0.06] bg-white/[0.05] p-[clamp(0.3rem,1.2cqmin,0.55rem)] text-[length:var(--board-text-xs)]">
             {tile.rentLevels.map((rent, i) => {
+              if (i === 0) {
+                return (
+                  <Fragment key="rent-schedule-base">
+                    <div className="flex justify-between gap-2">
+                      <span className="text-white/50">Rent</span>
+                      <span className={cn(BOARD_MONEY_CLASS, "text-white/90")}>
+                        ${rent}
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <span className="text-[#4fc3f7]">Monopoly</span>
+                      <span className={cn(BOARD_MONEY_CLASS, "text-[#4fc3f7]")}>
+                        ${tile.rent * 2}
+                      </span>
+                    </div>
+                  </Fragment>
+                );
+              }
+
               const rentLabel =
-                i === 0 ? "Rent" : i < 5 ? `${i} House` : "Hotel";
+                i < 5 ? `${i} House${i > 1 ? "s" : ""}` : "Hotel";
               return (
                 <div key={rentLabel} className="flex justify-between gap-2">
                   <span className="text-white/50">{rentLabel}</span>
