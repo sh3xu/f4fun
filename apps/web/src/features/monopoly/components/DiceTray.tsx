@@ -5,11 +5,14 @@ import { JAIL_FINE } from "@f4fun/monopoly-engine";
 import { DiceRoller } from "@/components/animation/DiceRoller";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
+import { ActionCountdown } from "./ActionCountdown";
 
 interface DiceTrayProps {
   dice: [number, number] | null;
   isMyTurn: boolean;
   phase: GamePhase;
+  deadlineAt?: string | null;
+  deadlinePausedMs?: number | null;
   onRoll: () => void;
   onEndTurn: () => void;
   onPayJailFine?: () => void;
@@ -43,6 +46,8 @@ export function DiceTray({
   dice,
   isMyTurn,
   phase,
+  deadlineAt = null,
+  deadlinePausedMs = null,
   onRoll,
   onEndTurn,
   onPayJailFine,
@@ -84,6 +89,17 @@ export function DiceTray({
             {phaseHint}
           </p>
         )}
+        {(deadlineAt || deadlinePausedMs != null) &&
+          (phase === "PRE_ROLL" ||
+            phase === "JAIL_DECISION" ||
+            phase === "CARD_DRAWN" ||
+            phase === "END_TURN") && (
+            <ActionCountdown
+              deadlineAt={deadlineAt}
+              pausedMs={deadlinePausedMs}
+              className="mt-1 text-[length:var(--board-text-sm)]"
+            />
+          )}
       </div>
 
       <DiceRoller

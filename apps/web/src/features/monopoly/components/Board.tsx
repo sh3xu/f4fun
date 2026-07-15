@@ -171,7 +171,11 @@ export function Board({
   const showAuction =
     state?.phase === "AUCTION" && !!state.auction && animationsSettled;
   const canManageProperties =
-    isMyTurn && (state?.phase === "PRE_ROLL" || state?.phase === "END_TURN");
+    isMyTurn &&
+    state?.pendingTrades.length === 0 &&
+    (state?.phase === "PRE_ROLL" ||
+      state?.phase === "END_TURN" ||
+      state?.phase === "JAIL_DECISION");
   const viewedOwnerInfo =
     viewedPosition !== null ? getOwnerInfo(viewedPosition) : {};
   const viewingOwnProperty =
@@ -315,6 +319,8 @@ export function Board({
                   mode="buy"
                   position={currentPlayer.position}
                   playerCash={currentPlayer.cash}
+                  deadlineAt={state.actionDeadlineAt}
+                  deadlinePausedMs={state.actionDeadlinePausedMs}
                   onBuy={onBuy}
                   onDecline={onDecline}
                   onAuction={onAuction}
@@ -368,6 +374,8 @@ export function Board({
                 dice={displayDice}
                 isMyTurn={isMyTurn}
                 phase={state?.phase ?? "PRE_ROLL"}
+                deadlineAt={state?.actionDeadlineAt}
+                deadlinePausedMs={state?.actionDeadlinePausedMs}
                 onRoll={onRoll}
                 onEndTurn={onEndTurn}
                 onPayJailFine={onPayJailFine}

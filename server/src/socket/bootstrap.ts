@@ -1,6 +1,12 @@
 import type { Server as HttpServer } from "node:http";
+import type { GameState } from "@f4fun/monopoly-engine";
 import { GameRejoinSchema } from "@f4fun/shared-types";
 import { Server } from "socket.io";
+import {
+  afterGameStateCommit,
+  ensureTradeExpiries,
+  mergeGameConfig,
+} from "../games/monopoly/DeadlineTimers.js";
 import { loadGame } from "../games/monopoly/GameStore.js";
 import { registerMonopolyHandlers } from "../games/monopoly/handlers.js";
 import { startGrace } from "../rooms/DisconnectGrace.js";
@@ -58,7 +64,19 @@ export function createSocketServer(httpServer: HttpServer): Server {
         if (room.gameId) {
           const state = await loadGame(room.gameId);
           if (state) {
+            if (state.auction === undefined) state.auction = null;
+            if (state.pendingTrades === undefined) state.pendingTrades = [];
+            if (state.actionDeadlineAt === undefined) {
+              state.actionDeadlineAt = null;
+            }
+            if (state.actionDeadlinePausedMs === undefined) {
+              state.actionDeadlinePausedMs = null;
+            }
+            mergeGameConfig(state);
+            ensureTradeExpiries(state);
             socket.emit("game:stateSnapshot", { state });
+            // NOTE: Rejoin re-arms in-memory timers after server restart / cold room.
+            afterGameStateCommit(io, data.roomId, state as GameState);
           }
         }
 

@@ -4,6 +4,10 @@ import {
   type GameEvent,
   type GameState,
   getActivePlayer,
+  getCurrentAuctionBidder,
+  pauseActionDeadline,
+  resumeActionDeadline,
+  stampActionDeadline,
   type TradeOffer,
 } from "@f4fun/monopoly-engine";
 import {
@@ -37,6 +41,11 @@ import {
   requireRoom,
   validatePayload,
 } from "../../socket/middleware.js";
+import {
+  afterGameStateCommit,
+  ensureTradeExpiries,
+  mergeGameConfig,
+} from "./DeadlineTimers.js";
 import { logGameAction } from "./GameEventLogger.js";
 import { loadGameByRoomId, saveGame } from "./GameStore.js";
 
@@ -56,7 +65,54 @@ function assertRoomMatch(
 function normalizeState(state: GameState): GameState {
   if (state.auction === undefined) state.auction = null;
   if (state.pendingTrades === undefined) state.pendingTrades = [];
+  if (state.actionDeadlineAt === undefined) state.actionDeadlineAt = null;
+  if (state.actionDeadlinePausedMs === undefined) {
+    state.actionDeadlinePausedMs = null;
+  }
+  mergeGameConfig(state);
+  ensureTradeExpiries(state);
   return state;
+}
+
+function refreshActionDeadline(
+  stateBefore: GameState,
+  stateAfter: GameState,
+  events: readonly GameEvent[],
+): void {
+  const proposed = events.some((e) => e.type === "TRADE_PROPOSED");
+  const tradeResolved =
+    events.some(
+      (e) => e.type === "TRADE_COMPLETED" || e.type === "TRADE_REJECTED",
+    ) && stateAfter.pendingTrades.length === 0;
+
+  if (proposed) {
+    pauseActionDeadline(stateAfter);
+    return;
+  }
+
+  if (tradeResolved) {
+    resumeActionDeadline(stateAfter);
+    return;
+  }
+
+  const bidderBefore =
+    stateBefore.phase === "AUCTION"
+      ? getCurrentAuctionBidder(stateBefore)
+      : null;
+  const bidderAfter =
+    stateAfter.phase === "AUCTION" ? getCurrentAuctionBidder(stateAfter) : null;
+  const shouldRestamp =
+    stateAfter.phase !== stateBefore.phase ||
+    bidderBefore !== bidderAfter ||
+    (!stateBefore.actionDeadlineAt &&
+      stateBefore.actionDeadlinePausedMs == null);
+
+  if (shouldRestamp) {
+    stampActionDeadline(stateAfter);
+  } else {
+    stateAfter.actionDeadlineAt = stateBefore.actionDeadlineAt;
+    stateAfter.actionDeadlinePausedMs = stateBefore.actionDeadlinePausedMs;
+  }
 }
 
 type ActionHandlerOptions = {
@@ -106,7 +162,7 @@ function registerIntent(
         }
       }
 
-      const stateBefore = JSON.parse(JSON.stringify(state));
+      const stateBefore = JSON.parse(JSON.stringify(state)) as GameState;
       const action = options.buildAction(data as Record<string, unknown>);
       const result = applyAction(state, action, Math.random, playerId);
 
@@ -115,6 +171,7 @@ function registerIntent(
         return;
       }
 
+      refreshActionDeadline(stateBefore, result.state, result.events);
       await saveGame(state.gameId, result.state, options.turnCountDelta ?? 0);
       try {
         await logGameAction(
@@ -137,6 +194,7 @@ function registerIntent(
       });
 
       options.onEvents?.(io, roomId, result.events);
+      afterGameStateCommit(io, roomId, result.state, result.events);
 
       callback?.(null, { events: result.events });
     } catch (err) {
@@ -282,7 +340,6 @@ export function registerMonopolyHandlers(
   );
 
   registerIntent(io, socket, "game:proposeTrade", GameProposeTradeSchema, {
-    requireActiveTurn: false,
     actionName: "PROPOSE_TRADE",
     buildAction: (data) => ({
       type: "PROPOSE_TRADE",

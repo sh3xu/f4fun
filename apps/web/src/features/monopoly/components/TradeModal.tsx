@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import { GLASS_CARD } from "../theme/board-theme";
+import { TradeOfferSummary } from "./IncomingTradeOfferCard";
 import { getTileLabelAt } from "./tile-labels";
 
 const emptyOffer = (): TradeOffer => ({
@@ -53,6 +54,14 @@ export function TradeModal({
   const incoming = state.pendingTrades.filter(
     (t) => t.toPlayerId === myPlayerId,
   );
+  const activePlayerId = state.turnOrder[state.activePlayerIndex];
+  const isMyTurn = activePlayerId === myPlayerId;
+  const canPropose =
+    isMyTurn &&
+    state.pendingTrades.length === 0 &&
+    (state.phase === "PRE_ROLL" ||
+      state.phase === "END_TURN" ||
+      state.phase === "JAIL_DECISION");
 
   function togglePosition(
     side: "offer" | "request",
@@ -87,40 +96,26 @@ export function TradeModal({
           <div className="mb-4 space-y-2">
             <h3 className="text-sm font-semibold text-white/80">Incoming</h3>
             {incoming.map((trade) => (
-              <div
+              <TradeOfferSummary
                 key={trade.tradeId}
-                className="rounded-lg border border-white/10 bg-white/5 p-2 text-sm"
-              >
-                <p className="text-white/70">
-                  From {state.players[trade.fromPlayerId]?.name}: offer $
-                  {trade.offer.cash} + {trade.offer.positions.length} props /
-                  ask ${trade.request.cash} + {trade.request.positions.length}{" "}
-                  props
-                </p>
-                <div className="mt-2 flex gap-2">
-                  <Button
-                    size="sm"
-                    disabled={loading}
-                    onClick={() => onAccept(trade.tradeId)}
-                  >
-                    Accept
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={loading}
-                    onClick={() => onReject(trade.tradeId)}
-                  >
-                    Reject
-                  </Button>
-                </div>
-              </div>
+                trade={trade}
+                state={state}
+                loading={loading}
+                onAccept={onAccept}
+                onReject={onReject}
+              />
             ))}
           </div>
         )}
 
         {partners.length === 0 || !me ? (
           <p className="text-sm text-white/50">No partners available.</p>
+        ) : !canPropose ? (
+          <p className="text-sm text-white/50">
+            {state.pendingTrades.length > 0
+              ? "A trade offer is already pending."
+              : "You can only propose a trade on your turn (before or after rolling)."}
+          </p>
         ) : (
           <div className="space-y-3 text-sm">
             <label className="block">
