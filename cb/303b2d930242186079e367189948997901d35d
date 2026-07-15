@@ -1,0 +1,29 @@
+apps/web/src/features/monopoly/components/PlayerHUD.tsx
+  s_9e8392e15145aa::t_1c90538d38bf9a 8,15-17,25-27,55-56,59,63-70,85,93-94,100-101
+apps/web/src/features/monopoly/components/PropertyPanel.tsx
+  s_9e8392e15145aa::t_5b5e7d0b7c568a 231-239
+apps/web/src/features/monopoly/components/TurnTimerRing.tsx
+  s_9e8392e15145aa::t_72355031a0d32e 96-97
+  s_9e8392e15145aa::t_dcd45bc24923a9 1-95,98-128
+apps/web/src/features/monopoly/components/AuctionPanel.tsx
+  s_9e8392e15145aa::t_7d859a98af253a 55-57
+apps/web/src/features/monopoly/components/GamePage.tsx
+  s_9e8392e15145aa::t_cdd1bdea657e64 4
+  s_9e8392e15145aa::t_13a422095118e4 635-647
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "cb303b2d930242186079e367189948997901d35d",
+  "prompts": {},
+  "sessions": {
+    "s_9e8392e15145aa": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "2c4d389e-7a56-4f9d-b45e-52f5cdc0fba3",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
