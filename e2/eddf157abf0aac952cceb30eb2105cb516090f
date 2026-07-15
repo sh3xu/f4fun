@@ -1,0 +1,47 @@
+apps/web/src/features/monopoly/components/GamePage.tsx
+  s_040e39cbfb9643::t_927d2025da430b 511-517,573,575
+apps/web/src/features/monopoly/components/PropertyPanel.tsx
+  s_040e39cbfb9643::t_b9420c24fb6cf5 150-155
+  s_040e39cbfb9643::t_41117ab86be8d0 156-157
+  s_040e39cbfb9643::t_fd4ad528ece54f 91,94-95
+  s_040e39cbfb9643::t_4e06b4551fefdd 11
+  s_040e39cbfb9643::t_95422e742ee6eb 14-15,17-18,22-26,28-36,39-56,70-76,89,92,96,115-128,158,204,206,210-242
+  s_040e39cbfb9643::t_f8e7dfe121f867 146-149
+  s_040e39cbfb9643::t_89631db30fbca7 10
+  s_040e39cbfb9643::t_c21ad525557d46 90
+  s_040e39cbfb9643::t_22d06ab114af4d 93
+  s_040e39cbfb9643::t_f0357aad13bc26 97-99
+  s_040e39cbfb9643::t_1b6e705a833ec4 129
+apps/web/src/features/monopoly/components/PropertyCoverImage.tsx
+  s_040e39cbfb9643::t_b2e65b2386c534 1-27
+apps/web/next.config.ts
+  s_040e39cbfb9643::t_60afb14de1aa34 13-16
+apps/web/src/features/monopoly/components/BoardTile.tsx
+  s_040e39cbfb9643::t_ba4d6b106c5019 24
+  s_040e39cbfb9643::t_b9c6cac1397b7a 260-274,276-277,405-424
+  s_040e39cbfb9643::t_ae0b619b8352f6 258-259,275,281-285
+  s_040e39cbfb9643::t_98b9b80328ceeb 18,36,214,237-240,246,279-280,286-289
+apps/web/src/features/monopoly/components/PropertyActions.tsx
+  s_040e39cbfb9643::t_618035988fc1cf 3-122,126-172,176
+  s_040e39cbfb9643::t_927d2025da430b 123-125
+  s_040e39cbfb9643::t_4c085fb23852c9 1-2
+  s_040e39cbfb9643::t_af08b341b67f7d 173-175
+apps/web/src/features/monopoly/components/Board.tsx
+  s_040e39cbfb9643::t_927d2025da430b 4,28-34,61-67,83-84,160-167,212-220,302,311-352
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "e2eddf157abf0aac952cceb30eb2105cb516090f",
+  "prompts": {},
+  "sessions": {
+    "s_040e39cbfb9643": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "5d9f25f1-f373-45db-840f-dd09542b53a4",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
