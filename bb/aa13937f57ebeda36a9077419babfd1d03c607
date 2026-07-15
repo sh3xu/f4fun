@@ -1,0 +1,46 @@
+packages/monopoly-engine/src/__tests__/cards.test.ts
+  s_77b873a5880802::t_1f13fe25e95fbe 375-467,471-472
+  s_77b873a5880802::t_56b8874128664c 4-5,7
+  s_77b873a5880802::t_9dfaf2509e72df 468-470
+apps/web/src/features/monopoly/components/Board.tsx
+  s_f9208fbda0c165::t_4ca050199cef38 376-378
+packages/monopoly-engine/src/resolveLanding.ts
+  s_77b873a5880802::t_1d2cd80d4f78d2 7,9,12-13,17,19-25,67-71,76-82,89-90
+  s_77b873a5880802::t_9dfaf2509e72df 72-75
+packages/monopoly-engine/src/rent.ts
+  s_77b873a5880802::t_95400a4112785d 13-22,27,35-36,38-42,44-48,51
+  s_77b873a5880802::t_4063fadc9798a8 124,126
+packages/monopoly-engine/src/index.ts
+  s_77b873a5880802::t_fb3c49921ae33d 489
+  s_77b873a5880802::t_9dfaf2509e72df 22-25
+  s_77b873a5880802::t_cee4f7d8ae27b2 488,490-499,501
+packages/monopoly-engine/src/cards.ts
+  s_77b873a5880802::t_308908bef2a90f 175
+packages/monopoly-engine/src/__tests__/rent.test.ts
+  s_77b873a5880802::t_053709f4da8510 73-94,98-99
+  s_77b873a5880802::t_9dfaf2509e72df 95-97
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "bbaa13937f57ebeda36a9077419babfd1d03c607",
+  "prompts": {},
+  "sessions": {
+    "s_77b873a5880802": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "3a9e0a48-8bd3-4627-9b1e-a4d19d2ff943",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    },
+    "s_f9208fbda0c165": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "a780c6d0-0437-4c09-b09b-04cf324d029f",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
