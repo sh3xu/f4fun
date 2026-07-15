@@ -373,7 +373,9 @@ export function Board({
                 onPayJailFine={onPayJailFine}
                 onUseGoojfCard={onUseGoojfCard}
                 onRollForJail={onRollForJail}
-                onAcknowledgeCard={onAcknowledgeCard}
+                onAcknowledgeCard={
+                  animationsSettled ? onAcknowledgeCard : undefined
+                }
                 pendingCardText={
                   state?.pendingCard
                     ? ((state.pendingCard.deck === "chance"

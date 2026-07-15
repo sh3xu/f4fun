@@ -4,15 +4,25 @@ import {
   JAIL_POSITION,
   TILE_BY_POSITION,
 } from "./config/board.js";
+import { diceSum, rollDice } from "./dice.js";
 import { phaseAfterDiceAction, settleAfterCashChange } from "./phase.js";
-import { chargeRent } from "./rent.js";
+import { chargeRent, type RentOptions } from "./rent.js";
 import type { GameEvent, GameState, PlayerId, RNG } from "./types.js";
+
+export type UtilityRentMode = "from_dice_spaces" | "roll_ten_times";
 
 export interface ResolveLandingOptions {
   /** When false (jail doubles / forced exit), doubles do not grant another roll. */
   allowDoublesReroll: boolean;
-  /** RNG used for reshuffling an empty draw pile. Defaults to Math.random. */
+  /** RNG used for reshuffling an empty draw pile and Chance utility rent rolls. */
   rng?: RNG;
+  /** Scales charged rent (e.g. 2 for Chance nearest-railroad). Default 1. */
+  rentMultiplier?: number;
+  /**
+   * Utility rent mode. `roll_ten_times` rolls fresh dice and charges 10× the sum
+   * regardless of how many utilities the owner holds (official Chance rule).
+   */
+  utilityRentMode?: UtilityRentMode;
 }
 
 /**
@@ -54,13 +64,30 @@ export function resolveLanding(
 
   const ownership = state.ownership[player.position];
   if (ownership && ownership.ownerId !== playerId) {
+    let effectiveDice = diceSpaces;
+    const rentOptions: RentOptions = {
+      rentMultiplier: options.rentMultiplier ?? 1,
+    };
+
+    if (
+      options.utilityRentMode === "roll_ten_times" &&
+      tile?.type === "utility"
+    ) {
+      const effectiveRng = options.rng ?? Math.random;
+      const { dice } = rollDice(effectiveRng);
+      // NOTE: Do not write state.lastDice — that would corrupt doubles tracking.
+      effectiveDice = diceSum(dice);
+      rentOptions.utilityMultiplierOverride = 10;
+    }
+
     events.push(
       ...chargeRent(
         state,
         playerId,
         ownership.ownerId,
         player.position,
-        diceSpaces,
+        effectiveDice,
+        rentOptions,
       ),
     );
     settleAfterCashChange(state, playerId, ownership.ownerId, events);

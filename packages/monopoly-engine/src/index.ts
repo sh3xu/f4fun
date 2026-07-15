@@ -19,7 +19,10 @@ import { mortgageProperty, unmortgageProperty } from "./mortgage.js";
 import { applyMove } from "./movement.js";
 import { phaseAfterDiceAction } from "./phase.js";
 import { buyProperty, canBuyProperty } from "./property.js";
-import { resolveLanding } from "./resolveLanding.js";
+import {
+  type ResolveLandingOptions,
+  resolveLanding,
+} from "./resolveLanding.js";
 import { acceptTrade, proposeTrade, rejectTrade } from "./trade.js";
 import { advanceTurn, getActivePlayer } from "./turn.js";
 import type {
@@ -482,12 +485,20 @@ export function applyAction(
         }
 
         if (MOVEMENT_EFFECT_KINDS.has(card.effect.kind)) {
-          // Movement was applied; resolveLanding handles phase transition.
+          const spaces = state.lastDice ? diceSum(state.lastDice) : 0;
+          const landingOptions: ResolveLandingOptions = {
+            allowDoublesReroll: state.allowDoublesReroll,
+            rng,
+          };
+          if (card.effect.kind === "move_to_nearest") {
+            if (card.effect.tileType === "railroad") {
+              landingOptions.rentMultiplier = 2;
+            } else {
+              landingOptions.utilityRentMode = "roll_ten_times";
+            }
+          }
           events.push(
-            ...resolveLanding(state, activePlayerId, 0, {
-              allowDoublesReroll: state.allowDoublesReroll,
-              rng,
-            }),
+            ...resolveLanding(state, activePlayerId, spaces, landingOptions),
           );
         } else if (card.effect.kind === "go_to_jail") {
           state.phase = "END_TURN";

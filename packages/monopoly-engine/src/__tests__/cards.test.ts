@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { applyCardEffect, drawCardId, lookupCard } from "../cards.js";
 import type { Card } from "../config/board.js";
+import { RAILROAD_RENT } from "../config/board.js";
+import { diceSum } from "../dice.js";
 import { applyAction, createInitialState } from "../index.js";
+import { resolveLanding } from "../resolveLanding.js";
 import type { GameState } from "../types.js";
 
 const fixedRng = () => 0;
@@ -367,5 +370,103 @@ describe("applyCardEffect — go_back_spaces", () => {
 
     expect(state.players.p1.position).toBe(4);
     expect(state.players.p1.cash).toBe(cashBefore);
+  });
+});
+
+describe("ACKNOWLEDGE_CARD — movement landing rent", () => {
+  it("nearest railroad owned charges 2× RAILROAD_RENT", () => {
+    const state = createInitialState("g1", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+
+    // From GO, nearest railroad is Reading (5); one railroad → base $25 × 2 = $50
+    state.players.p1.position = 0;
+    state.ownership[5] = { ownerId: "p2", isMortgaged: false };
+    state.players.p2.ownedPositions.push(5);
+    state.phase = "CARD_DRAWN";
+    state.pendingCard = {
+      deck: "chance",
+      cardId: "ch_advance_nearest_railroad_1",
+    };
+    state.lastDice = [2, 3];
+    state.allowDoublesReroll = false;
+
+    const p1Before = state.players.p1.cash;
+    const result = applyAction(state, { type: "ACKNOWLEDGE_CARD" });
+
+    expect(result.error).toBeUndefined();
+    expect(state.players.p1.position).toBe(5);
+    expect(state.players.p1.cash).toBe(p1Before - 2 * RAILROAD_RENT[1]);
+    expect(
+      result.events.some(
+        (e) => e.type === "RENT_PAID" && e.amount === 2 * RAILROAD_RENT[1],
+      ),
+    ).toBe(true);
+  });
+
+  it("nearest utility owned charges 10× freshly rolled dice", () => {
+    const state = createInitialState("g1", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+
+    // From GO, nearest utility is Electric Company (12)
+    state.players.p1.position = 0;
+    state.ownership[12] = { ownerId: "p2", isMortgaged: false };
+    state.players.p2.ownedPositions.push(12);
+    state.phase = "CARD_DRAWN";
+    state.pendingCard = {
+      deck: "chance",
+      cardId: "ch_advance_nearest_utility",
+    };
+    // lastDice would wrongly yield 4×12=48 with ownership multiplier; must not be used
+    state.lastDice = [6, 6];
+    state.allowDoublesReroll = false;
+
+    // [0.0, 0.2] → dice [1, 2] sum 3 → rent 10×3 = 30
+    const rng = seededRng([0.0, 0.2]);
+    const p1Before = state.players.p1.cash;
+    const result = applyAction(state, { type: "ACKNOWLEDGE_CARD" }, rng);
+
+    expect(result.error).toBeUndefined();
+    expect(state.players.p1.position).toBe(12);
+    expect(state.players.p1.cash).toBe(p1Before - 30);
+    // NOTE: Fresh rent roll must not overwrite lastDice (doubles tracking).
+    expect(state.lastDice).toEqual([6, 6]);
+  });
+
+  it("move_to onto owned utility uses lastDice sum for rent", () => {
+    const state = createInitialState("g1", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+
+    state.ownership[12] = { ownerId: "p2", isMortgaged: false };
+    state.players.p2.ownedPositions.push(12);
+    state.players.p1.position = 0;
+    state.lastDice = [3, 4]; // sum 7 → 7×4 = 28
+    state.allowDoublesReroll = false;
+
+    // No deck card advances to a utility; mirror ACKNOWLEDGE_CARD move_to + resolveLanding.
+    const card: Card = {
+      id: "test_advance_electric",
+      text: "Advance to Electric Company",
+      effect: { kind: "move_to", position: 12 },
+    };
+    applyCardEffect(state, "p1", card, "chance", fixedRng);
+    expect(state.players.p1.position).toBe(12);
+
+    const p1Before = state.players.p1.cash;
+    const spaces = state.lastDice ? diceSum(state.lastDice) : 0;
+    const events = resolveLanding(state, "p1", spaces, {
+      allowDoublesReroll: state.allowDoublesReroll,
+    });
+
+    expect(spaces).toBe(7);
+    expect(state.players.p1.cash).toBe(p1Before - 28);
+    expect(events.some((e) => e.type === "RENT_PAID" && e.amount === 28)).toBe(
+      true,
+    );
   });
 });

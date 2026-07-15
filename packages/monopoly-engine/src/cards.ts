@@ -172,7 +172,7 @@ export function applyCardEffect(
         effect.tileType === "railroad" ? RAILROAD_POSITIONS : UTILITY_POSITIONS;
       const targetPos = nearestOf(player.position, candidates);
       events.push(...setPlayerPosition(state, playerId, targetPos, true));
-      // TODO: Apply double rent for nearest railroad, 10x dice for nearest utility (official rule).
+      // NOTE: Double railroad rent / 10× utility roll applied in resolveLanding via ACKNOWLEDGE_CARD options.
       break;
     }
   }
