@@ -86,3 +86,13 @@ export async function getGameHistory(
 ): Promise<GameState | null> {
   return loadGame(gameId);
 }
+
+/** Delete all game documents for a room. Returns deleted gameIds. */
+export async function deleteGamesByRoomId(roomId: string): Promise<string[]> {
+  const docs = await GameModel.find({ roomId }).select("gameId").lean();
+  const gameIds = docs.map((d) => d.gameId);
+  if (gameIds.length > 0) {
+    await GameModel.deleteMany({ roomId });
+  }
+  return gameIds;
+}

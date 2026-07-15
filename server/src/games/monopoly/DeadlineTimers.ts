@@ -62,6 +62,21 @@ export function clearTurnTimer(roomId: string): void {
   }
 }
 
+export function clearRoomTradeTimers(roomId: string): void {
+  for (const [key, entry] of tradeTimers) {
+    if (entry.roomId === roomId) {
+      clearTimeout(entry.timer);
+      tradeTimers.delete(key);
+    }
+  }
+}
+
+/** Clear turn + trade timers for a destroyed room. */
+export function clearAllRoomTimers(roomId: string): void {
+  clearTurnTimer(roomId);
+  clearRoomTradeTimers(roomId);
+}
+
 export function scheduleTurnTimer(
   io: Server,
   roomId: string,

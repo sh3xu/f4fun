@@ -80,6 +80,10 @@ export async function getGameEventLog(
   }));
 }
 
+export async function deleteGameEventsByRoomId(roomId: string): Promise<void> {
+  await GameEventModel.deleteMany({ roomId });
+}
+
 function stateToLog(state: GameState): Record<string, unknown> {
   return {
     gameId: state.gameId,

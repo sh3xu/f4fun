@@ -10,7 +10,8 @@ import {
 import { loadGame, saveGame } from "../games/monopoly/GameStore.js";
 import { registerMonopolyHandlers } from "../games/monopoly/handlers.js";
 import { withRoomLock } from "../games/monopoly/roomMutex.js";
-import { startGrace } from "../rooms/DisconnectGrace.js";
+import { cancelGrace, startGrace } from "../rooms/DisconnectGrace.js";
+import { destroyRoomIfAbandoned } from "../rooms/RoomCleanup.js";
 import {
   setPlayerConnected,
   verifyPlayerSession,
@@ -61,6 +62,7 @@ export function createSocketServer(httpServer: HttpServer): Server {
         await socket.join(data.roomId);
 
         await setPlayerConnected(data.roomId, data.playerId, true);
+        await cancelGrace(data.roomId, data.playerId);
 
         if (room.gameId) {
           await withRoomLock(data.roomId, async () => {
@@ -125,6 +127,8 @@ export function createSocketServer(httpServer: HttpServer): Server {
           playerId,
           isConnected: false,
         });
+        // NOTE: Wait until every seat is offline and no reconnect grace remains.
+        await destroyRoomIfAbandoned(roomId);
       });
     });
   });

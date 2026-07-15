@@ -134,6 +134,17 @@ export async function setPlayerConnected(
   );
 }
 
+export async function allPlayersDisconnected(roomId: string): Promise<boolean> {
+  const doc = await RoomModel.findOne({ roomId });
+  if (!doc || doc.players.length === 0) return true;
+  return doc.players.every((p) => !p.isConnected);
+}
+
+export async function deleteRoom(roomId: string): Promise<boolean> {
+  const result = await RoomModel.deleteOne({ roomId });
+  return result.deletedCount > 0;
+}
+
 export async function getRoomByPlayerId(
   playerId: string,
 ): Promise<Room | null> {
