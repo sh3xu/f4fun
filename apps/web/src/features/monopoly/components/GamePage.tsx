@@ -12,7 +12,6 @@ import { useGameStore } from "../store/gameStore";
 import { GLASS_PANEL } from "../theme/board-theme";
 import { Board } from "./Board";
 import { PlayerHUD } from "./PlayerHUD";
-import { PropertyManagePanel } from "./PropertyManagePanel";
 import { TradeModal } from "./TradeModal";
 import { getTileLabel } from "./tile-labels";
 import { WinScreen } from "./WinScreen";
@@ -454,11 +453,11 @@ export function GamePage() {
   }
 
   const activePlayerId = state.turnOrder[state.activePlayerIndex];
-  const myPlayer = myPlayerId ? state.players[myPlayerId] : null;
-  const canManage =
-    myPlayerId === activePlayerId &&
-    (state.phase === "PRE_ROLL" || state.phase === "END_TURN") &&
-    !!myPlayer;
+  const pendingTradeCount =
+    myPlayerId == null
+      ? 0
+      : (state.pendingTrades?.filter((t) => t.toPlayerId === myPlayerId)
+          .length ?? 0);
 
   return (
     <div
@@ -540,33 +539,14 @@ export function GamePage() {
           )}
         </div>
 
-        {canManage && myPlayer && (
-          <PropertyManagePanel
-            state={state}
-            player={myPlayer}
-            loading={false}
-            onBuildHouse={handleBuildHouse}
-            onSellHouse={handleSellHouse}
-            onBuildHotel={handleBuildHotel}
-            onSellHotel={handleSellHotel}
-            onMortgage={handleMortgage}
-            onUnmortgage={handleUnmortgage}
-            onOwnerAuction={handleOwnerAuction}
-            onOpenTrade={() => setTradeOpen(true)}
-          />
-        )}
-
-        {!canManage && myPlayerId && (
+        {myPlayerId && (
           <button
             type="button"
             onClick={() => setTradeOpen(true)}
             className="rounded-lg border border-white/15 bg-white/5 px-2 py-1.5 text-xs font-semibold text-white/70 hover:bg-white/10"
           >
-            Open trades
-            {(state.pendingTrades?.filter((t) => t.toPlayerId === myPlayerId)
-              .length ?? 0) > 0
-              ? " (!)"
-              : ""}
+            Trade
+            {pendingTradeCount > 0 ? ` (${pendingTradeCount})` : ""}
           </button>
         )}
 
