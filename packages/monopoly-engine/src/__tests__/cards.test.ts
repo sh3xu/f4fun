@@ -1,0 +1,371 @@
+import { describe, expect, it } from "vitest";
+import { applyCardEffect, drawCardId, lookupCard } from "../cards.js";
+import type { Card } from "../config/board.js";
+import { applyAction, createInitialState } from "../index.js";
+import type { GameState } from "../types.js";
+
+const fixedRng = () => 0;
+
+function getCard(deck: "chance" | "community_chest", id: string): Card {
+  const card = lookupCard(deck, id);
+  if (!card) throw new Error(`Card ${id} not found in deck ${deck}`);
+  return card;
+}
+
+function seededRng(values: number[]): () => number {
+  let i = 0;
+  return () => values[i++ % values.length];
+}
+
+describe("drawCardId", () => {
+  it("draws the top card from the draw pile", () => {
+    const state = createInitialState("g1", [
+      { id: "p1", name: "Alice", token: "car" },
+    ]);
+    state.chanceDeck.drawPile = ["ch_goojf", "ch_advance_go"];
+    const drawn = drawCardId(state.chanceDeck, fixedRng);
+    expect(drawn).toBe("ch_goojf");
+    expect(state.chanceDeck.drawPile).toEqual(["ch_advance_go"]);
+  });
+
+  it("reshuffles discard into draw pile when draw pile is empty", () => {
+    const state = createInitialState("g1", [
+      { id: "p1", name: "Alice", token: "car" },
+    ]);
+    state.chanceDeck.drawPile = [];
+    state.chanceDeck.discardPile = ["ch_advance_go", "ch_poor_tax"];
+
+    const drawn = drawCardId(state.chanceDeck, fixedRng);
+
+    expect(drawn).not.toBeNull();
+    expect(state.chanceDeck.discardPile).toHaveLength(0);
+    // One was drawn, one remains in draw pile
+    expect(state.chanceDeck.drawPile).toHaveLength(1);
+  });
+
+  it("returns null when both piles are empty", () => {
+    const state = createInitialState("g1", [
+      { id: "p1", name: "Alice", token: "car" },
+    ]);
+    state.chanceDeck.drawPile = [];
+    state.chanceDeck.discardPile = [];
+    expect(drawCardId(state.chanceDeck, fixedRng)).toBeNull();
+  });
+});
+
+describe("applyCardEffect — get_out_of_jail_free", () => {
+  it("increments goojfCards and records 'chance' source", () => {
+    const state = createInitialState("g1", [
+      { id: "p1", name: "Alice", token: "car" },
+    ]);
+    applyCardEffect(
+      state,
+      "p1",
+      getCard("chance", "ch_goojf"),
+      "chance",
+      fixedRng,
+    );
+
+    expect(state.players.p1.goojfCards).toBe(1);
+    expect(state.players.p1.goojfCardSources).toEqual(["chance"]);
+    // Card must NOT be in the discard pile while held
+    expect(state.chanceDeck.discardPile).not.toContain("ch_goojf");
+  });
+
+  it("increments goojfCards and records 'community_chest' source", () => {
+    const state = createInitialState("g1", [
+      { id: "p1", name: "Alice", token: "car" },
+    ]);
+    applyCardEffect(
+      state,
+      "p1",
+      getCard("community_chest", "cc_goojf"),
+      "community_chest",
+      fixedRng,
+    );
+
+    expect(state.players.p1.goojfCards).toBe(1);
+    expect(state.players.p1.goojfCardSources).toEqual(["community_chest"]);
+    expect(state.communityChestDeck.discardPile).not.toContain("cc_goojf");
+  });
+
+  it("can hold both a chance and a community-chest GOOJF card simultaneously", () => {
+    const state = createInitialState("g1", [
+      { id: "p1", name: "Alice", token: "car" },
+    ]);
+    applyCardEffect(
+      state,
+      "p1",
+      getCard("chance", "ch_goojf"),
+      "chance",
+      fixedRng,
+    );
+    applyCardEffect(
+      state,
+      "p1",
+      getCard("community_chest", "cc_goojf"),
+      "community_chest",
+      fixedRng,
+    );
+
+    expect(state.players.p1.goojfCards).toBe(2);
+    expect(state.players.p1.goojfCardSources).toEqual([
+      "chance",
+      "community_chest",
+    ]);
+  });
+});
+
+describe("applyCardEffect — cash effects", () => {
+  it("adds cash for positive amount", () => {
+    const state = createInitialState("g1", [
+      { id: "p1", name: "Alice", token: "car" },
+    ]);
+    const before = state.players.p1.cash;
+
+    applyCardEffect(
+      state,
+      "p1",
+      getCard("chance", "ch_bank_dividend"),
+      "chance",
+      fixedRng,
+    );
+
+    expect(state.players.p1.cash).toBe(before + 50);
+    expect(state.chanceDeck.discardPile).toContain("ch_bank_dividend");
+  });
+
+  it("deducts cash for negative amount", () => {
+    const state = createInitialState("g1", [
+      { id: "p1", name: "Alice", token: "car" },
+    ]);
+    const before = state.players.p1.cash;
+
+    applyCardEffect(
+      state,
+      "p1",
+      getCard("chance", "ch_poor_tax"),
+      "chance",
+      fixedRng,
+    );
+
+    expect(state.players.p1.cash).toBe(before - 15);
+  });
+});
+
+describe("applyCardEffect — go_to_jail", () => {
+  it("sends player to jail position with jail state", () => {
+    const state = createInitialState("g1", [
+      { id: "p1", name: "Alice", token: "car" },
+    ]);
+    state.players.p1.position = 7;
+
+    const events = applyCardEffect(
+      state,
+      "p1",
+      getCard("chance", "ch_go_to_jail"),
+      "chance",
+      fixedRng,
+    );
+
+    expect(state.players.p1.position).toBe(10);
+    expect(state.players.p1.isInJail).toBe(true);
+    expect(state.players.p1.jailState).not.toBeNull();
+    expect(events.some((e) => e.type === "SENT_TO_JAIL")).toBe(true);
+    expect(state.chanceDeck.discardPile).toContain("ch_go_to_jail");
+  });
+});
+
+describe("GOOJF via full ROLL_DICE → ACKNOWLEDGE_CARD flow", () => {
+  function setupState(): GameState {
+    return createInitialState("g1", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+  }
+
+  it("awards ch_goojf without manually mutating goojfCards", () => {
+    const state = setupState();
+
+    // Force ch_goojf to the top of the chance draw pile
+    state.chanceDeck.drawPile = [
+      "ch_goojf",
+      ...state.chanceDeck.drawPile.filter((id) => id !== "ch_goojf"),
+    ];
+
+    // Player at position 5 (Reading Railroad); roll [1,1]=2 → position 7 (Chance)
+    state.players.p1.position = 5;
+    // seededRng: Math.floor(0.1*6)+1=1, Math.floor(0.0*6)+1=1 → sum=2
+    const rng = seededRng([0.1, 0.0]);
+
+    const rollResult = applyAction(state, { type: "ROLL_DICE" }, rng);
+    expect(rollResult.error).toBeUndefined();
+    expect(state.players.p1.position).toBe(7);
+    expect(state.phase).toBe("CARD_DRAWN");
+    expect(state.pendingCard).toMatchObject({
+      deck: "chance",
+      cardId: "ch_goojf",
+    });
+
+    const ackResult = applyAction(state, { type: "ACKNOWLEDGE_CARD" });
+    expect(ackResult.error).toBeUndefined();
+    expect(state.players.p1.goojfCards).toBe(1);
+    expect(state.players.p1.goojfCardSources).toEqual(["chance"]);
+    expect(state.pendingCard).toBeNull();
+    // Doubles → should be able to roll again
+    expect(state.phase).toBe("PRE_ROLL");
+  });
+
+  it("awards cc_goojf without manually mutating goojfCards", () => {
+    const state = setupState();
+
+    // Force cc_goojf to the top of the community chest draw pile
+    state.communityChestDeck.drawPile = [
+      "cc_goojf",
+      ...state.communityChestDeck.drawPile.filter((id) => id !== "cc_goojf"),
+    ];
+
+    // Player at position 0 (GO); roll [1,1]=2 → position 2 (Community Chest)
+    // seededRng: same pattern gives [1,1]=2
+    const rng = seededRng([0.1, 0.0]);
+
+    const rollResult = applyAction(state, { type: "ROLL_DICE" }, rng);
+    expect(rollResult.error).toBeUndefined();
+    expect(state.players.p1.position).toBe(2);
+    expect(state.phase).toBe("CARD_DRAWN");
+    expect(state.pendingCard).toMatchObject({
+      deck: "community_chest",
+      cardId: "cc_goojf",
+    });
+
+    const ackResult = applyAction(state, { type: "ACKNOWLEDGE_CARD" });
+    expect(ackResult.error).toBeUndefined();
+    expect(state.players.p1.goojfCards).toBe(1);
+    expect(state.players.p1.goojfCardSources).toEqual(["community_chest"]);
+    expect(state.pendingCard).toBeNull();
+  });
+
+  it("returns ch_goojf to chance discard when spent from jail", () => {
+    const state = setupState();
+
+    // Award ch_goojf directly via applyCardEffect (the award path itself)
+    applyCardEffect(
+      state,
+      "p1",
+      getCard("chance", "ch_goojf"),
+      "chance",
+      fixedRng,
+    );
+
+    // Put player in jail
+    state.players.p1.isInJail = true;
+    state.players.p1.jailState = {
+      turnsInJail: 0,
+      hasGetOutOfJailFreeCard: false,
+    };
+    state.players.p1.position = 10;
+    // Simulate reaching JAIL_DECISION phase
+    state.phase = "JAIL_DECISION";
+
+    const spendResult = applyAction(state, { type: "USE_GOOJF_CARD" });
+    expect(spendResult.error).toBeUndefined();
+    expect(state.players.p1.goojfCards).toBe(0);
+    expect(state.players.p1.goojfCardSources).toHaveLength(0);
+    expect(state.chanceDeck.discardPile).toContain("ch_goojf");
+    expect(state.phase).toBe("PRE_ROLL");
+  });
+
+  it("returns cc_goojf to community chest discard when spent from jail", () => {
+    const state = setupState();
+
+    applyCardEffect(
+      state,
+      "p1",
+      getCard("community_chest", "cc_goojf"),
+      "community_chest",
+      fixedRng,
+    );
+
+    state.players.p1.isInJail = true;
+    state.players.p1.jailState = {
+      turnsInJail: 0,
+      hasGetOutOfJailFreeCard: false,
+    };
+    state.players.p1.position = 10;
+    state.phase = "JAIL_DECISION";
+
+    const spendResult = applyAction(state, { type: "USE_GOOJF_CARD" });
+    expect(spendResult.error).toBeUndefined();
+    expect(state.players.p1.goojfCards).toBe(0);
+    expect(state.communityChestDeck.discardPile).toContain("cc_goojf");
+  });
+
+  it("non-movement card after non-doubles roll sets END_TURN phase", () => {
+    const state = setupState();
+
+    state.chanceDeck.drawPile = [
+      "ch_bank_dividend",
+      ...state.chanceDeck.drawPile.filter((id) => id !== "ch_bank_dividend"),
+    ];
+
+    // Player at position 6; roll [1,2]=3 → position 7 (Chance), non-doubles
+    state.players.p1.position = 4;
+    // [0.0,0.2] → [1,2] sum=3
+    const rng = seededRng([0.0, 0.2]);
+
+    applyAction(state, { type: "ROLL_DICE" }, rng);
+    expect(state.phase).toBe("CARD_DRAWN");
+
+    applyAction(state, { type: "ACKNOWLEDGE_CARD" });
+    expect(state.phase).toBe("END_TURN");
+  });
+
+  it("rejects ACKNOWLEDGE_CARD when not in CARD_DRAWN phase", () => {
+    const state = setupState();
+    const result = applyAction(state, { type: "ACKNOWLEDGE_CARD" });
+    expect(result.error).toBeDefined();
+  });
+});
+
+describe("applyCardEffect — move_to (advance to Go)", () => {
+  it("moves player to target position and collects Go salary if applicable", () => {
+    const state = createInitialState("g1", [
+      { id: "p1", name: "Alice", token: "car" },
+    ]);
+    state.players.p1.position = 24;
+    const cashBefore = state.players.p1.cash;
+
+    applyCardEffect(
+      state,
+      "p1",
+      getCard("chance", "ch_advance_go"),
+      "chance",
+      fixedRng,
+    );
+
+    expect(state.players.p1.position).toBe(0);
+    // Landed on GO itself, not "passed", so no $200 salary (setPlayerPosition excludes GO_POSITION)
+    expect(state.players.p1.cash).toBe(cashBefore);
+  });
+});
+
+describe("applyCardEffect — go_back_spaces", () => {
+  it("moves player backward without passing Go", () => {
+    const state = createInitialState("g1", [
+      { id: "p1", name: "Alice", token: "car" },
+    ]);
+    state.players.p1.position = 7;
+    const cashBefore = state.players.p1.cash;
+
+    applyCardEffect(
+      state,
+      "p1",
+      getCard("chance", "ch_go_back_3"),
+      "chance",
+      fixedRng,
+    );
+
+    expect(state.players.p1.position).toBe(4);
+    expect(state.players.p1.cash).toBe(cashBefore);
+  });
+});

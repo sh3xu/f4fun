@@ -60,6 +60,10 @@ function transferOffer(
   from.goojfCards -= offer.goojfCards;
   to.goojfCards += offer.goojfCards;
 
+  // Transfer deck-source records so the recipient can return cards to the correct discard pile.
+  const transferredSources = from.goojfCardSources.splice(0, offer.goojfCards);
+  to.goojfCardSources.push(...transferredSources);
+
   for (const position of offer.positions) {
     const ownership = state.ownership[position];
     if (!ownership) continue;

@@ -1,16 +1,18 @@
-import { checkBankruptcy } from "./bankruptcy.js";
+import { drawCardId } from "./cards.js";
 import {
   GO_TO_JAIL_POSITION,
   JAIL_POSITION,
   TILE_BY_POSITION,
 } from "./config/board.js";
+import { phaseAfterDiceAction, settleAfterCashChange } from "./phase.js";
 import { chargeRent } from "./rent.js";
-import type { GameEvent, GameState, PlayerId } from "./types.js";
-import { checkWinCondition } from "./win.js";
+import type { GameEvent, GameState, PlayerId, RNG } from "./types.js";
 
 export interface ResolveLandingOptions {
   /** When false (jail doubles / forced exit), doubles do not grant another roll. */
   allowDoublesReroll: boolean;
+  /** RNG used for reshuffling an empty draw pile. Defaults to Math.random. */
+  rng?: RNG;
 }
 
 /**
@@ -25,10 +27,9 @@ export function resolveLanding(
 ): GameEvent[] {
   const events: GameEvent[] = [];
   const player = state.players[playerId];
-  const isDoubles =
-    options.allowDoublesReroll &&
-    state.lastDice !== null &&
-    state.lastDice[0] === state.lastDice[1];
+
+  // Persist for buy/decline/auction/card flows that resume after this landing.
+  state.allowDoublesReroll = options.allowDoublesReroll;
 
   if (player.position === GO_TO_JAIL_POSITION) {
     player.position = JAIL_POSITION;
@@ -47,15 +48,7 @@ export function resolveLanding(
       playerId,
       amount: tile.amount,
     });
-
-    events.push(...checkBankruptcy(state, playerId, null));
-    events.push(...checkWinCondition(state));
-
-    if (state.winnerId !== null) {
-      return events;
-    }
-
-    state.phase = isDoubles ? "PRE_ROLL" : "END_TURN";
+    settleAfterCashChange(state, playerId, null, events);
     return events;
   }
 
@@ -70,15 +63,7 @@ export function resolveLanding(
         diceSpaces,
       ),
     );
-
-    events.push(...checkBankruptcy(state, playerId, ownership.ownerId));
-    events.push(...checkWinCondition(state));
-
-    if (state.winnerId !== null) {
-      return events;
-    }
-
-    state.phase = isDoubles ? "PRE_ROLL" : "END_TURN";
+    settleAfterCashChange(state, playerId, ownership.ownerId, events);
     return events;
   }
 
@@ -93,6 +78,21 @@ export function resolveLanding(
     return events;
   }
 
-  state.phase = isDoubles ? "PRE_ROLL" : "END_TURN";
+  if (tile?.type === "chance" || tile?.type === "community_chest") {
+    const deckKey = tile.type === "chance" ? "chance" : "community_chest";
+    const deck =
+      deckKey === "chance" ? state.chanceDeck : state.communityChestDeck;
+    const effectiveRng = options.rng ?? Math.random;
+    const cardId = drawCardId(deck, effectiveRng);
+
+    if (cardId !== null) {
+      state.pendingCard = { deck: deckKey, cardId };
+      state.phase = "CARD_DRAWN";
+      events.push({ type: "CARD_DRAWN", playerId, deck: deckKey, cardId });
+      return events;
+    }
+  }
+
+  state.phase = phaseAfterDiceAction(state);
   return events;
 }

@@ -23,6 +23,8 @@ export interface PlayerState {
   isBankrupt: boolean;
   token: string;
   goojfCards: number;
+  /** Deck each held GOOJF card originated from, used to return it to the correct discard pile. */
+  goojfCardSources: Array<"chance" | "community_chest">;
 }
 
 export type GamePhase =
@@ -100,6 +102,11 @@ export interface GameState {
   activePlayerIndex: number;
   players: Record<PlayerId, PlayerState>;
   lastDice: [number, number] | null;
+  /**
+   * When false, doubles on lastDice do not grant PRE_ROLL after this landing
+   * (jail doubles / forced third-attempt exit). Honored by buy/decline/auction/cards.
+   */
+  allowDoublesReroll: boolean;
   doublesCount: number;
   ownership: Record<number, PropertyOwnership>;
   bankHouses: number;

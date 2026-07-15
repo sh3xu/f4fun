@@ -15,6 +15,8 @@ interface DiceTrayProps {
   onPayJailFine?: () => void;
   onUseGoojfCard?: () => void;
   onRollForJail?: () => void;
+  onAcknowledgeCard?: () => void;
+  pendingCardText?: string | null;
   goojfCards?: number;
   cash?: number;
   loading: boolean;
@@ -46,6 +48,8 @@ export function DiceTray({
   onPayJailFine,
   onUseGoojfCard,
   onRollForJail,
+  onAcknowledgeCard,
+  pendingCardText = null,
   goojfCards = 0,
   cash = 0,
   loading,
@@ -137,6 +141,25 @@ export function DiceTray({
             aria-label="Use Get Out of Jail Free card"
           >
             Use Jail Free Card
+          </Button>
+        </div>
+      )}
+
+      {isMyTurn && phase === "CARD_DRAWN" && (
+        <div className="flex w-full max-w-[14rem] flex-col gap-1.5">
+          {pendingCardText && (
+            <p className="text-center text-[length:var(--board-text-sm)] leading-snug text-gray-300">
+              {pendingCardText}
+            </p>
+          )}
+          <Button
+            onClick={onAcknowledgeCard}
+            disabled={loading || !onAcknowledgeCard}
+            size="sm"
+            className="h-auto w-full border-0 bg-[#2196f3] py-[clamp(0.35rem,1.2cqmin,0.65rem)] text-[length:var(--board-text-sm)] font-bold text-white shadow-md transition-transform duration-150 hover:scale-[1.02] hover:bg-[#1e88e5]"
+            aria-label="Acknowledge drawn card"
+          >
+            {loading ? "Applying..." : "OK"}
           </Button>
         </div>
       )}

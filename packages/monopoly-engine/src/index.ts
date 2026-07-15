@@ -5,6 +5,7 @@ import {
   startOwnerAuction,
 } from "./auction.js";
 import { buildHotel, buildHouse, sellHotel, sellHouse } from "./building.js";
+import { applyCardEffect, lookupCard, MOVEMENT_EFFECT_KINDS } from "./cards.js";
 import {
   BANK_HOTEL_LIMIT,
   BANK_HOUSE_LIMIT,
@@ -16,6 +17,7 @@ import { diceSum, rollDice } from "./dice.js";
 import { payJailFine, rollForJail, spendGoojfCard } from "./jail.js";
 import { mortgageProperty, unmortgageProperty } from "./mortgage.js";
 import { applyMove } from "./movement.js";
+import { phaseAfterDiceAction } from "./phase.js";
 import { buyProperty, canBuyProperty } from "./property.js";
 import { resolveLanding } from "./resolveLanding.js";
 import { acceptTrade, proposeTrade, rejectTrade } from "./trade.js";
@@ -72,6 +74,7 @@ export function createInitialState(
         jailState: null,
         isBankrupt: false,
         goojfCards: 0,
+        goojfCardSources: [],
       };
       return acc;
     },
@@ -85,6 +88,7 @@ export function createInitialState(
     activePlayerIndex: 0,
     players: playerStates,
     lastDice: null,
+    allowDoublesReroll: true,
     doublesCount: 0,
     ownership: {},
     bankHouses: BANK_HOUSE_LIMIT,
@@ -186,6 +190,7 @@ export function applyAction(
         events.push(
           ...resolveLanding(state, activePlayerId, spaces, {
             allowDoublesReroll: true,
+            rng,
           }),
         );
         return { state, events };
@@ -213,9 +218,7 @@ export function applyAction(
         const buyEvents = buyProperty(state, activePlayerId, player.position);
         events.push(...buyEvents);
 
-        const isDoubles =
-          state.lastDice && state.lastDice[0] === state.lastDice[1];
-        state.phase = isDoubles ? "PRE_ROLL" : "END_TURN";
+        state.phase = phaseAfterDiceAction(state);
 
         return { state, events };
       }
@@ -235,9 +238,7 @@ export function applyAction(
           position: player.position,
         });
 
-        const isDoubles =
-          state.lastDice && state.lastDice[0] === state.lastDice[1];
-        state.phase = isDoubles ? "PRE_ROLL" : "END_TURN";
+        state.phase = phaseAfterDiceAction(state);
 
         return { state, events };
       }
@@ -447,6 +448,61 @@ export function applyAction(
         return { state, events };
       }
 
+      case "ACKNOWLEDGE_CARD": {
+        if (playerId !== activePlayerId) {
+          return { state, events: [], error: "Not your turn" };
+        }
+        if (state.phase !== "CARD_DRAWN") {
+          return { state, events: [], error: "No card to acknowledge" };
+        }
+        if (!state.pendingCard) {
+          return { state, events: [], error: "No pending card" };
+        }
+
+        const { deck: deckKey, cardId } = state.pendingCard;
+        const card = lookupCard(deckKey, cardId);
+        if (!card) {
+          return { state, events: [], error: "Unknown card id" };
+        }
+
+        state.pendingCard = null;
+        events.push({ type: "CARD_APPLIED", playerId: activePlayerId, cardId });
+
+        const cardEvents = applyCardEffect(
+          state,
+          activePlayerId,
+          card,
+          deckKey,
+          rng,
+        );
+        events.push(...cardEvents);
+
+        if (state.winnerId !== null) {
+          return { state, events };
+        }
+
+        if (MOVEMENT_EFFECT_KINDS.has(card.effect.kind)) {
+          // Movement was applied; resolveLanding handles phase transition.
+          events.push(
+            ...resolveLanding(state, activePlayerId, 0, {
+              allowDoublesReroll: state.allowDoublesReroll,
+              rng,
+            }),
+          );
+        } else if (card.effect.kind === "go_to_jail") {
+          state.phase = "END_TURN";
+        } else if (state.phase === "CARD_DRAWN") {
+          // Non-movement, non-jail card; phase not yet set by applyCardEffect.
+          if (state.players[activePlayerId]?.isBankrupt) {
+            state.phase = "END_TURN";
+          } else {
+            state.phase = phaseAfterDiceAction(state);
+          }
+        }
+
+        return { state, events };
+      }
+
       default:
         return { state, events: [], error: "Unknown action type" };
     }
@@ -469,6 +525,12 @@ export {
   sellHotel,
   sellHouse,
 } from "./building.js";
+export {
+  applyCardEffect,
+  drawCardId,
+  lookupCard,
+  MOVEMENT_EFFECT_KINDS,
+} from "./cards.js";
 export * from "./config/board.js";
 export { diceSum, rollDice } from "./dice.js";
 export { payJailFine, rollForJail, spendGoojfCard } from "./jail.js";

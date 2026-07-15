@@ -384,6 +384,15 @@ export function GamePage() {
     }
   };
 
+  const handleAcknowledgeCard = async () => {
+    if (!roomId) return;
+    try {
+      await emitWithCallback("game:acknowledgeCard", { roomId });
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
   const handleBuildHouse = async (position: number) => {
     if (!roomId) return;
     try {
@@ -556,6 +565,7 @@ export function GamePage() {
               onPayJailFine={handlePayJailFine}
               onUseGoojfCard={handleUseGoojfCard}
               onRollForJail={handleRollForJail}
+              onAcknowledgeCard={handleAcknowledgeCard}
               onBuildHouse={handleBuildHouse}
               onSellHouse={handleSellHouse}
               onBuildHotel={handleBuildHotel}

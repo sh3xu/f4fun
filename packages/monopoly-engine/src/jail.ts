@@ -41,6 +41,7 @@ function leaveJailAndMove(
   method: "fine" | "doubles",
   dice: [number, number],
   spaces: number,
+  rng: RNG,
 ): GameEvent[] {
   const events: GameEvent[] = [releaseFromJail(state, playerId, method)];
   events.push(...applyMove(state, playerId, spaces));
@@ -51,7 +52,10 @@ function leaveJailAndMove(
     newPosition: state.players[playerId].position,
   });
   events.push(
-    ...resolveLanding(state, playerId, spaces, { allowDoublesReroll: false }),
+    ...resolveLanding(state, playerId, spaces, {
+      allowDoublesReroll: false,
+      rng,
+    }),
   );
   return events;
 }
@@ -94,8 +98,16 @@ export function spendGoojfCard(
     return { state, events: [], error: "No Get Out of Jail Free card" };
   }
 
-  // TODO: Return card to the originating Chance/CC discard once card draw tracks deck identity.
   player.goojfCards -= 1;
+
+  // Return the card to its originating deck's discard pile.
+  const source = player.goojfCardSources.shift();
+  if (source) {
+    const deck =
+      source === "chance" ? state.chanceDeck : state.communityChestDeck;
+    const cardId = source === "chance" ? "ch_goojf" : "cc_goojf";
+    deck.discardPile.push(cardId);
+  }
 
   const events = [releaseFromJail(state, playerId, "card")];
   state.phase = "PRE_ROLL";
@@ -124,7 +136,7 @@ export function rollForJail(
   if (isDoubles) {
     return {
       state,
-      events: leaveJailAndMove(state, playerId, "doubles", dice, spaces),
+      events: leaveJailAndMove(state, playerId, "doubles", dice, spaces, rng),
     };
   }
 
@@ -153,14 +165,35 @@ export function rollForJail(
     return { state, events };
   }
 
-  // Third failed attempt: pay fine (cash may go negative) and move with this throw.
+  // Third failed attempt: pay fine (cash may go negative), then move only if solvent.
   player.cash -= JAIL_FINE;
   if (state.config.freeParkingJackpot) {
     state.freeParkingPool += JAIL_FINE;
   }
 
-  const events = leaveJailAndMove(state, playerId, "fine", dice, spaces);
-  events.push(...checkBankruptcy(state, playerId, null));
-  events.push(...checkWinCondition(state));
-  return { state, events };
+  const bankruptEvents = checkBankruptcy(state, playerId, null);
+  const winEvents = checkWinCondition(state);
+
+  if (player.isBankrupt) {
+    const events: GameEvent[] = [
+      releaseFromJail(state, playerId, "fine"),
+      {
+        type: "DICE_ROLLED",
+        playerId,
+        dice,
+        newPosition: player.position,
+      },
+      ...bankruptEvents,
+      ...winEvents,
+    ];
+    if (state.winnerId === null) {
+      state.phase = "END_TURN";
+    }
+    return { state, events };
+  }
+
+  return {
+    state,
+    events: leaveJailAndMove(state, playerId, "fine", dice, spaces, rng),
+  };
 }

@@ -1,6 +1,11 @@
 "use client";
 
-import { BOARD_TILES, TILE_BY_POSITION } from "@f4fun/monopoly-engine";
+import {
+  BOARD_TILES,
+  CHANCE_CARDS,
+  COMMUNITY_CHEST_CARDS,
+  TILE_BY_POSITION,
+} from "@f4fun/monopoly-engine";
 import { type CSSProperties, useCallback, useRef, useState } from "react";
 import { PieceMover } from "@/components/animation/PieceMover";
 import { cn } from "@/lib/cn";
@@ -28,6 +33,7 @@ interface BoardProps {
   onPayJailFine: () => void;
   onUseGoojfCard: () => void;
   onRollForJail: () => void;
+  onAcknowledgeCard: () => void;
   onBuildHouse: (position: number) => void;
   onSellHouse: (position: number) => void;
   onBuildHotel: (position: number) => void;
@@ -64,6 +70,7 @@ export function Board({
   onPayJailFine,
   onUseGoojfCard,
   onRollForJail,
+  onAcknowledgeCard,
   onBuildHouse,
   onSellHouse,
   onBuildHotel,
@@ -366,6 +373,16 @@ export function Board({
                 onPayJailFine={onPayJailFine}
                 onUseGoojfCard={onUseGoojfCard}
                 onRollForJail={onRollForJail}
+                onAcknowledgeCard={onAcknowledgeCard}
+                pendingCardText={
+                  state?.pendingCard
+                    ? ((state.pendingCard.deck === "chance"
+                        ? CHANCE_CARDS
+                        : COMMUNITY_CHEST_CARDS
+                      ).find((c) => c.id === state.pendingCard?.cardId)?.text ??
+                      null)
+                    : null
+                }
                 goojfCards={currentPlayer?.goojfCards ?? 0}
                 cash={currentPlayer?.cash ?? 0}
                 loading={false}
