@@ -1,0 +1,88 @@
+apps/web/src/features/monopoly/components/Board.tsx
+  s_f9208fbda0c165::t_d6e1750c3cdc27 36
+  s_f9208fbda0c165::t_955c992b547449 3-8
+  s_f9208fbda0c165::t_1e96b808d880c6 73
+  s_f9208fbda0c165::t_5e62594cf4192d 376-378,382,384-385
+  s_f9208fbda0c165::t_cfa95512ff1670 379-381,383
+apps/web/src/features/monopoly/components/PropertyManagePanel.tsx
+  h_54cccc4af8e4fc 1-159
+server/src/games/monopoly/handlers.ts
+  s_f9208fbda0c165::t_cfa95512ff1670 4,11,148-163,171,324-334,338
+packages/monopoly-engine/src/types.ts
+  s_f9208fbda0c165::t_17b03b1cec85e6 105-109
+  s_9a2fe40690aa7b::t_d4ec16f4695eef 26-27
+packages/monopoly-engine/src/cards.ts
+  s_9a2fe40690aa7b::t_8bb84737318019 1-3,5-11,19-32,34-81,84-154,156-164,167-191
+  s_f9208fbda0c165::t_13a691cb549b0b 12-18
+  s_9a2fe40690aa7b::t_31435c2f530127 4,33,82-83,155,165-166
+packages/monopoly-engine/src/trade.ts
+  s_9a2fe40690aa7b::t_0c84e38bf358ee 63-66
+packages/monopoly-engine/src/auction.ts
+  s_f9208fbda0c165::t_63969d246fd404 2,6
+packages/monopoly-engine/src/__tests__/jail.test.ts
+  s_f9208fbda0c165::t_cfa95512ff1670 186-262
+packages/monopoly-engine/src/__tests__/cards.test.ts
+  s_9a2fe40690aa7b::t_31c1b989da5947 3,8-13
+  s_9a2fe40690aa7b::t_2437a53d5f08c9 281-287
+  s_9a2fe40690aa7b::t_89f8eb8726070b 126-132
+  s_9a2fe40690aa7b::t_31435c2f530127 205-208,262-265,290-293
+  s_9a2fe40690aa7b::t_680c335b6c1cea 163-169
+  s_9a2fe40690aa7b::t_6448b8aa942329 61-67,96-102,144-150,252-258,338-344,360-366
+  s_9a2fe40690aa7b::t_252acd8e90166a 79-85,103-109
+  s_9a2fe40690aa7b::t_d72440d2092764 1-2,4-7,14-60,68-78,86-95,110-125,133-143,151-162,170-204,209-251,259-261,266-280,288-289,294-337,345-359,367-371
+packages/monopoly-engine/src/phase.ts
+  s_f9208fbda0c165::t_dfa7d44f10cb3e 1-36
+packages/monopoly-engine/src/__tests__/resolveLanding.test.ts
+  s_f9208fbda0c165::t_52ed6e5f359ebc 1-50
+packages/monopoly-engine/src/index.ts
+  s_f9208fbda0c165::t_7dc218a8322ef2 496-500
+  s_f9208fbda0c165::t_1be9850952cf6f 91
+  s_f9208fbda0c165::t_a7f8bf12c91314 221,241
+  s_f9208fbda0c165::t_0a84d499160e0b 488
+  s_f9208fbda0c165::t_1d84cdefc87460 20
+  s_9a2fe40690aa7b::t_31435c2f530127 8,77,193,451-487,489-495,501-505,528-533
+apps/web/src/features/monopoly/components/DiceTray.tsx
+  s_f9208fbda0c165::t_e1314e9b1c0537 148-166
+  s_f9208fbda0c165::t_32f0f26579e57a 18-19
+  s_f9208fbda0c165::t_c823661c8f2a9e 51-52
+packages/monopoly-engine/src/jail.ts
+  s_9a2fe40690aa7b::t_31435c2f530127 44,55-58,103-111,139
+  s_f9208fbda0c165::t_9709aa5bafc044 168,174-198
+packages/monopoly-engine/src/resolveLanding.ts
+  s_9a2fe40690aa7b::t_fcb3309a361d0e 1,9,14-15,30
+  s_f9208fbda0c165::t_67bdc8717ed6ca 7,96
+  s_f9208fbda0c165::t_bc79ab946095ef 31-32,51,66
+  s_9a2fe40690aa7b::t_4048c0307bdf86 81-95
+apps/web/src/features/monopoly/components/GamePage.tsx
+  s_f9208fbda0c165::t_30abf3b99a7b86 568
+  s_f9208fbda0c165::t_ac24ab757b0b00 387-395
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "a592d66d833c4d58966ff651e4f0bcae3720a894",
+  "prompts": {},
+  "humans": {
+    "h_54cccc4af8e4fc": {
+      "author": "sh3xu <s43khu@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_9a2fe40690aa7b": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "456c34ff-992c-4326-b46b-6b61cd2b647c",
+        "model": "claude-4.6-sonnet-medium-thinking"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    },
+    "s_f9208fbda0c165": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "a780c6d0-0437-4c09-b09b-04cf324d029f",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
