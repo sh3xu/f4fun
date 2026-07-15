@@ -20,11 +20,31 @@ export function Avatar({
   const url = getAvatarUrl(avatarId);
 
   const sizeConfig = {
-    xs: { size: 20, classes: "w-5 h-5 border border-white" },
-    sm: { size: 32, classes: "w-8 h-8" },
-    md: { size: 40, classes: "w-10 h-10" },
-    lg: { size: 56, classes: "w-14 h-14" },
-    xl: { size: 80, classes: "w-20 h-20" },
+    xs: {
+      size: 20,
+      classes: "w-5 h-5 border border-white",
+      activeClass: "ring-[1.5px] ring-blue-300 ring-offset-[1px] scale-105",
+    },
+    sm: {
+      size: 32,
+      classes: "w-8 h-8",
+      activeClass: "ring-2 ring-blue-300 ring-offset-1 scale-105",
+    },
+    md: {
+      size: 40,
+      classes: "w-10 h-10",
+      activeClass: "ring-[3px] ring-blue-300 ring-offset-2 scale-110",
+    },
+    lg: {
+      size: 56,
+      classes: "w-14 h-14",
+      activeClass: "ring-4 ring-blue-300 ring-offset-2 scale-110",
+    },
+    xl: {
+      size: 80,
+      classes: "w-20 h-20",
+      activeClass: "ring-4 ring-blue-300 ring-offset-2 scale-110",
+    },
   };
 
   const config = sizeConfig[size];
@@ -34,8 +54,8 @@ export function Avatar({
       key={avatarId}
       className={cn(
         config.classes,
-        "rounded-full overflow-hidden flex-shrink-0 shadow-lg",
-        isActive && "ring-4 ring-blue-300 ring-offset-2 scale-110",
+        "rounded-full overflow-hidden flex-shrink-0 shadow-lg transition-transform duration-200",
+        isActive && config.activeClass,
       )}
       style={{ backgroundColor }}
     >

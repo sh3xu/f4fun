@@ -12,7 +12,6 @@ import { useGameStore } from "../store/gameStore";
 import { GLASS_PANEL } from "../theme/board-theme";
 import { Board } from "./Board";
 import { PlayerHUD } from "./PlayerHUD";
-import { PropertyManagePanel } from "./PropertyManagePanel";
 import { TradeModal } from "./TradeModal";
 import { getTileLabel } from "./tile-labels";
 import { WinScreen } from "./WinScreen";
@@ -454,11 +453,11 @@ export function GamePage() {
   }
 
   const activePlayerId = state.turnOrder[state.activePlayerIndex];
-  const myPlayer = myPlayerId ? state.players[myPlayerId] : null;
-  const canManage =
-    myPlayerId === activePlayerId &&
-    (state.phase === "PRE_ROLL" || state.phase === "END_TURN") &&
-    !!myPlayer;
+  const pendingTradeCount =
+    myPlayerId == null
+      ? 0
+      : (state.pendingTrades?.filter((t) => t.toPlayerId === myPlayerId)
+          .length ?? 0);
 
   return (
     <div
@@ -508,6 +507,13 @@ export function GamePage() {
               onEndTurn={handleEndTurn}
               onPlaceBid={handlePlaceBid}
               onPassAuction={handlePassAuction}
+              onBuildHouse={handleBuildHouse}
+              onSellHouse={handleSellHouse}
+              onBuildHotel={handleBuildHotel}
+              onSellHotel={handleSellHotel}
+              onMortgage={handleMortgage}
+              onUnmortgage={handleUnmortgage}
+              onOwnerAuction={handleOwnerAuction}
             />
           </div>
         </div>
@@ -533,42 +539,20 @@ export function GamePage() {
           )}
         </div>
 
-        {canManage && myPlayer && (
-          <PropertyManagePanel
-            state={state}
-            player={myPlayer}
-            loading={false}
-            onBuildHouse={handleBuildHouse}
-            onSellHouse={handleSellHouse}
-            onBuildHotel={handleBuildHotel}
-            onSellHotel={handleSellHotel}
-            onMortgage={handleMortgage}
-            onUnmortgage={handleUnmortgage}
-            onOwnerAuction={handleOwnerAuction}
-            onOpenTrade={() => setTradeOpen(true)}
-          />
-        )}
-
-        {!canManage && myPlayerId && (
+        {myPlayerId && (
           <button
             type="button"
             onClick={() => setTradeOpen(true)}
             className="rounded-lg border border-white/15 bg-white/5 px-2 py-1.5 text-xs font-semibold text-white/70 hover:bg-white/10"
           >
-            Open trades
-            {(state.pendingTrades?.filter((t) => t.toPlayerId === myPlayerId)
-              .length ?? 0) > 0
-              ? " (!)"
-              : ""}
+            Trade
+            {pendingTradeCount > 0 ? ` (${pendingTradeCount})` : ""}
           </button>
         )}
 
-        <div className="flex min-h-0 w-full flex-1 flex-row gap-2 overflow-x-auto overflow-y-hidden lg:flex-col lg:overflow-x-hidden lg:overflow-y-auto">
+        <div className="grid grid-cols-2 gap-2 min-h-0 w-full flex-1 overflow-y-auto overflow-x-hidden lg:flex lg:flex-col lg:overflow-y-auto">
           {state.turnOrder.map((playerId) => (
-            <div
-              key={playerId}
-              className="w-full min-w-[150px] shrink-0 lg:min-w-0"
-            >
+            <div key={playerId} className="w-full lg:min-w-0">
               <PlayerHUD
                 player={state.players[playerId]}
                 isActive={playerId === activePlayerId}
