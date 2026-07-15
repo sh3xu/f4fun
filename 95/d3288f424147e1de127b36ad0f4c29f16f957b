@@ -1,0 +1,46 @@
+apps/web/src/features/monopoly/components/PropertyPanel.tsx
+  s_93b0c6cdcedd5e::t_37dfea22d6ccf0 148-166,168
+  s_93b0c6cdcedd5e::t_0f8eb55cb4b289 3
+apps/web/src/features/monopoly/components/PropertyManagePanel.tsx
+  s_d6592bdd68d9ef::t_41df56cc3ca035 9-10
+  s_d6592bdd68d9ef::t_315bf5ab69fd27 67
+  s_d6592bdd68d9ef::t_c857b1b566d4a8 110-127
+apps/web/src/features/monopoly/components/PropertyCoverImage.tsx
+  s_040e39cbfb9643::t_557420feeb3db1 7-8,17
+apps/web/src/features/monopoly/components/PropertyActions.tsx
+  s_d6592bdd68d9ef::t_d12e7360feb05e 26
+  s_d6592bdd68d9ef::t_053da3183de9fb 119
+  s_d6592bdd68d9ef::t_0418def27a682b 165-175
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "95d3288f424147e1de127b36ad0f4c29f16f957b",
+  "prompts": {},
+  "sessions": {
+    "s_040e39cbfb9643": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "5d9f25f1-f373-45db-840f-dd09542b53a4",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    },
+    "s_93b0c6cdcedd5e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1565597a-9aca-4416-a96d-180aca487fc1",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    },
+    "s_d6592bdd68d9ef": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4b372945-62a9-4f02-aff9-3467ada69054",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
