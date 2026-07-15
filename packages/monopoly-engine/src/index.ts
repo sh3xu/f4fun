@@ -4,22 +4,25 @@ import {
   startBankAuction,
   startOwnerAuction,
 } from "./auction.js";
-import { checkBankruptcy } from "./bankruptcy.js";
 import { buildHotel, buildHouse, sellHotel, sellHouse } from "./building.js";
+import { applyCardEffect, lookupCard, MOVEMENT_EFFECT_KINDS } from "./cards.js";
 import {
   BANK_HOTEL_LIMIT,
   BANK_HOUSE_LIMIT,
   CHANCE_CARDS,
   COMMUNITY_CHEST_CARDS,
-  GO_TO_JAIL_POSITION,
   JAIL_POSITION,
-  TILE_BY_POSITION,
 } from "./config/board.js";
 import { diceSum, rollDice } from "./dice.js";
+import { payJailFine, rollForJail, spendGoojfCard } from "./jail.js";
 import { mortgageProperty, unmortgageProperty } from "./mortgage.js";
 import { applyMove } from "./movement.js";
+import { phaseAfterDiceAction } from "./phase.js";
 import { buyProperty, canBuyProperty } from "./property.js";
-import { chargeRent } from "./rent.js";
+import {
+  type ResolveLandingOptions,
+  resolveLanding,
+} from "./resolveLanding.js";
 import { acceptTrade, proposeTrade, rejectTrade } from "./trade.js";
 import { advanceTurn, getActivePlayer } from "./turn.js";
 import type {
@@ -34,7 +37,6 @@ import type {
   RNG,
 } from "./types.js";
 import { DEFAULT_GAME_CONFIG } from "./types.js";
-import { checkWinCondition } from "./win.js";
 
 function shuffleDeck(cards: readonly string[], rng: RNG): string[] {
   const deck = [...cards];
@@ -46,7 +48,9 @@ function shuffleDeck(cards: readonly string[], rng: RNG): string[] {
 }
 
 function managementPhaseOk(phase: GameState["phase"]): boolean {
-  return phase === "PRE_ROLL" || phase === "END_TURN";
+  return (
+    phase === "PRE_ROLL" || phase === "END_TURN" || phase === "JAIL_DECISION"
+  );
 }
 
 export function createInitialState(
@@ -73,6 +77,7 @@ export function createInitialState(
         jailState: null,
         isBankrupt: false,
         goojfCards: 0,
+        goojfCardSources: [],
       };
       return acc;
     },
@@ -86,6 +91,7 @@ export function createInitialState(
     activePlayerIndex: 0,
     players: playerStates,
     lastDice: null,
+    allowDoublesReroll: true,
     doublesCount: 0,
     ownership: {},
     bankHouses: BANK_HOUSE_LIMIT,
@@ -184,79 +190,12 @@ export function applyAction(
           newPosition: player.position,
         });
 
-        if (player.position === GO_TO_JAIL_POSITION) {
-          player.position = JAIL_POSITION;
-          player.isInJail = true;
-          player.jailState = { turnsInJail: 0, hasGetOutOfJailFreeCard: false };
-          events.push({ type: "SENT_TO_JAIL", playerId: activePlayerId });
-          state.phase = "END_TURN";
-          return { state, events };
-        }
-
-        const tile = TILE_BY_POSITION.get(player.position);
-        if (tile?.type === "tax") {
-          player.cash -= tile.amount;
-          events.push({
-            type: "TAX_PAID",
-            playerId: activePlayerId,
-            amount: tile.amount,
-          });
-
-          const bankruptEvents = checkBankruptcy(state, activePlayerId, null);
-          events.push(...bankruptEvents);
-
-          const winEvents = checkWinCondition(state);
-          events.push(...winEvents);
-
-          if (state.winnerId !== null) {
-            return { state, events };
-          }
-
-          state.phase = isDoubles ? "PRE_ROLL" : "END_TURN";
-          return { state, events };
-        }
-
-        const ownership = state.ownership[player.position];
-        if (ownership && ownership.ownerId !== activePlayerId) {
-          const rentEvents = chargeRent(
-            state,
-            activePlayerId,
-            ownership.ownerId,
-            player.position,
-            spaces,
-          );
-          events.push(...rentEvents);
-
-          const bankruptEvents = checkBankruptcy(
-            state,
-            activePlayerId,
-            ownership.ownerId,
-          );
-          events.push(...bankruptEvents);
-
-          const winEvents = checkWinCondition(state);
-          events.push(...winEvents);
-
-          if (state.winnerId !== null) {
-            return { state, events };
-          }
-
-          state.phase = isDoubles ? "PRE_ROLL" : "END_TURN";
-          return { state, events };
-        }
-
-        if (
-          tile &&
-          (tile.type === "property" ||
-            tile.type === "railroad" ||
-            tile.type === "utility") &&
-          !ownership
-        ) {
-          state.phase = "BUY_OR_DECLINE";
-          return { state, events };
-        }
-
-        state.phase = isDoubles ? "PRE_ROLL" : "END_TURN";
+        events.push(
+          ...resolveLanding(state, activePlayerId, spaces, {
+            allowDoublesReroll: true,
+            rng,
+          }),
+        );
         return { state, events };
       }
 
@@ -282,9 +221,7 @@ export function applyAction(
         const buyEvents = buyProperty(state, activePlayerId, player.position);
         events.push(...buyEvents);
 
-        const isDoubles =
-          state.lastDice && state.lastDice[0] === state.lastDice[1];
-        state.phase = isDoubles ? "PRE_ROLL" : "END_TURN";
+        state.phase = phaseAfterDiceAction(state);
 
         return { state, events };
       }
@@ -304,9 +241,7 @@ export function applyAction(
           position: player.position,
         });
 
-        const isDoubles =
-          state.lastDice && state.lastDice[0] === state.lastDice[1];
-        state.phase = isDoubles ? "PRE_ROLL" : "END_TURN";
+        state.phase = phaseAfterDiceAction(state);
 
         return { state, events };
       }
@@ -481,6 +416,27 @@ export function applyAction(
         return { state, events };
       }
 
+      case "PAY_JAIL_FINE": {
+        if (!activePlayerId) {
+          return { state, events: [], error: "No active player" };
+        }
+        return payJailFine(state, playerId, activePlayerId);
+      }
+
+      case "USE_GOOJF_CARD": {
+        if (!activePlayerId) {
+          return { state, events: [], error: "No active player" };
+        }
+        return spendGoojfCard(state, playerId, activePlayerId);
+      }
+
+      case "ROLL_FOR_JAIL": {
+        if (!activePlayerId) {
+          return { state, events: [], error: "No active player" };
+        }
+        return rollForJail(state, playerId, activePlayerId, rng);
+      }
+
       case "END_TURN": {
         if (playerId !== activePlayerId) {
           return { state, events: [], error: "Not your turn" };
@@ -491,6 +447,69 @@ export function applyAction(
 
         const turnEvents = advanceTurn(state);
         events.push(...turnEvents);
+
+        return { state, events };
+      }
+
+      case "ACKNOWLEDGE_CARD": {
+        if (playerId !== activePlayerId) {
+          return { state, events: [], error: "Not your turn" };
+        }
+        if (state.phase !== "CARD_DRAWN") {
+          return { state, events: [], error: "No card to acknowledge" };
+        }
+        if (!state.pendingCard) {
+          return { state, events: [], error: "No pending card" };
+        }
+
+        const { deck: deckKey, cardId } = state.pendingCard;
+        const card = lookupCard(deckKey, cardId);
+        if (!card) {
+          return { state, events: [], error: "Unknown card id" };
+        }
+
+        state.pendingCard = null;
+        events.push({ type: "CARD_APPLIED", playerId: activePlayerId, cardId });
+
+        const cardEvents = applyCardEffect(
+          state,
+          activePlayerId,
+          card,
+          deckKey,
+          rng,
+        );
+        events.push(...cardEvents);
+
+        if (state.winnerId !== null) {
+          return { state, events };
+        }
+
+        if (MOVEMENT_EFFECT_KINDS.has(card.effect.kind)) {
+          const spaces = state.lastDice ? diceSum(state.lastDice) : 0;
+          const landingOptions: ResolveLandingOptions = {
+            allowDoublesReroll: state.allowDoublesReroll,
+            rng,
+          };
+          if (card.effect.kind === "move_to_nearest") {
+            if (card.effect.tileType === "railroad") {
+              landingOptions.rentMultiplier = 2;
+            } else {
+              landingOptions.utilityRentMode = "roll_ten_times";
+            }
+          }
+          events.push(
+            ...resolveLanding(state, activePlayerId, spaces, landingOptions),
+          );
+        } else if (card.effect.kind === "go_to_jail") {
+          state.phase = "END_TURN";
+        } else if (state.phase === "CARD_DRAWN") {
+          // Non-movement, non-jail card; phase not yet set by applyCardEffect.
+          if (state.players[activePlayerId]?.isBankrupt) {
+            state.phase = "END_TURN";
+          } else {
+            state.phase = phaseAfterDiceAction(state);
+          }
+        }
 
         return { state, events };
       }
@@ -517,12 +536,20 @@ export {
   sellHotel,
   sellHouse,
 } from "./building.js";
+export {
+  applyCardEffect,
+  drawCardId,
+  lookupCard,
+  MOVEMENT_EFFECT_KINDS,
+} from "./cards.js";
 export * from "./config/board.js";
 export { diceSum, rollDice } from "./dice.js";
+export { payJailFine, rollForJail, spendGoojfCard } from "./jail.js";
 export { mortgageProperty, unmortgageProperty } from "./mortgage.js";
 export { applyMove, movePlayer, setPlayerPosition } from "./movement.js";
 export { buyProperty, canBuyProperty } from "./property.js";
 export { calculateRent, chargeRent, ownsColorGroup } from "./rent.js";
+export { resolveLanding } from "./resolveLanding.js";
 export { acceptTrade, proposeTrade, rejectTrade } from "./trade.js";
 export { advanceTurn, getActivePlayer } from "./turn.js";
 export * from "./types.js";

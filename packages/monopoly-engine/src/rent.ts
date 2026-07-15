@@ -10,10 +10,21 @@ import {
 } from "./config/board.js";
 import type { GameEvent, GameState, PlayerId } from "./types.js";
 
+export interface RentOptions {
+  /** Scales the computed rent (e.g. 2 for Chance nearest-railroad). Default 1. */
+  rentMultiplier?: number;
+  /**
+   * When set, utility rent uses this multiplier instead of ownership count
+   * (e.g. 10 for Chance nearest-utility).
+   */
+  utilityMultiplierOverride?: number;
+}
+
 export function calculateRent(
   state: GameState,
   position: number,
   diceSum?: number,
+  options?: RentOptions,
 ): number {
   const ownership = state.ownership[position];
   if (!ownership || ownership.isMortgaged) return 0;
@@ -21,20 +32,23 @@ export function calculateRent(
   const tile = TILE_BY_POSITION.get(position);
   if (!tile) return 0;
 
+  const rentMultiplier = options?.rentMultiplier ?? 1;
+  let base = 0;
+
   if (tile.type === "property") {
-    return calculatePropertyRent(state, tile, ownership.ownerId);
-  }
-
-  if (tile.type === "railroad") {
-    return calculateRailroadRent(state, ownership.ownerId);
-  }
-
-  if (tile.type === "utility") {
+    base = calculatePropertyRent(state, tile, ownership.ownerId);
+  } else if (tile.type === "railroad") {
+    base = calculateRailroadRent(state, ownership.ownerId);
+  } else if (tile.type === "utility") {
     if (diceSum === undefined) return 0;
-    return calculateUtilityRent(state, ownership.ownerId, diceSum);
+    const override = options?.utilityMultiplierOverride;
+    base =
+      override !== undefined
+        ? diceSum * override
+        : calculateUtilityRent(state, ownership.ownerId, diceSum);
   }
 
-  return 0;
+  return base * rentMultiplier;
 }
 
 function calculatePropertyRent(
@@ -107,8 +121,9 @@ export function chargeRent(
   ownerId: PlayerId,
   position: number,
   diceSum?: number,
+  options?: RentOptions,
 ): GameEvent[] {
-  const amount = calculateRent(state, position, diceSum);
+  const amount = calculateRent(state, position, diceSum, options);
   if (amount === 0) return [];
 
   const payer = state.players[payerId];

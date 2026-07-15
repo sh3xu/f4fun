@@ -1,12 +1,14 @@
 import {
   applyAction,
   type GameAction,
+  type GameEvent,
   type GameState,
   getActivePlayer,
   type TradeOffer,
 } from "@f4fun/monopoly-engine";
 import {
   GameAcceptTradeSchema,
+  GameAcknowledgeCardSchema,
   GameBuildHotelSchema,
   GameBuildHouseSchema,
   GameBuyPropertySchema,
@@ -14,15 +16,18 @@ import {
   GameEndTurnSchema,
   GameMortgagePropertySchema,
   GamePassAuctionSchema,
+  GamePayJailFineSchema,
   GamePlaceBidSchema,
   GameProposeTradeSchema,
   GameRejectTradeSchema,
   GameRollDiceSchema,
+  GameRollForJailSchema,
   GameSellHotelSchema,
   GameSellHouseSchema,
   GameStartAuctionSchema,
   GameStartOwnerAuctionSchema,
   GameUnmortgagePropertySchema,
+  GameUseGoojfCardSchema,
 } from "@f4fun/shared-types";
 import type { Server } from "socket.io";
 import type { ZodType } from "zod";
@@ -140,6 +145,22 @@ function registerIntent(
   });
 }
 
+function emitDiceRolledEvents(
+  server: Server,
+  roomId: string,
+  events: readonly GameEvent[],
+): void {
+  for (const event of events) {
+    if (event.type === "DICE_ROLLED") {
+      server.to(roomId).emit("game:diceRolled", {
+        playerId: event.playerId,
+        dice: event.dice,
+        newPosition: event.newPosition,
+      });
+    }
+  }
+}
+
 export function registerMonopolyHandlers(
   io: Server,
   socket: SocketWithPlayer,
@@ -147,17 +168,7 @@ export function registerMonopolyHandlers(
   registerIntent(io, socket, "game:rollDice", GameRollDiceSchema, {
     actionName: "ROLL_DICE",
     buildAction: () => ({ type: "ROLL_DICE" }),
-    onEvents: (server, roomId, events) => {
-      for (const event of events) {
-        if (event.type === "DICE_ROLLED") {
-          server.to(roomId).emit("game:diceRolled", {
-            playerId: event.playerId,
-            dice: event.dice,
-            newPosition: event.newPosition,
-          });
-        }
-      }
-    },
+    onEvents: emitDiceRolledEvents,
   });
 
   registerIntent(io, socket, "game:buyProperty", GameBuyPropertySchema, {
@@ -298,6 +309,33 @@ export function registerMonopolyHandlers(
       type: "REJECT_TRADE",
       tradeId: data.tradeId as string,
     }),
+  });
+
+  registerIntent(io, socket, "game:payJailFine", GamePayJailFineSchema, {
+    actionName: "PAY_JAIL_FINE",
+    buildAction: () => ({ type: "PAY_JAIL_FINE" }),
+  });
+
+  registerIntent(io, socket, "game:useGoojfCard", GameUseGoojfCardSchema, {
+    actionName: "USE_GOOJF_CARD",
+    buildAction: () => ({ type: "USE_GOOJF_CARD" }),
+  });
+
+  registerIntent(
+    io,
+    socket,
+    "game:acknowledgeCard",
+    GameAcknowledgeCardSchema,
+    {
+      actionName: "ACKNOWLEDGE_CARD",
+      buildAction: () => ({ type: "ACKNOWLEDGE_CARD" }),
+    },
+  );
+
+  registerIntent(io, socket, "game:rollForJail", GameRollForJailSchema, {
+    actionName: "ROLL_FOR_JAIL",
+    buildAction: () => ({ type: "ROLL_FOR_JAIL" }),
+    onEvents: emitDiceRolledEvents,
   });
 
   registerIntent(io, socket, "game:endTurn", GameEndTurnSchema, {

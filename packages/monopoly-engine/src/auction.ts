@@ -1,10 +1,9 @@
 import { TILE_BY_POSITION } from "./config/board.js";
+import { phaseAfterDiceAction } from "./phase.js";
 import type { AuctionState, GameEvent, GameState, PlayerId } from "./types.js";
 
 function resumePhaseAfterLanding(state: GameState): "PRE_ROLL" | "END_TURN" {
-  const isDoubles =
-    state.lastDice !== null && state.lastDice[0] === state.lastDice[1];
-  return isDoubles ? "PRE_ROLL" : "END_TURN";
+  return phaseAfterDiceAction(state);
 }
 
 function eligibleBidders(

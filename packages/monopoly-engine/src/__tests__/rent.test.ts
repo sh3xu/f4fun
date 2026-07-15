@@ -70,6 +70,33 @@ describe("rent", () => {
     expect(rent).toBe(28);
   });
 
+  it("applies rentMultiplier to railroad rent", () => {
+    const state = createInitialState("test", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+
+    state.ownership[5] = { ownerId: "p2", isMortgaged: false };
+    state.players.p2.ownedPositions.push(5);
+
+    expect(calculateRent(state, 5, undefined, { rentMultiplier: 2 })).toBe(50);
+  });
+
+  it("uses utilityMultiplierOverride instead of ownership count", () => {
+    const state = createInitialState("test", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+
+    // Owner has one utility (normal multiplier 4); override forces 10
+    state.ownership[12] = { ownerId: "p2", isMortgaged: false };
+    state.players.p2.ownedPositions.push(12);
+
+    expect(calculateRent(state, 12, 3, { utilityMultiplierOverride: 10 })).toBe(
+      30,
+    );
+  });
+
   it("charges rent and transfers cash", () => {
     const state = createInitialState("test", [
       { id: "p1", name: "Alice", token: "car" },

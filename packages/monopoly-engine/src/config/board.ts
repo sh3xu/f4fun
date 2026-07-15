@@ -414,6 +414,7 @@ export const UTILITY_POSITIONS = BOARD_TILES.filter(
 
 export const JAIL_POSITION = 10;
 export const GO_TO_JAIL_POSITION = 30;
+export const JAIL_FINE = 50;
 export const GO_POSITION = 0;
 export const GO_SALARY = 200;
 export const BOARD_SIZE = 40;

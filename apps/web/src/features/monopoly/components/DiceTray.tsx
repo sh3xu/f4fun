@@ -1,6 +1,7 @@
 "use client";
 
 import type { GamePhase } from "@f4fun/monopoly-engine";
+import { JAIL_FINE } from "@f4fun/monopoly-engine";
 import { DiceRoller } from "@/components/animation/DiceRoller";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
@@ -11,6 +12,13 @@ interface DiceTrayProps {
   phase: GamePhase;
   onRoll: () => void;
   onEndTurn: () => void;
+  onPayJailFine?: () => void;
+  onUseGoojfCard?: () => void;
+  onRollForJail?: () => void;
+  onAcknowledgeCard?: () => void;
+  pendingCardText?: string | null;
+  goojfCards?: number;
+  cash?: number;
   loading: boolean;
   isDiceAnimating?: boolean;
   awaitingRoll?: boolean;
@@ -37,6 +45,13 @@ export function DiceTray({
   phase,
   onRoll,
   onEndTurn,
+  onPayJailFine,
+  onUseGoojfCard,
+  onRollForJail,
+  onAcknowledgeCard,
+  pendingCardText = null,
+  goojfCards = 0,
+  cash = 0,
   loading,
   isDiceAnimating = false,
   awaitingRoll = false,
@@ -49,6 +64,8 @@ export function DiceTray({
     : awaitingRoll
       ? "Moving..."
       : phaseMessages[phase];
+  const canPayFine = cash >= JAIL_FINE;
+  const canUseCard = goojfCards > 0;
 
   return (
     <div className="flex w-full select-none flex-col items-center gap-[clamp(0.35rem,1.4cqmin,0.65rem)] bg-transparent transition-all">
@@ -92,6 +109,59 @@ export function DiceTray({
         >
           {loading ? "Rolling..." : "Roll Dice"}
         </Button>
+      )}
+
+      {isMyTurn && phase === "JAIL_DECISION" && (
+        <div className="flex w-full max-w-[14rem] flex-col gap-1.5">
+          <Button
+            onClick={onRollForJail}
+            disabled={loading || !onRollForJail}
+            size="sm"
+            className="h-auto w-full border-0 bg-[#2196f3] py-[clamp(0.35rem,1.2cqmin,0.65rem)] text-[length:var(--board-text-sm)] font-bold text-white shadow-md transition-transform duration-150 hover:scale-[1.02] hover:bg-[#1e88e5]"
+            aria-label="Roll for doubles to leave jail"
+          >
+            {loading ? "Rolling..." : "Roll for Doubles"}
+          </Button>
+          <Button
+            onClick={onPayJailFine}
+            disabled={loading || !canPayFine || !onPayJailFine}
+            variant="secondary"
+            size="sm"
+            className="h-auto w-full border border-[#2a3a52] bg-[#1a2332] py-[clamp(0.35rem,1.2cqmin,0.65rem)] text-[length:var(--board-text-sm)] font-bold text-gray-200 shadow-md transition-transform duration-150 hover:scale-[1.02] hover:bg-[#243044] disabled:opacity-40"
+            aria-label={`Pay $${JAIL_FINE} jail fine`}
+          >
+            Pay ${JAIL_FINE}
+          </Button>
+          <Button
+            onClick={onUseGoojfCard}
+            disabled={loading || !canUseCard || !onUseGoojfCard}
+            variant="secondary"
+            size="sm"
+            className="h-auto w-full border border-[#2a3a52] bg-[#1a2332] py-[clamp(0.35rem,1.2cqmin,0.65rem)] text-[length:var(--board-text-sm)] font-bold text-gray-200 shadow-md transition-transform duration-150 hover:scale-[1.02] hover:bg-[#243044] disabled:opacity-40"
+            aria-label="Use Get Out of Jail Free card"
+          >
+            Use Jail Free Card
+          </Button>
+        </div>
+      )}
+
+      {isMyTurn && phase === "CARD_DRAWN" && (
+        <div className="flex w-full max-w-[14rem] flex-col gap-1.5">
+          {pendingCardText && (
+            <p className="text-center text-[length:var(--board-text-sm)] leading-snug text-gray-300">
+              {pendingCardText}
+            </p>
+          )}
+          <Button
+            onClick={onAcknowledgeCard}
+            disabled={loading || !onAcknowledgeCard}
+            size="sm"
+            className="h-auto w-full border-0 bg-[#2196f3] py-[clamp(0.35rem,1.2cqmin,0.65rem)] text-[length:var(--board-text-sm)] font-bold text-white shadow-md transition-transform duration-150 hover:scale-[1.02] hover:bg-[#1e88e5]"
+            aria-label="Acknowledge drawn card"
+          >
+            {loading ? "Applying..." : "OK"}
+          </Button>
+        </div>
       )}
 
       {isMyTurn && phase === "END_TURN" && (
