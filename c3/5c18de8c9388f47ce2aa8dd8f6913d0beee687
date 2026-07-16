@@ -1,0 +1,24 @@
+apps/web/src/features/monopoly/store/gameStore.ts
+  s_97cc1a62fee3b9::t_2d4c0b021a950b 6-7,69-72,97,109,122-196,237-240,242,244-284,290-300,311-312,356
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "c35c18de8c9388f47ce2aa8dd8f6913d0beee687",
+  "prompts": {},
+  "humans": {
+    "h_54cccc4af8e4fc": {
+      "author": "sh3xu <s43khu@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_97cc1a62fee3b9": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "81cbc075-68ca-4519-82ed-1b74a78e7013",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
