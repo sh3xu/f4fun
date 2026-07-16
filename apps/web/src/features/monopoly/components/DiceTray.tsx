@@ -37,6 +37,7 @@ const phaseMessages: Record<GamePhase, string> = {
   CARD_DRAWN: "Card drawn",
   POST_BUY: "Processing...",
   AUCTION: "Auction in progress",
+  RAISE_CASH: "Raise cash to cover debt",
   END_TURN: "End your turn or manage properties",
   GAME_OVER: "Game Over",
 };

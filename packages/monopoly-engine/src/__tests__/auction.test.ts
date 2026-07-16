@@ -16,6 +16,7 @@ function setupBuyOrDecline(position = 1) {
 describe("auction", () => {
   it("starts a bank auction from BUY_OR_DECLINE", () => {
     const state = setupBuyOrDecline(1);
+    state.actionDeadlineAt = "2026-01-01T00:00:30.000Z";
     const result = applyAction(state, { type: "START_AUCTION" });
 
     expect(result.error).toBeUndefined();
@@ -23,6 +24,7 @@ describe("auction", () => {
     expect(result.state.auction?.kind).toBe("bank");
     expect(result.state.auction?.position).toBe(1);
     expect(result.state.auction?.bidderOrder).toEqual(["p1", "p2", "p3"]);
+    expect(result.state.actionDeadlinePausedMs).toBeTypeOf("number");
     expect(result.events.some((e) => e.type === "AUCTION_STARTED")).toBe(true);
   });
 
@@ -63,7 +65,7 @@ describe("auction", () => {
     expect(result.events.some((e) => e.type === "AUCTION_WON")).toBe(true);
     expect(state.ownership[1]?.ownerId).toBe("p1");
     expect(state.players.p1.cash).toBe(1500 - 40);
-    expect(state.phase).toBe("END_TURN");
+    expect(state.phase).toBe("BUY_OR_DECLINE");
     expect(state.auction).toBeNull();
   });
 
@@ -84,7 +86,7 @@ describe("auction", () => {
       true,
     );
     expect(state.ownership[1]).toBeUndefined();
-    expect(state.phase).toBe("END_TURN");
+    expect(state.phase).toBe("BUY_OR_DECLINE");
   });
 
   it("excludes seller from owner auction and preserves mortgage", () => {
@@ -137,5 +139,25 @@ describe("auction", () => {
       position: 1,
     });
     expect(result.error).toBe("Sell buildings before auctioning");
+  });
+
+  it("resumes paused turn timer after auction resolves", () => {
+    const state = setupBuyOrDecline(1);
+    state.actionDeadlineAt = "2026-01-01T00:00:30.000Z";
+    applyAction(state, { type: "START_AUCTION" });
+
+    applyAction(state, { type: "PLACE_BID", amount: 40 }, Math.random, "p1");
+    applyAction(state, { type: "PASS_AUCTION" }, Math.random, "p2");
+    const result = applyAction(
+      state,
+      { type: "PASS_AUCTION" },
+      Math.random,
+      "p3",
+    );
+
+    expect(result.error).toBeUndefined();
+    expect(state.phase).toBe("BUY_OR_DECLINE");
+    expect(state.actionDeadlinePausedMs).toBeNull();
+    expect(state.actionDeadlineAt).not.toBeNull();
   });
 });

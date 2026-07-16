@@ -21,6 +21,7 @@ import { AuctionPanel } from "./AuctionPanel";
 import { BoardTile } from "./BoardTile";
 import { DiceTray } from "./DiceTray";
 import { PropertyPanel } from "./PropertyPanel";
+import { RaiseCashBanner } from "./RaiseCashBanner";
 
 interface BoardProps {
   onRoll: () => void;
@@ -40,6 +41,7 @@ interface BoardProps {
   onMortgage: (position: number) => void;
   onUnmortgage: (position: number) => void;
   onOwnerAuction: (position: number) => void;
+  onSellToBank: (position: number) => void;
 }
 
 function getGridStyles(position: number): CSSProperties {
@@ -76,6 +78,7 @@ export function Board({
   onMortgage,
   onUnmortgage,
   onOwnerAuction,
+  onSellToBank,
 }: BoardProps) {
   const {
     state,
@@ -173,7 +176,16 @@ export function Board({
     state?.pendingTrades.length === 0 &&
     (state?.phase === "PRE_ROLL" ||
       state?.phase === "END_TURN" ||
-      state?.phase === "JAIL_DECISION");
+      state?.phase === "JAIL_DECISION" ||
+      state?.phase === "RAISE_CASH");
+  const showRaiseCash =
+    state?.phase === "RAISE_CASH" &&
+    animationsSettled &&
+    state?.pendingDebt != null;
+  const debtPlayer = showRaiseCash
+    ? state.players[state.pendingDebt?.playerId ?? ""]
+    : null;
+  const amountNeeded = debtPlayer ? Math.max(0, -debtPlayer.cash) : 0;
   const viewedOwnerInfo =
     viewedPosition !== null ? getOwnerInfo(viewedPosition) : {};
   const viewingOwnProperty =
@@ -190,7 +202,7 @@ export function Board({
       ? getPlayerColor(movingPlayer.id, state.turnOrder)
       : null;
 
-  const centerBusy = showPropertyCard || showAuction;
+  const centerBusy = showPropertyCard || showAuction || showRaiseCash;
 
   return (
     <FeltSurface
@@ -297,6 +309,23 @@ export function Board({
                   onPass={onPassAuction}
                 />
               </div>
+            ) : showRaiseCash ? (
+              <div
+                className={cn(
+                  BOARD_OVERLAY_PANEL_CLASS,
+                  "animate-in fade-in zoom-in-95 duration-300",
+                )}
+              >
+                <RaiseCashBanner
+                  amountNeeded={amountNeeded}
+                  deadlineAt={state.actionDeadlineAt}
+                  deadlinePausedMs={state.actionDeadlinePausedMs}
+                  isDebtor={
+                    myPlayerId != null &&
+                    state.pendingDebt?.playerId === myPlayerId
+                  }
+                />
+              </div>
             ) : showPropertyCard && currentPlayer ? (
               <div
                 className={cn(BOARD_OVERLAY_PANEL_CLASS, "animate-card-deal")}
@@ -336,6 +365,7 @@ export function Board({
                     onMortgage={() => onMortgage(viewedPosition)}
                     onUnmortgage={() => onUnmortgage(viewedPosition)}
                     onOwnerAuction={() => onOwnerAuction(viewedPosition)}
+                    onSellToBank={() => onSellToBank(viewedPosition)}
                     onClose={() => setViewedPosition(null)}
                   />
                 ) : (

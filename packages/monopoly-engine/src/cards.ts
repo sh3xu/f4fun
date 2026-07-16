@@ -1,4 +1,3 @@
-import { checkBankruptcy } from "./bankruptcy.js";
 import {
   BOARD_SIZE,
   type Card,
@@ -8,6 +7,7 @@ import {
   RAILROAD_POSITIONS,
   UTILITY_POSITIONS,
 } from "./config/board.js";
+import { enterRaiseCashIfNeeded } from "./debt.js";
 import { setPlayerPosition } from "./movement.js";
 import type {
   DeckState,
@@ -16,7 +16,6 @@ import type {
   PlayerId,
   RNG,
 } from "./types.js";
-import { checkWinCondition } from "./win.js";
 
 const CHANCE_MAP = new Map<string, Card>(CHANCE_CARDS.map((c) => [c.id, c]));
 const CC_MAP = new Map<string, Card>(
@@ -93,8 +92,7 @@ export function applyCardEffect(
     case "cash": {
       player.cash += effect.amount;
       if (effect.amount < 0) {
-        events.push(...checkBankruptcy(state, playerId, null));
-        events.push(...checkWinCondition(state));
+        enterRaiseCashIfNeeded(state, playerId, null, events);
       }
       break;
     }
@@ -107,9 +105,8 @@ export function applyCardEffect(
         for (const otherId of others) {
           state.players[otherId].cash -= effect.amount;
           player.cash += effect.amount;
-          events.push(...checkBankruptcy(state, otherId, playerId));
-          events.push(...checkWinCondition(state));
-          if (state.winnerId) {
+          enterRaiseCashIfNeeded(state, otherId, playerId, events);
+          if (state.phase === "RAISE_CASH") {
             deck.discardPile.push(card.id);
             return events;
           }
@@ -119,8 +116,7 @@ export function applyCardEffect(
           player.cash += effect.amount;
           state.players[otherId].cash -= effect.amount;
         }
-        events.push(...checkBankruptcy(state, playerId, null));
-        events.push(...checkWinCondition(state));
+        enterRaiseCashIfNeeded(state, playerId, null, events);
       }
       break;
     }
@@ -140,8 +136,7 @@ export function applyCardEffect(
         total += (player.hotels[pos] ?? 0) * effect.hotelCost;
       }
       player.cash -= total;
-      events.push(...checkBankruptcy(state, playerId, null));
-      events.push(...checkWinCondition(state));
+      enterRaiseCashIfNeeded(state, playerId, null, events);
       break;
     }
 

@@ -23,6 +23,8 @@ export function timeoutSecsForPhase(
       return config.longTimeoutSecs;
     case "AUCTION":
       return config.auctionTimeoutSecs;
+    case "RAISE_CASH":
+      return config.raiseCashTimeoutSecs;
     default:
       return null;
   }
@@ -36,7 +38,12 @@ export interface TimeoutAction {
 /** Safe auto-action when the phase deadline expires. Never spends money. */
 export function timeoutActionForState(state: GameState): TimeoutAction | null {
   // NOTE: Turn clock is frozen while a trade offer awaits a response.
-  if (state.pendingTrades.length > 0 || state.actionDeadlinePausedMs != null) {
+  if (state.pendingTrades.length > 0) {
+    return null;
+  }
+
+  // NOTE: Parent phase timer is paused during auction; auction has its own deadline.
+  if (state.actionDeadlinePausedMs != null && state.phase !== "AUCTION") {
     return null;
   }
 
@@ -44,15 +51,11 @@ export function timeoutActionForState(state: GameState): TimeoutAction | null {
     case "PRE_ROLL": {
       const actorId = getActivePlayer(state);
       if (!actorId) return null;
-      // NOTE: Explicit policy — auto-roll keeps the game moving. Landing may
-      // charge rent/tax/cards as a normal consequence of the forced roll.
       return { action: { type: "ROLL_DICE" }, actorId };
     }
     case "JAIL_DECISION": {
       const actorId = getActivePlayer(state);
       if (!actorId) return null;
-      // NOTE: Explicit policy — free double attempt, never auto-pay fine/card.
-      // A third failed attempt may still force the $50 exit per jail rules.
       return { action: { type: "ROLL_FOR_JAIL" }, actorId };
     }
     case "BUY_OR_DECLINE": {
@@ -75,6 +78,11 @@ export function timeoutActionForState(state: GameState): TimeoutAction | null {
       if (!actorId) return null;
       return { action: { type: "PASS_AUCTION" }, actorId };
     }
+    case "RAISE_CASH": {
+      const debtorId = state.pendingDebt?.playerId;
+      if (!debtorId) return null;
+      return { action: { type: "FORCE_SETTLE_DEBT" }, actorId: debtorId };
+    }
     default:
       return null;
   }
@@ -84,13 +92,16 @@ export function stampActionDeadline(
   state: GameState,
   nowMs: number = Date.now(),
 ): void {
-  state.actionDeadlinePausedMs = null;
   const secs = timeoutSecsForPhase(state.phase, state.config);
+  // NOTE: Keep parent-phase remaining ms while the auction clock runs.
+  if (state.phase !== "AUCTION") {
+    state.actionDeadlinePausedMs = null;
+  }
   state.actionDeadlineAt =
     secs == null ? null : new Date(nowMs + secs * 1000).toISOString();
 }
 
-/** Freeze remaining turn time while a trade offer is pending. */
+/** Freeze remaining turn time while a trade offer is pending or auction runs. */
 export function pauseActionDeadline(
   state: GameState,
   nowMs: number = Date.now(),

@@ -1,9 +1,30 @@
 import { TILE_BY_POSITION } from "./config/board.js";
-import { phaseAfterDiceAction } from "./phase.js";
-import type { AuctionState, GameEvent, GameState, PlayerId } from "./types.js";
+import { pauseActionDeadline, resumeActionDeadline } from "./turnTimeout.js";
+import type {
+  AuctionState,
+  GameEvent,
+  GamePhase,
+  GameState,
+  PlayerId,
+} from "./types.js";
 
-function resumePhaseAfterLanding(state: GameState): "PRE_ROLL" | "END_TURN" {
-  return phaseAfterDiceAction(state);
+function captureResumePhase(state: GameState): AuctionState["resumePhase"] {
+  const phase = state.phase;
+  if (
+    phase === "PRE_ROLL" ||
+    phase === "END_TURN" ||
+    phase === "BUY_OR_DECLINE" ||
+    phase === "JAIL_DECISION" ||
+    phase === "RAISE_CASH"
+  ) {
+    return phase;
+  }
+  return "END_TURN";
+}
+
+function finishAuction(state: GameState, resume: GamePhase): void {
+  state.phase = resume;
+  resumeActionDeadline(state);
 }
 
 function eligibleBidders(
@@ -131,7 +152,7 @@ function tryResolveAuction(state: GameState): GameEvent[] {
         preserveMortgage,
       ),
     );
-    state.phase = resume;
+    finishAuction(state, resume);
     return events;
   }
 
@@ -171,7 +192,7 @@ function cancelOrAward(state: GameState, events: GameEvent[]): GameEvent[] {
         preserveMortgage,
       ),
     );
-    state.phase = resume;
+    finishAuction(state, resume);
     return events;
   }
 
@@ -179,7 +200,7 @@ function cancelOrAward(state: GameState, events: GameEvent[]): GameEvent[] {
   const resume = auction.resumePhase;
   state.auction = null;
   events.push({ type: "AUCTION_CANCELLED", position });
-  state.phase = resume;
+  finishAuction(state, resume);
   return events;
 }
 
@@ -216,6 +237,8 @@ export function startBankAuction(
     return { error: "No eligible bidders", events: [] };
   }
 
+  pauseActionDeadline(state);
+
   state.auction = {
     position,
     kind: "bank",
@@ -225,7 +248,7 @@ export function startBankAuction(
     bidderOrder: bidders,
     currentBidderIndex: 0,
     minNextBid: 1,
-    resumePhase: resumePhaseAfterLanding(state),
+    resumePhase: captureResumePhase(state),
   };
   state.phase = "AUCTION";
 
@@ -246,7 +269,12 @@ export function startOwnerAuction(
   sellerId: PlayerId,
   position: number,
 ): { error?: string; events: GameEvent[] } {
-  if (state.phase !== "PRE_ROLL" && state.phase !== "END_TURN") {
+  if (
+    state.phase !== "PRE_ROLL" &&
+    state.phase !== "END_TURN" &&
+    state.phase !== "RAISE_CASH" &&
+    state.phase !== "JAIL_DECISION"
+  ) {
     return { error: "Cannot start owner auction now", events: [] };
   }
 
@@ -264,8 +292,9 @@ export function startOwnerAuction(
     return { error: "No eligible bidders", events: [] };
   }
 
-  const resumePhase: "PRE_ROLL" | "END_TURN" =
-    state.phase === "PRE_ROLL" ? "PRE_ROLL" : "END_TURN";
+  const resumePhase = captureResumePhase(state);
+
+  pauseActionDeadline(state);
 
   state.auction = {
     position,

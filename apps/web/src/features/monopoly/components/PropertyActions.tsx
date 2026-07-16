@@ -23,6 +23,7 @@ interface ManageActionsProps {
   onMortgage: () => void;
   onUnmortgage: () => void;
   onOwnerAuction: () => void;
+  onSellToBank: () => void;
   onClose?: () => void;
 }
 
@@ -107,6 +108,7 @@ export function PropertyActions(props: PropertyActionsProps) {
     onMortgage,
     onUnmortgage,
     onOwnerAuction,
+    onSellToBank,
     onClose,
   } = props;
   const hasBuildings = houses > 0 || hotels > 0;
@@ -163,6 +165,16 @@ export function PropertyActions(props: PropertyActionsProps) {
           aria-label={`Auction ${label}`}
         >
           Auction
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={loading || hasBuildings}
+          onClick={onSellToBank}
+          className={`${btnClass} border-rose-400/30 text-rose-200`}
+          aria-label={`Sell ${label} to bank`}
+        >
+          Sell to Bank
         </Button>
       </div>
       {onClose && (

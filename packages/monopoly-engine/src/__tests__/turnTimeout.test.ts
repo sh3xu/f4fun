@@ -18,6 +18,7 @@ describe("turnTimeout", () => {
     expect(timeoutSecsForPhase("JAIL_DECISION", cfg)).toBe(30);
     expect(timeoutSecsForPhase("BUY_OR_DECLINE", cfg)).toBe(30);
     expect(timeoutSecsForPhase("AUCTION", cfg)).toBe(30);
+    expect(timeoutSecsForPhase("RAISE_CASH", cfg)).toBe(60);
     expect(timeoutSecsForPhase("GAME_OVER", cfg)).toBeNull();
     expect(timeoutSecsForPhase("WAITING", cfg)).toBeNull();
   });
@@ -61,6 +62,13 @@ describe("turnTimeout", () => {
     expect(timeoutActionForState(state)).toEqual({
       action: { type: "PASS_AUCTION" },
       actorId: "p2",
+    });
+
+    state.phase = "RAISE_CASH";
+    state.pendingDebt = { playerId: "p1", creditorId: null };
+    expect(timeoutActionForState(state)).toEqual({
+      action: { type: "FORCE_SETTLE_DEBT" },
+      actorId: "p1",
     });
 
     state.phase = "GAME_OVER";
