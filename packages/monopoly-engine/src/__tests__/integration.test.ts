@@ -82,7 +82,7 @@ describe("integration", () => {
     expect(state.doublesCount).toBe(0);
   });
 
-  it("bankrupts player unable to pay rent", () => {
+  it("enters raise-cash when player cannot pay rent immediately", () => {
     const state = createInitialState("test", [
       { id: "p1", name: "Alice", token: "car" },
       { id: "p2", name: "Bob", token: "hat" },
@@ -98,10 +98,8 @@ describe("integration", () => {
     const roll = applyAction(state, { type: "ROLL_DICE" }, rng);
 
     expect(roll.error).toBeUndefined();
-    expect(state.players.p1.isBankrupt).toBe(true);
-
-    const winEvents = roll.events.filter((e) => e.type === "GAME_WON");
-    expect(winEvents).toHaveLength(1);
-    expect(state.phase).toBe("GAME_OVER");
+    expect(state.players.p1.isBankrupt).toBe(false);
+    expect(state.phase).toBe("RAISE_CASH");
+    expect(roll.events.some((e) => e.type === "DEBT_RAISED")).toBe(true);
   });
 });

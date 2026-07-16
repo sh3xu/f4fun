@@ -28,6 +28,7 @@ import {
   GameRollForJailSchema,
   GameSellHotelSchema,
   GameSellHouseSchema,
+  GameSellPropertyToBankSchema,
   GameStartAuctionSchema,
   GameStartOwnerAuctionSchema,
   GameUnmortgagePropertySchema,
@@ -81,6 +82,10 @@ function normalizeState(state: GameState): boolean {
     state.actionDeadlinePausedMs = null;
     changed = true;
   }
+  if (state.pendingDebt === undefined) {
+    state.pendingDebt = null;
+    changed = true;
+  }
   mergeGameConfig(state);
   if (ensureTradeExpiries(state)) changed = true;
   return changed;
@@ -104,6 +109,19 @@ function refreshActionDeadline(
 
   if (tradeResolved) {
     resumeActionDeadline(stateAfter);
+    return;
+  }
+
+  const enteredAuction =
+    stateBefore.phase !== "AUCTION" && stateAfter.phase === "AUCTION";
+  if (enteredAuction) {
+    stampActionDeadline(stateAfter);
+    return;
+  }
+
+  const leftAuction =
+    stateBefore.phase === "AUCTION" && stateAfter.phase !== "AUCTION";
+  if (leftAuction && stateAfter.actionDeadlineAt) {
     return;
   }
 
@@ -354,6 +372,20 @@ export function registerMonopolyHandlers(
       actionName: "UNMORTGAGE_PROPERTY",
       buildAction: (data) => ({
         type: "UNMORTGAGE_PROPERTY",
+        position: data.position as number,
+      }),
+    },
+  );
+
+  registerIntent(
+    io,
+    socket,
+    "game:sellPropertyToBank",
+    GameSellPropertyToBankSchema,
+    {
+      actionName: "SELL_PROPERTY_TO_BANK",
+      buildAction: (data) => ({
+        type: "SELL_PROPERTY_TO_BANK",
         position: data.position as number,
       }),
     },

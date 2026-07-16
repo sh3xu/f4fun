@@ -1,4 +1,4 @@
-import { checkBankruptcy } from "./bankruptcy.js";
+import { enterRaiseCashIfNeeded } from "./debt.js";
 import type { GameEvent, GameState, PlayerId } from "./types.js";
 import { checkWinCondition } from "./win.js";
 
@@ -13,7 +13,7 @@ export function phaseAfterDiceAction(
 }
 
 /**
- * Run bankruptcy/win checks, then set phase.
+ * Run raise-cash / bankruptcy / win checks, then set phase.
  * Bankrupt players never receive a doubles reroll (multi-player games).
  */
 export function settleAfterCashChange(
@@ -22,7 +22,10 @@ export function settleAfterCashChange(
   creditorId: PlayerId | null,
   events: GameEvent[],
 ): void {
-  events.push(...checkBankruptcy(state, playerId, creditorId));
+  if (enterRaiseCashIfNeeded(state, playerId, creditorId, events)) {
+    return;
+  }
+
   events.push(...checkWinCondition(state));
 
   if (state.winnerId !== null) return;

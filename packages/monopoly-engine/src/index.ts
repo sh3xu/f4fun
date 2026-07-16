@@ -4,6 +4,7 @@ import {
   startBankAuction,
   startOwnerAuction,
 } from "./auction.js";
+import { sellPropertyToBank } from "./bankSale.js";
 import { buildHotel, buildHouse, sellHotel, sellHouse } from "./building.js";
 import { applyCardEffect, lookupCard, MOVEMENT_EFFECT_KINDS } from "./cards.js";
 import {
@@ -13,6 +14,7 @@ import {
   COMMUNITY_CHEST_CARDS,
   JAIL_POSITION,
 } from "./config/board.js";
+import { forceSettleDebt, tryResolveRaiseCash } from "./debt.js";
 import { diceSum, rollDice } from "./dice.js";
 import { payJailFine, rollForJail, spendGoojfCard } from "./jail.js";
 import { mortgageProperty, unmortgageProperty } from "./mortgage.js";
@@ -49,8 +51,19 @@ function shuffleDeck(cards: readonly string[], rng: RNG): string[] {
 
 function managementPhaseOk(phase: GameState["phase"]): boolean {
   return (
-    phase === "PRE_ROLL" || phase === "END_TURN" || phase === "JAIL_DECISION"
+    phase === "PRE_ROLL" ||
+    phase === "END_TURN" ||
+    phase === "JAIL_DECISION" ||
+    phase === "RAISE_CASH"
   );
+}
+
+function afterCashAffectingAction(
+  state: GameState,
+  events: GameEvent[],
+  rng: RNG,
+): void {
+  tryResolveRaiseCash(state, events, rng);
 }
 
 export function createInitialState(
@@ -114,6 +127,7 @@ export function createInitialState(
     pendingCard: null,
     auction: null,
     pendingTrades: [],
+    pendingDebt: null,
     config: finalConfig,
     winnerId: null,
     startedAt: new Date().toISOString(),
@@ -295,6 +309,7 @@ export function applyAction(
           return { state, events: [], error: result.error };
         }
         events.push(...result.events);
+        afterCashAffectingAction(state, events, rng);
         return { state, events };
       }
 
@@ -304,6 +319,7 @@ export function applyAction(
           return { state, events: [], error: result.error };
         }
         events.push(...result.events);
+        afterCashAffectingAction(state, events, rng);
         return { state, events };
       }
 
@@ -319,6 +335,7 @@ export function applyAction(
           return { state, events: [], error: result.error };
         }
         events.push(...result.events);
+        afterCashAffectingAction(state, events, rng);
         return { state, events };
       }
 
@@ -334,6 +351,7 @@ export function applyAction(
           return { state, events: [], error: result.error };
         }
         events.push(...result.events);
+        afterCashAffectingAction(state, events, rng);
         return { state, events };
       }
 
@@ -349,6 +367,7 @@ export function applyAction(
           return { state, events: [], error: result.error };
         }
         events.push(...result.events);
+        afterCashAffectingAction(state, events, rng);
         return { state, events };
       }
 
@@ -364,6 +383,7 @@ export function applyAction(
           return { state, events: [], error: result.error };
         }
         events.push(...result.events);
+        afterCashAffectingAction(state, events, rng);
         return { state, events };
       }
 
@@ -379,6 +399,7 @@ export function applyAction(
           return { state, events: [], error: result.error };
         }
         events.push(...result.events);
+        afterCashAffectingAction(state, events, rng);
         return { state, events };
       }
 
@@ -394,6 +415,23 @@ export function applyAction(
           return { state, events: [], error: result.error };
         }
         events.push(...result.events);
+        afterCashAffectingAction(state, events, rng);
+        return { state, events };
+      }
+
+      case "SELL_PROPERTY_TO_BANK": {
+        if (playerId !== activePlayerId) {
+          return { state, events: [], error: "Not your turn" };
+        }
+        if (!managementPhaseOk(state.phase)) {
+          return { state, events: [], error: "Cannot sell to bank now" };
+        }
+        const result = sellPropertyToBank(state, playerId, action.position);
+        if (result.error) {
+          return { state, events: [], error: result.error };
+        }
+        events.push(...result.events);
+        afterCashAffectingAction(state, events, rng);
         return { state, events };
       }
 
@@ -425,6 +463,7 @@ export function applyAction(
           return { state, events: [], error: result.error };
         }
         events.push(...result.events);
+        afterCashAffectingAction(state, events, rng);
         return { state, events };
       }
 
@@ -456,6 +495,15 @@ export function applyAction(
           return { state, events: [], error: "No active player" };
         }
         return rollForJail(state, playerId, activePlayerId, rng);
+      }
+
+      case "FORCE_SETTLE_DEBT": {
+        const debtorId = state.pendingDebt?.playerId;
+        if (!debtorId || playerId !== debtorId) {
+          return { state, events: [], error: "No debt to settle" };
+        }
+        events.push(...forceSettleDebt(state, rng));
+        return { state, events };
       }
 
       case "END_TURN": {
@@ -527,7 +575,7 @@ export function applyAction(
           // Non-movement, non-jail card; phase not yet set by applyCardEffect.
           if (state.players[activePlayerId]?.isBankrupt) {
             state.phase = "END_TURN";
-          } else {
+          } else if (state.phase !== "RAISE_CASH") {
             state.phase = phaseAfterDiceAction(state);
           }
         }
@@ -551,6 +599,7 @@ export {
   startOwnerAuction,
 } from "./auction.js";
 export { checkBankruptcy } from "./bankruptcy.js";
+export { bankSaleAmount, sellPropertyToBank } from "./bankSale.js";
 export {
   buildHotel,
   buildHouse,
@@ -564,6 +613,11 @@ export {
   MOVEMENT_EFFECT_KINDS,
 } from "./cards.js";
 export * from "./config/board.js";
+export {
+  enterRaiseCashIfNeeded,
+  forceSettleDebt,
+  tryResolveRaiseCash,
+} from "./debt.js";
 export { diceSum, rollDice } from "./dice.js";
 export { payJailFine, rollForJail, spendGoojfCard } from "./jail.js";
 export { autoLiquidateAssets } from "./liquidate.js";
