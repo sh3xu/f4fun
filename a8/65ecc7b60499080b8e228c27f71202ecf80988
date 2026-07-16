@@ -1,0 +1,40 @@
+apps/web/src/features/monopoly/store/gameStore.ts
+  s_dfa3be90d3d64b::t_f237fd3099ca8d 129
+  s_dfa3be90d3d64b::t_bee563755bfdc5 37-38,46-47
+  s_dfa3be90d3d64b::t_89073b93a3271d 265,267-277,286
+  s_dfa3be90d3d64b::t_608e42651a7955 9-12
+  s_dfa3be90d3d64b::t_f3de85764a7aa2 121
+  s_dfa3be90d3d64b::t_c17c49f61ed57c 193-196,266
+apps/web/src/features/monopoly/components/GamePage.tsx
+  s_dfa3be90d3d64b::t_2f4855aa67a57b 11
+  s_dfa3be90d3d64b::t_7ad90d21fe4c82 528
+  s_dfa3be90d3d64b::t_d09dc003a39703 216-219,221-222,254
+apps/web/src/features/monopoly/store/gameStore.animation.test.ts
+  s_dfa3be90d3d64b::t_759d0e107ca250 41-42,53,59-61,79-81,94-114
+apps/web/src/features/monopoly/lib/deferred-toasts.test.ts
+  s_dfa3be90d3d64b::t_786a70c4b63a51 1-51
+apps/web/src/features/monopoly/hooks/useDeferredGameEventToasts.ts
+  s_dfa3be90d3d64b::t_41db701eec5a8a 1-3,9-11,13-22,28,36-38,50-52,54
+  s_dfa3be90d3d64b::t_11975a67ead03d 5-8,29-34
+  s_dfa3be90d3d64b::t_50062faffdca4f 4,12,23-24,26,35,39-49,53
+  s_dfa3be90d3d64b::t_7c6ff5410e8161 25
+  s_dfa3be90d3d64b::t_c386b24fd586ce 27
+apps/web/src/features/monopoly/lib/deferred-toasts.ts
+  s_dfa3be90d3d64b::t_e11636bbf88879 1-13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "a865ecc7b60499080b8e228c27f71202ecf80988",
+  "prompts": {},
+  "sessions": {
+    "s_dfa3be90d3d64b": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "0def22f2-d79d-4b2a-8893-217990649e07",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
