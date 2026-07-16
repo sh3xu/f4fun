@@ -171,7 +171,11 @@ export function Board({
   const showAuction =
     state?.phase === "AUCTION" && !!state.auction && animationsSettled;
   const canManageProperties =
-    isMyTurn && (state?.phase === "PRE_ROLL" || state?.phase === "END_TURN");
+    isMyTurn &&
+    state?.pendingTrades.length === 0 &&
+    (state?.phase === "PRE_ROLL" ||
+      state?.phase === "END_TURN" ||
+      state?.phase === "JAIL_DECISION");
   const viewedOwnerInfo =
     viewedPosition !== null ? getOwnerInfo(viewedPosition) : {};
   const viewingOwnProperty =

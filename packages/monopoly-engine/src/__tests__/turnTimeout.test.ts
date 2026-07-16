@@ -1,0 +1,105 @@
+import { describe, expect, it } from "vitest";
+import { createInitialState } from "../index.js";
+import {
+  pauseActionDeadline,
+  resumeActionDeadline,
+  stampActionDeadline,
+  timeoutActionForState,
+  timeoutSecsForPhase,
+} from "../turnTimeout.js";
+import { DEFAULT_GAME_CONFIG } from "../types.js";
+
+describe("turnTimeout", () => {
+  it("maps phases to short, long, and auction timeouts", () => {
+    const cfg = DEFAULT_GAME_CONFIG;
+    expect(timeoutSecsForPhase("PRE_ROLL", cfg)).toBe(10);
+    expect(timeoutSecsForPhase("CARD_DRAWN", cfg)).toBe(10);
+    expect(timeoutSecsForPhase("END_TURN", cfg)).toBe(10);
+    expect(timeoutSecsForPhase("JAIL_DECISION", cfg)).toBe(40);
+    expect(timeoutSecsForPhase("BUY_OR_DECLINE", cfg)).toBe(40);
+    expect(timeoutSecsForPhase("AUCTION", cfg)).toBe(30);
+    expect(timeoutSecsForPhase("GAME_OVER", cfg)).toBeNull();
+    expect(timeoutSecsForPhase("WAITING", cfg)).toBeNull();
+  });
+
+  it("picks safe auto-actions per phase", () => {
+    const state = createInitialState("g1", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+
+    state.phase = "PRE_ROLL";
+    expect(timeoutActionForState(state)).toEqual({
+      action: { type: "ROLL_DICE" },
+      actorId: "p1",
+    });
+
+    state.phase = "JAIL_DECISION";
+    expect(timeoutActionForState(state)?.action.type).toBe("ROLL_FOR_JAIL");
+
+    state.phase = "BUY_OR_DECLINE";
+    expect(timeoutActionForState(state)?.action.type).toBe("DECLINE_PROPERTY");
+
+    state.phase = "CARD_DRAWN";
+    expect(timeoutActionForState(state)?.action.type).toBe("ACKNOWLEDGE_CARD");
+
+    state.phase = "END_TURN";
+    expect(timeoutActionForState(state)?.action.type).toBe("END_TURN");
+
+    state.phase = "AUCTION";
+    state.auction = {
+      position: 1,
+      kind: "bank",
+      sellerId: null,
+      highBid: 0,
+      highBidderId: null,
+      bidderOrder: ["p2", "p1"],
+      currentBidderIndex: 0,
+      minNextBid: 10,
+      resumePhase: "END_TURN",
+    };
+    expect(timeoutActionForState(state)).toEqual({
+      action: { type: "PASS_AUCTION" },
+      actorId: "p2",
+    });
+
+    state.phase = "GAME_OVER";
+    expect(timeoutActionForState(state)).toBeNull();
+  });
+
+  it("stamps actionDeadlineAt from phase timeout", () => {
+    const state = createInitialState("g1", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    state.phase = "PRE_ROLL";
+    const now = Date.parse("2026-01-01T00:00:00.000Z");
+    stampActionDeadline(state, now);
+    expect(state.actionDeadlineAt).toBe("2026-01-01T00:00:10.000Z");
+
+    state.phase = "GAME_OVER";
+    stampActionDeadline(state, now);
+    expect(state.actionDeadlineAt).toBeNull();
+  });
+
+  it("pauses and resumes the turn deadline without reset", () => {
+    const state = createInitialState("g1", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    state.phase = "PRE_ROLL";
+    const t0 = Date.parse("2026-01-01T00:00:00.000Z");
+    stampActionDeadline(state, t0);
+
+    const t1 = t0 + 4000;
+    pauseActionDeadline(state, t1);
+    expect(state.actionDeadlineAt).toBeNull();
+    expect(state.actionDeadlinePausedMs).toBe(6000);
+    expect(timeoutActionForState(state)).toBeNull();
+
+    const t2 = t1 + 30_000;
+    resumeActionDeadline(state, t2);
+    expect(state.actionDeadlinePausedMs).toBeNull();
+    expect(state.actionDeadlineAt).toBe("2026-01-01T00:00:40.000Z");
+  });
+});

@@ -33,28 +33,66 @@ export async function loadGameByRoomId(
   return doc ? (doc.state as GameState) : null;
 }
 
+export interface SaveGameGuard {
+  /** Require DB state still has this actionDeadlineAt (turn timeout path). */
+  expectedActionDeadlineAt?: string | null;
+  /** Require pending trade still present with this exact expiresAt. */
+  expectedTrade?: { tradeId: string; expiresAt: string };
+}
+
+/**
+ * Persist game state. When a guard is provided, returns false if the filter
+ * no longer matches (concurrent mutation already advanced the game).
+ */
 export async function saveGame(
   gameId: string,
   state: GameState,
   turnCountDelta = 0,
-): Promise<void> {
-  const update: Record<string, unknown> = { state };
-  if (turnCountDelta > 0) {
-    await GameModel.updateOne(
-      { gameId },
-      { $set: { state }, $inc: { turnCount: turnCountDelta } },
-    );
-    return;
+  guard?: SaveGameGuard,
+): Promise<boolean> {
+  const filter: Record<string, unknown> = { gameId };
+
+  if (guard?.expectedActionDeadlineAt !== undefined) {
+    filter["state.actionDeadlineAt"] = guard.expectedActionDeadlineAt;
   }
+  if (guard?.expectedTrade) {
+    filter["state.pendingTrades"] = {
+      $elemMatch: {
+        tradeId: guard.expectedTrade.tradeId,
+        expiresAt: guard.expectedTrade.expiresAt,
+      },
+    };
+  }
+
+  if (turnCountDelta > 0) {
+    const result = await GameModel.updateOne(filter, {
+      $set: { state },
+      $inc: { turnCount: turnCountDelta },
+    });
+    return result.matchedCount > 0;
+  }
+
+  const update: Record<string, unknown> = { state };
   if (state.winnerId) {
     update.finishedAt = new Date();
     update.winnerId = state.winnerId;
   }
-  await GameModel.updateOne({ gameId }, { $set: update });
+  const result = await GameModel.updateOne(filter, { $set: update });
+  return result.matchedCount > 0;
 }
 
 export async function getGameHistory(
   gameId: string,
 ): Promise<GameState | null> {
   return loadGame(gameId);
+}
+
+/** Delete all game documents for a room. Returns deleted gameIds. */
+export async function deleteGamesByRoomId(roomId: string): Promise<string[]> {
+  const docs = await GameModel.find({ roomId }).select("gameId").lean();
+  const gameIds = docs.map((d) => d.gameId);
+  if (gameIds.length > 0) {
+    await GameModel.deleteMany({ roomId });
+  }
+  return gameIds;
 }

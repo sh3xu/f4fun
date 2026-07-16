@@ -1,5 +1,8 @@
 import { randomBytes } from "node:crypto";
-import { createInitialState } from "@f4fun/monopoly-engine";
+import {
+  createInitialState,
+  stampActionDeadline,
+} from "@f4fun/monopoly-engine";
 import {
   RoomCreateSchema,
   RoomJoinSchema,
@@ -7,6 +10,7 @@ import {
   RoomSyncSchema,
 } from "@f4fun/shared-types";
 import type { Server } from "socket.io";
+import { afterGameStateCommit } from "../games/monopoly/DeadlineTimers.js";
 import { createGame, generateGameId } from "../games/monopoly/GameStore.js";
 import { cancelGrace } from "../rooms/DisconnectGrace.js";
 import {
@@ -194,6 +198,7 @@ export function registerRoomHandlers(
         }));
 
       const initialState = createInitialState(gameId, playerConfigs);
+      stampActionDeadline(initialState);
       console.log(
         `[Server] Created game ${gameId} with ${playerConfigs.length} players`,
       );
@@ -211,6 +216,7 @@ export function registerRoomHandlers(
       });
 
       io.to(room.roomId).emit("game:stateSnapshot", { state: initialState });
+      afterGameStateCommit(io, room.roomId, initialState);
 
       callback(null, { gameId });
     } catch (err) {

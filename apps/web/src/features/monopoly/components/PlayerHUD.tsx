@@ -5,12 +5,16 @@ import { Avatar } from "@/components/ui/Avatar";
 import { cn } from "@/lib/cn";
 import { getPlayerColor } from "@/lib/player-colors";
 import { BOARD_MONEY_CLASS, GLASS_CARD } from "../theme/board-theme";
+import { TurnTimerRing } from "./TurnTimerRing";
 
 interface PlayerHUDProps {
   player: PlayerState;
   isActive: boolean;
   isMe: boolean;
   turnOrder: string[];
+  deadlineAt?: string | null;
+  deadlinePausedMs?: number | null;
+  timerDurationSecs?: number | null;
 }
 
 export function PlayerHUD({
@@ -18,6 +22,9 @@ export function PlayerHUD({
   isActive,
   isMe,
   turnOrder,
+  deadlineAt = null,
+  deadlinePausedMs = null,
+  timerDurationSecs = null,
 }: PlayerHUDProps) {
   const playerColor = getPlayerColor(player.id, turnOrder);
 
@@ -45,15 +52,23 @@ export function PlayerHUD({
         backgroundColor={playerColor.hex}
       />
 
-      <div className="flex-1 min-w-0">
-        <p className="font-bold text-sm text-gray-100 truncate flex items-center gap-1.5">
-          <span>{player.name}</span>
+      <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 items-center gap-1.5 text-sm font-bold text-gray-100">
+          <span className="truncate">{player.name}</span>
           {isMe && (
-            <span className="text-[9px] text-[#4fc3f7] font-semibold bg-[#4fc3f7]/10 px-1 py-px rounded border border-[#4fc3f7]/20">
+            <span className="shrink-0 rounded border border-[#4fc3f7]/20 bg-[#4fc3f7]/10 px-1 py-px text-[9px] font-semibold text-[#4fc3f7]">
               you
             </span>
           )}
-        </p>
+          {isActive && !player.isBankrupt && (
+            <TurnTimerRing
+              deadlineAt={deadlineAt}
+              pausedMs={deadlinePausedMs}
+              durationSecs={timerDurationSecs}
+              className="ml-0.5"
+            />
+          )}
+        </div>
         <CounterTicker
           value={player.cash}
           className={cn(
@@ -67,7 +82,7 @@ export function PlayerHUD({
           )}
         />
 
-        <div className="flex items-center gap-1 text-[10px] text-gray-500 mt-0.5">
+        <div className="mt-0.5 flex items-center gap-1 text-[10px] text-gray-500">
           <span>Properties:</span>
           <span className="font-bold text-gray-300">
             {player.ownedPositions.length}
@@ -75,28 +90,19 @@ export function PlayerHUD({
         </div>
 
         {player.isInJail && (
-          <span className="text-[10px] text-amber-400 font-bold flex items-center gap-1 mt-0.5">
-            <Lock className="w-3 h-3" />
+          <span className="mt-0.5 flex items-center gap-1 text-[10px] font-bold text-amber-400">
+            <Lock className="h-3 w-3" />
             Jail
           </span>
         )}
 
         {player.isBankrupt && (
-          <span className="text-[10px] text-rose-500 font-bold flex items-center gap-1 mt-0.5">
-            <Skull className="w-3 h-3" />
+          <span className="mt-0.5 flex items-center gap-1 text-[10px] font-bold text-rose-500">
+            <Skull className="h-3 w-3" />
             Bankrupt
           </span>
         )}
       </div>
-
-      {isActive && !player.isBankrupt && (
-        <div
-          className="text-[8px] text-white font-bold px-1.5 py-0.5 rounded-full select-none shrink-0"
-          style={{ backgroundColor: playerColor.hex }}
-        >
-          Active
-        </div>
-      )}
     </div>
   );
 }

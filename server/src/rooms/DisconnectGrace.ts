@@ -47,3 +47,19 @@ export async function cancelGrace(
 export function hasActiveGrace(roomId: string, playerId: string): boolean {
   return active.has(graceKey(roomId, playerId));
 }
+
+export function hasAnyRoomGrace(roomId: string): boolean {
+  for (const entry of active.values()) {
+    if (entry.roomId === roomId) return true;
+  }
+  return false;
+}
+
+export function cancelAllRoomGraces(roomId: string): void {
+  for (const [key, entry] of active) {
+    if (entry.roomId === roomId) {
+      clearTimeout(entry.timer);
+      active.delete(key);
+    }
+  }
+}

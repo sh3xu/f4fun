@@ -1,7 +1,7 @@
 "use client";
 
 import type { GameEvent, GameState, TradeOffer } from "@f4fun/monopoly-engine";
-import { TILE_BY_POSITION } from "@f4fun/monopoly-engine";
+import { TILE_BY_POSITION, timeoutSecsForPhase } from "@f4fun/monopoly-engine";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Toaster, toast } from "sonner";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -11,6 +11,7 @@ import { emitWithCallback, getSocket } from "@/lib/socket";
 import { useGameStore } from "../store/gameStore";
 import { GLASS_PANEL } from "../theme/board-theme";
 import { Board } from "./Board";
+import { IncomingTradeOfferCard } from "./IncomingTradeOfferCard";
 import { PlayerHUD } from "./PlayerHUD";
 import { TradeModal } from "./TradeModal";
 import { getTileLabel } from "./tile-labels";
@@ -544,6 +545,16 @@ export function GamePage() {
         />
       )}
 
+      {myPlayerId && (
+        <IncomingTradeOfferCard
+          state={state}
+          myPlayerId={myPlayerId}
+          loading={false}
+          onAccept={handleAcceptTrade}
+          onReject={handleRejectTrade}
+        />
+      )}
+
       {/* NOTE: container-type:size enables cqi/cqb so the board fills the frame as a square without clipping. */}
       <main className="order-1 relative min-h-[min(100vw,calc(100dvh-12rem))] min-w-0 flex-1 [container-type:size] lg:min-h-0">
         <div className="absolute inset-0 flex items-center justify-center">
@@ -602,10 +613,14 @@ export function GamePage() {
           <button
             type="button"
             onClick={() => setTradeOpen(true)}
-            className="rounded-lg border border-white/15 bg-white/5 px-2 py-1.5 text-xs font-semibold text-white/70 hover:bg-white/10"
+            className="relative rounded-lg border border-white/15 bg-white/5 px-2 py-1.5 text-xs font-semibold text-white/70 hover:bg-white/10"
           >
             Trade
-            {pendingTradeCount > 0 ? ` (${pendingTradeCount})` : ""}
+            {pendingTradeCount > 0 && (
+              <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#2196f3] px-1 text-[10px] font-bold text-white">
+                {pendingTradeCount}
+              </span>
+            )}
           </button>
         )}
 
@@ -617,6 +632,19 @@ export function GamePage() {
                 isActive={playerId === activePlayerId}
                 isMe={playerId === myPlayerId}
                 turnOrder={state.turnOrder}
+                deadlineAt={
+                  playerId === activePlayerId ? state.actionDeadlineAt : null
+                }
+                deadlinePausedMs={
+                  playerId === activePlayerId
+                    ? state.actionDeadlinePausedMs
+                    : null
+                }
+                timerDurationSecs={
+                  playerId === activePlayerId
+                    ? timeoutSecsForPhase(state.phase, state.config)
+                    : null
+                }
               />
             </div>
           ))}

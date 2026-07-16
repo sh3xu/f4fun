@@ -117,6 +117,8 @@ export function createInitialState(
     config: finalConfig,
     winnerId: null,
     startedAt: new Date().toISOString(),
+    actionDeadlineAt: null,
+    actionDeadlinePausedMs: null,
   };
 }
 
@@ -135,6 +137,19 @@ export function applyAction(
 
   if (!playerId) {
     return { state, events: [], error: "No active player" };
+  }
+
+  // NOTE: A pending trade freezes the turn — only accept/reject may proceed.
+  if (
+    state.pendingTrades.length > 0 &&
+    action.type !== "ACCEPT_TRADE" &&
+    action.type !== "REJECT_TRADE"
+  ) {
+    return {
+      state,
+      events: [],
+      error: "Resolve pending trade first",
+    };
   }
 
   const events: GameEvent[] = [];
@@ -383,6 +398,12 @@ export function applyAction(
       }
 
       case "PROPOSE_TRADE": {
+        if (playerId !== activePlayerId) {
+          return { state, events: [], error: "Not your turn" };
+        }
+        if (!managementPhaseOk(state.phase)) {
+          return { state, events: [], error: "Cannot trade now" };
+        }
         const result = proposeTrade(
           state,
           playerId,
@@ -545,12 +566,25 @@ export {
 export * from "./config/board.js";
 export { diceSum, rollDice } from "./dice.js";
 export { payJailFine, rollForJail, spendGoojfCard } from "./jail.js";
+export { autoLiquidateAssets } from "./liquidate.js";
 export { mortgageProperty, unmortgageProperty } from "./mortgage.js";
 export { applyMove, movePlayer, setPlayerPosition } from "./movement.js";
 export { buyProperty, canBuyProperty } from "./property.js";
 export { calculateRent, chargeRent, ownsColorGroup } from "./rent.js";
 export { resolveLanding } from "./resolveLanding.js";
-export { acceptTrade, proposeTrade, rejectTrade } from "./trade.js";
+export {
+  acceptTrade,
+  expiredTradeIds,
+  proposeTrade,
+  rejectTrade,
+} from "./trade.js";
 export { advanceTurn, getActivePlayer } from "./turn.js";
+export {
+  pauseActionDeadline,
+  resumeActionDeadline,
+  stampActionDeadline,
+  timeoutActionForState,
+  timeoutSecsForPhase,
+} from "./turnTimeout.js";
 export * from "./types.js";
 export { checkWinCondition, getWinner } from "./win.js";

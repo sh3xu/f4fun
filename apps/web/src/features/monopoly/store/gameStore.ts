@@ -51,6 +51,10 @@ function positionsFromState(state: GameState): Record<string, number> {
 function normalizeGameState(state: GameState): GameState {
   if (state.auction === undefined) state.auction = null;
   if (!state.pendingTrades) state.pendingTrades = [];
+  if (state.actionDeadlineAt === undefined) state.actionDeadlineAt = null;
+  if (state.actionDeadlinePausedMs === undefined) {
+    state.actionDeadlinePausedMs = null;
+  }
   return state;
 }
 

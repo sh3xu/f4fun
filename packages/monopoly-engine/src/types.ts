@@ -79,6 +79,8 @@ export interface PendingTrade {
   toPlayerId: PlayerId;
   offer: TradeOffer;
   request: TradeOffer;
+  /** ISO timestamp when the offer auto-rejects if still pending. */
+  expiresAt: string;
 }
 
 export interface GameConfig {
@@ -86,6 +88,14 @@ export interface GameConfig {
   freeParkingJackpot: boolean;
   disconnectGraceSecs: number;
   maxPlayers: number;
+  /** PRE_ROLL, CARD_DRAWN, END_TURN */
+  shortTimeoutSecs: number;
+  /** JAIL_DECISION, BUY_OR_DECLINE */
+  longTimeoutSecs: number;
+  /** AUCTION per current bidder */
+  auctionTimeoutSecs: number;
+  /** Incoming trade offer response window */
+  tradeTimeoutSecs: number;
 }
 
 export const DEFAULT_GAME_CONFIG: GameConfig = {
@@ -93,6 +103,10 @@ export const DEFAULT_GAME_CONFIG: GameConfig = {
   freeParkingJackpot: false,
   disconnectGraceSecs: 60,
   maxPlayers: 8,
+  shortTimeoutSecs: 10,
+  longTimeoutSecs: 40,
+  auctionTimeoutSecs: 30,
+  tradeTimeoutSecs: 60,
 };
 
 export interface GameState {
@@ -120,6 +134,13 @@ export interface GameState {
   config: GameConfig;
   winnerId: PlayerId | null;
   startedAt: string;
+  /** ISO deadline for the current turn-phase auto-action; null when none or paused. */
+  actionDeadlineAt: string | null;
+  /**
+   * Remaining ms on the turn clock while a trade offer is pending.
+   * When set, the turn timer is paused and resumes from this value.
+   */
+  actionDeadlinePausedMs: number | null;
 }
 
 export type GameAction =
@@ -228,6 +249,12 @@ export type GameEvent =
       amount: number;
     }
   | { type: "AUCTION_CANCELLED"; position: number }
+  | {
+      type: "PROPERTY_SOLD_TO_BANK";
+      playerId: PlayerId;
+      position: number;
+      amount: number;
+    }
   | { type: "PLAYER_BANKRUPT"; playerId: PlayerId; creditorId: PlayerId | null }
   | { type: "TURN_ADVANCED"; playerId: PlayerId }
   | { type: "GAME_WON"; winnerId: PlayerId };
