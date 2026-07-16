@@ -8,6 +8,7 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { useRoomStore } from "@/features/room/store/roomStore";
 import { cn } from "@/lib/cn";
 import { emitWithCallback, getSocket } from "@/lib/socket";
+import { useDeferredGameEventToasts } from "../hooks/useDeferredGameEventToasts";
 import { useGameStore } from "../store/gameStore";
 import { GLASS_PANEL } from "../theme/board-theme";
 import { Board } from "./Board";
@@ -212,10 +213,13 @@ export function GamePage() {
     [myPlayerId],
   );
 
-  // NOTE: Keep latest handler in a ref so the socket effect does not re-subscribe
+  // NOTE: Dice-roll batches toast after token animation; other events toast immediately.
+  const dispatchGameEventToasts = useDeferredGameEventToasts(handleEvent);
+
+  // NOTE: Keep latest dispatcher in a ref so the socket effect does not re-subscribe
   // (and re-emit game:rejoin) on every game state change — that wiped dice animations.
-  const handleEventRef = useRef(handleEvent);
-  handleEventRef.current = handleEvent;
+  const dispatchGameEventToastsRef = useRef(dispatchGameEventToasts);
+  dispatchGameEventToastsRef.current = dispatchGameEventToasts;
 
   useEffect(() => {
     if (!roomId || !myPlayerId || !myPlayerSecret) return;
@@ -247,9 +251,7 @@ export function GamePage() {
       }) => {
         console.log("[GamePage] Received game:stateUpdated");
         applyServerUpdate(data.state, data.events);
-        for (const event of data.events) {
-          handleEventRef.current(event);
-        }
+        dispatchGameEventToastsRef.current(data.events);
       };
 
       socket.on("game:stateSnapshot", handleStateSnapshot);
@@ -523,7 +525,7 @@ export function GamePage() {
         "gap-3 p-2 sm:p-3 lg:gap-4 lg:p-4",
       )}
     >
-      <Toaster position="top-center" richColors />
+      <Toaster position="bottom-right" richColors />
 
       {winnerId && (
         <WinScreen
