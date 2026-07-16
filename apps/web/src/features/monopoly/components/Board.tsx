@@ -245,13 +245,14 @@ export function Board({
           pendingAnimation.toPosition !== undefined && (
             <div className="pointer-events-none absolute inset-0 z-40">
               <PieceMover
-                key={`${movingPlayer.id}-${pendingAnimation.fromPosition}-${pendingAnimation.toPosition}-${pendingAnimation.moveMode ?? "hop"}`}
+                key={`${movingPlayer.id}-${pendingAnimation.fromPosition}-${pendingAnimation.toPosition}-${pendingAnimation.moveMode ?? "hop"}-${pendingAnimation.moveDirection ?? "forward"}`}
                 playerId={movingPlayer.id}
                 token={movingPlayer.token}
                 name={movingPlayer.name}
                 fromPosition={pendingAnimation.fromPosition}
                 toPosition={pendingAnimation.toPosition}
                 mode={pendingAnimation.moveMode ?? "hop"}
+                direction={pendingAnimation.moveDirection ?? "forward"}
                 colorHex={movingColor?.hex}
                 isActive={movingPlayer.id === activePlayerId}
                 getTileCenter={getTileCenter}

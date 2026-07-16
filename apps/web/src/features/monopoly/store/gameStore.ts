@@ -5,12 +5,17 @@ import {
   JAIL_POSITION,
 } from "@f4fun/monopoly-engine";
 import { create } from "zustand";
-import type { PieceMoveMode } from "@/components/animation/PieceMover";
+import type {
+  PieceMoveDirection,
+  PieceMoveMode,
+} from "@/components/animation/PieceMover";
+import { jailSlideDirection } from "@/features/monopoly/lib/board-path";
 
 interface PendingNextMove {
   fromPosition: number;
   toPosition: number;
   moveMode: PieceMoveMode;
+  moveDirection: PieceMoveDirection;
 }
 
 interface PendingAnimation {
@@ -20,6 +25,7 @@ interface PendingAnimation {
   fromPosition?: number;
   toPosition?: number;
   moveMode?: PieceMoveMode;
+  moveDirection?: PieceMoveDirection;
   nextMove?: PendingNextMove;
 }
 
@@ -70,28 +76,31 @@ function buildDicePendingAnimation(
     dice: diceEvent.dice,
   };
 
-  // Land on Go To Jail: hop along the dice path to 30, then slide to jail
+  // Land on Go To Jail: hop along the dice path to 30, then slide to jail without crossing Go
   if (sentToJail && diceEvent.newPosition === GO_TO_JAIL_POSITION) {
     return {
       ...base,
       fromPosition,
       toPosition: GO_TO_JAIL_POSITION,
       moveMode: "hop",
+      moveDirection: "forward",
       nextMove: {
         fromPosition: GO_TO_JAIL_POSITION,
         toPosition: JAIL_POSITION,
         moveMode: "slide",
+        moveDirection: jailSlideDirection(GO_TO_JAIL_POSITION, JAIL_POSITION),
       },
     };
   }
 
-  // 3 doubles (or other direct jail): slide to jail without hopping around
+  // 3 doubles (or other direct jail): slide to jail without wrapping across Go
   if (sentToJail && diceEvent.newPosition === JAIL_POSITION) {
     return {
       ...base,
       fromPosition,
       toPosition: JAIL_POSITION,
       moveMode: "slide",
+      moveDirection: jailSlideDirection(fromPosition, JAIL_POSITION),
     };
   }
 
@@ -100,6 +109,7 @@ function buildDicePendingAnimation(
     fromPosition,
     toPosition: diceEvent.newPosition,
     moveMode: "hop",
+    moveDirection: "forward",
   };
 }
 
@@ -236,6 +246,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
           fromPosition: nextMove.fromPosition,
           toPosition: nextMove.toPosition,
           moveMode: nextMove.moveMode,
+          moveDirection: nextMove.moveDirection,
         },
       });
       return;
