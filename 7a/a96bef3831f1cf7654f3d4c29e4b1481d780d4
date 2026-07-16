@@ -1,0 +1,26 @@
+apps/web/next-env.d.ts
+  s_ccffe444efcbcb::t_8102d09007f9a8 3-4
+packages/monopoly-engine/src/index.ts
+  s_ccffe444efcbcb::t_73c0083d8fde30 578
+.husky/pre-push
+  s_ccffe444efcbcb::t_d4ed4525ea8b0e 1-2
+  s_ccffe444efcbcb::t_b350bcdadaf9de 3-5
+packages/monopoly-engine/src/__tests__/liquidate.test.ts
+  s_ccffe444efcbcb::t_f51372a2a6b8d0 55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "7aa96bef3831f1cf7654f3d4c29e4b1481d780d4",
+  "prompts": {},
+  "sessions": {
+    "s_ccffe444efcbcb": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4be1fcd0-11db-4601-8f86-4db588adeb62",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
