@@ -12,6 +12,10 @@ import type {
   PieceMoveMode,
 } from "@/components/animation/PieceMover";
 import { jailSlideDirection } from "@/features/monopoly/lib/board-path";
+import {
+  areAnimationsSettled,
+  shouldDeferGameEventToasts,
+} from "../lib/deferred-toasts";
 
 interface PendingNextMove {
   fromPosition: number;
@@ -38,6 +42,8 @@ interface GameStore {
   diceAnimationComplete: boolean;
   rollAnimationKey: number;
   lastEvents: GameEvent[];
+  /** Toast events waiting for dice/move animations to finish. */
+  deferredToastEvents: GameEvent[];
 
   setFromSnapshot: (state: GameState) => void;
   applyServerUpdate: (state: GameState, events: GameEvent[]) => void;
@@ -45,6 +51,8 @@ interface GameStore {
   completeDiceAnimation: () => void;
   setDisplayPosition: (playerId: string, position: number) => void;
   completeMoveAnimation: () => void;
+  /** Returns and clears deferred toast events when animations have settled. */
+  takeDeferredToastEvents: () => GameEvent[];
   reset: () => void;
 }
 
@@ -201,13 +209,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
   diceAnimationComplete: true,
   rollAnimationKey: 0,
   lastEvents: [],
+  deferredToastEvents: [],
 
   setFromSnapshot: (state) => {
     const normalized = normalizeGameState(state);
+    const prev = get().state;
+    // NOTE: Same gameId mid-roll rejoin keeps deferred toasts so they flush after settle;
+    // a different game must not inherit the previous queue.
+    const sameGame = prev?.gameId === normalized.gameId;
     set({
       state: normalized,
       displayPositions: positionsFromState(normalized),
       lastEvents: [],
+      deferredToastEvents: sameGame ? get().deferredToastEvents : [],
       pendingAnimation: { type: "none" },
       diceAnimationComplete: true,
       rollAnimationKey: 0,
@@ -222,10 +236,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
     state = normalizeGameState(state);
     const prev = get().state;
     if (!prev) {
+      // NOTE: stateUpdated can beat the initial snapshot — still queue roll toasts
+      // (animation skipped without a prior position; flush runs once settled).
       set({
         state,
         displayPositions: positionsFromState(state),
         lastEvents: events,
+        deferredToastEvents: shouldDeferGameEventToasts(events)
+          ? [...get().deferredToastEvents, ...events]
+          : get().deferredToastEvents,
       });
       return;
     }
@@ -313,6 +332,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
       rollAnimationKey: diceEvent
         ? get().rollAnimationKey + 1
         : get().rollAnimationKey,
+      // NOTE: Queue toastable roll consequences until dice + token animation finish.
+      deferredToastEvents: shouldDeferGameEventToasts(events)
+        ? [...get().deferredToastEvents, ...events]
+        : get().deferredToastEvents,
     });
   },
 
@@ -382,6 +405,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
     });
   },
 
+  takeDeferredToastEvents: () => {
+    const { deferredToastEvents, diceAnimationComplete, pendingAnimation } =
+      get();
+    if (
+      deferredToastEvents.length === 0 ||
+      !areAnimationsSettled(diceAnimationComplete, pendingAnimation.type)
+    ) {
+      return [];
+    }
+    set({ deferredToastEvents: [] });
+    return deferredToastEvents;
+  },
+
   reset: () => {
     set({
       state: null,
@@ -390,6 +426,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       diceAnimationComplete: true,
       rollAnimationKey: 0,
       lastEvents: [],
+      deferredToastEvents: [],
     });
   },
 }));
