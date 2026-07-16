@@ -1,0 +1,24 @@
+apps/web/src/features/monopoly/store/gameStore.ts
+  s_dfa3be90d3d64b::t_e7943525070f36 125-128,133
+  s_dfa3be90d3d64b::t_a87c6a1242bae9 148-149,154-156
+apps/web/src/features/monopoly/lib/deferred-toasts.test.ts
+  s_dfa3be90d3d64b::t_c08f553160a292 43-52
+apps/web/src/features/monopoly/store/gameStore.animation.test.ts
+  s_dfa3be90d3d64b::t_58c9bb55b79ea5 116-166
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "34a468dc353958154e717ab89696ff7f81565a9a",
+  "prompts": {},
+  "sessions": {
+    "s_dfa3be90d3d64b": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "0def22f2-d79d-4b2a-8893-217990649e07",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
