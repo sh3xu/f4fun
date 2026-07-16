@@ -52,7 +52,7 @@ describe("autoLiquidateAssets", () => {
     player.houses[1] = 1;
     state.ownership[1] = { ownerId: "p1", isMortgaged: false };
 
-    const events = autoLiquidateAssets(state, "p1", null);
+    const events = autoLiquidateAssets(state, "p1");
 
     expect(events.some((e) => e.type === "PROPERTY_SOLD_TO_BANK")).toBe(false);
   });

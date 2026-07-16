@@ -575,7 +575,7 @@ export function applyAction(
           // Non-movement, non-jail card; phase not yet set by applyCardEffect.
           if (state.players[activePlayerId]?.isBankrupt) {
             state.phase = "END_TURN";
-          } else if (state.phase !== "RAISE_CASH") {
+          } else {
             state.phase = phaseAfterDiceAction(state);
           }
         }
