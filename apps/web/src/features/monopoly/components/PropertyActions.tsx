@@ -45,9 +45,10 @@ export function PropertyActions(props: PropertyActionsProps) {
     return (
       <div className="flex gap-[clamp(0.25rem,0.9cqmin,0.4rem)]">
         <Button
+          variant="tokenGhost"
           onClick={props.onClose}
           size="sm"
-          className={`${btnClass} border-0 bg-slate-600/80 backdrop-blur-sm hover:bg-slate-600`}
+          className={btnClass}
           aria-label="Close"
         >
           Close
@@ -61,30 +62,31 @@ export function PropertyActions(props: PropertyActionsProps) {
     return (
       <div className="flex gap-[clamp(0.25rem,0.9cqmin,0.4rem)]">
         <Button
+          variant="token"
           onClick={onBuy}
           disabled={loading || !canAfford}
           size="sm"
-          className={`${btnClass} border-0 bg-[#2196f3]/80 backdrop-blur-sm hover:bg-[#2196f3]`}
+          className={btnClass}
           aria-label={`Buy ${label}`}
         >
           {canAfford ? "Buy" : "Can't Afford"}
         </Button>
         <Button
+          variant="tokenGhost"
           onClick={onDecline}
           disabled={loading}
-          variant="outline"
           size="sm"
-          className={`${btnClass} border-white/20 text-white/80 hover:bg-white/10`}
+          className={btnClass}
           aria-label={`Skip ${label}`}
         >
           Skip
         </Button>
         <Button
+          variant="tokenGhost"
           onClick={onAuction}
           disabled={loading}
-          variant="outline"
           size="sm"
-          className={`${btnClass} border-amber-400/30 text-amber-200 hover:bg-amber-500/10`}
+          className={`${btnClass} border-amber-400/30 text-amber-200`}
           aria-label={`Auction ${label}`}
         >
           Auction
@@ -115,10 +117,11 @@ export function PropertyActions(props: PropertyActionsProps) {
         {isProperty && (
           <>
             <Button
+              variant="token"
               size="sm"
               disabled={loading || isMortgaged || hotels > 0}
               onClick={onBuild}
-              className={`${btnClass} border-0 bg-[#2196f3]/70`}
+              className={btnClass}
               aria-label={
                 houses >= 4
                   ? `Build hotel on ${label}`
@@ -128,11 +131,11 @@ export function PropertyActions(props: PropertyActionsProps) {
               Build
             </Button>
             <Button
+              variant="tokenGhost"
               size="sm"
-              variant="outline"
               disabled={loading || !hasBuildings}
               onClick={onSell}
-              className={`${btnClass} border-white/20 text-white/80`}
+              className={btnClass}
               aria-label={
                 hotels > 0 ? `Sell hotel on ${label}` : `Sell house on ${label}`
               }
@@ -142,18 +145,18 @@ export function PropertyActions(props: PropertyActionsProps) {
           </>
         )}
         <Button
+          variant="tokenGhost"
           size="sm"
-          variant="outline"
           disabled={loading || (!isMortgaged && hasBuildings)}
           onClick={isMortgaged ? onUnmortgage : onMortgage}
-          className={`${btnClass} border-white/20 text-white/80`}
+          className={btnClass}
           aria-label={isMortgaged ? `Unmortgage ${label}` : `Mortgage ${label}`}
         >
           {isMortgaged ? "Unmortgage" : "Mortgage"}
         </Button>
         <Button
+          variant="tokenGhost"
           size="sm"
-          variant="outline"
           disabled={loading || hasBuildings}
           onClick={onOwnerAuction}
           className={`${btnClass} border-amber-400/30 text-amber-200`}
@@ -164,10 +167,10 @@ export function PropertyActions(props: PropertyActionsProps) {
       </div>
       {onClose && (
         <Button
+          variant="tokenGhost"
           onClick={onClose}
           size="sm"
-          variant="outline"
-          className={`${btnClass} w-full border-white/15 text-white/70`}
+          className={`${btnClass} w-full`}
           aria-label="Close"
         >
           Close

@@ -54,10 +54,14 @@ export function Avatar({
       key={avatarId}
       className={cn(
         config.classes,
-        "rounded-full overflow-hidden flex-shrink-0 shadow-lg transition-transform duration-200",
+        "material-piece relative rounded-full overflow-hidden flex-shrink-0 transition-transform duration-200",
         isActive && config.activeClass,
       )}
-      style={{ backgroundColor }}
+      style={{
+        backgroundColor,
+        backgroundImage:
+          "linear-gradient(145deg, rgba(255,255,255,0.35) 0%, transparent 45%, rgba(0,0,0,0.25) 100%)",
+      }}
     >
       <Image
         key={avatarId}

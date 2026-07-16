@@ -152,6 +152,21 @@ export function PieceMover({
           duration: hopDuration * 0.25,
           ease: "bounce.out",
         });
+        // Brief squash-settle on final tile
+        if (position === path[path.length - 1]) {
+          tl.to(el, {
+            scaleX: 1.12,
+            scaleY: 0.88,
+            duration: 0.08,
+            ease: "power2.out",
+          });
+          tl.to(el, {
+            scaleX: 1,
+            scaleY: 1,
+            duration: 0.18,
+            ease: "back.out(2)",
+          });
+        }
         // Pause on the tile before the next hop
         tl.to({}, { duration: dwell });
       }

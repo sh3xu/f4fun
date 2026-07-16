@@ -8,6 +8,7 @@ import {
 } from "@f4fun/monopoly-engine";
 import { type CSSProperties, useCallback, useRef, useState } from "react";
 import { PieceMover } from "@/components/animation/PieceMover";
+import { FeltSurface } from "@/components/ui/FeltSurface";
 import { cn } from "@/lib/cn";
 import { getPlayerColor } from "@/lib/player-colors";
 import { useRoomStore } from "../../room/store/roomStore";
@@ -15,7 +16,6 @@ import { useGameStore } from "../store/gameStore";
 import {
   BOARD_OVERLAY_PANEL_CLASS,
   BOARD_TEXT_VARS,
-  GLASS_PANEL,
 } from "../theme/board-theme";
 import { AuctionPanel } from "./AuctionPanel";
 import { BoardTile } from "./BoardTile";
@@ -195,21 +195,17 @@ export function Board({
   const centerBusy = showPropertyCard || showAuction;
 
   return (
-    <div
-      className={cn(
-        "relative h-full w-full overflow-hidden [container-type:size]",
-        "rounded-2xl border border-white/[0.1] bg-[#0d1420]",
-        "shadow-[0_8px_40px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.06)]",
-      )}
+    <FeltSurface
+      framed
+      className="relative h-full w-full [container-type:size]"
       style={BOARD_TEXT_VARS}
     >
       <div
         ref={boardRef}
         className={cn(
-          "absolute inset-0 grid gap-1 p-1.5 sm:gap-1.5 sm:p-2",
+          "absolute inset-0 grid gap-1.5 p-2 sm:gap-2 sm:p-2.5",
           "grid-rows-[minmax(0,2.15fr)_repeat(9,minmax(0,1fr))_minmax(0,2.15fr)]",
           "grid-cols-[minmax(0,2.15fr)_repeat(9,minmax(0,1fr))_minmax(0,2.15fr)]",
-          "bg-gradient-to-br from-[#1a2740]/90 via-[#121a2a]/95 to-[#0d1420]",
         )}
       >
         {BOARD_TILES.map((tile) => (
@@ -267,26 +263,23 @@ export function Board({
         <div
           className={cn(
             "relative col-start-2 col-end-11 row-start-2 row-end-11 min-h-0 overflow-hidden",
-            "rounded-xl",
-            GLASS_PANEL,
+            "material-tray-recessed rounded-xl",
           )}
         >
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#1a2744]/55 via-[#111827]/35 to-[#0d1420]/55" />
-
           {!centerBusy && (
             <>
-              <div className="absolute top-0 right-0 left-0 z-10 shrink-0 px-[clamp(0.4rem,2cqmin,1rem)] pt-[clamp(0.5rem,2.2cqmin,1.5rem)] text-center select-none">
+              <div className="absolute top-0 right-0 left-0 z-10 shrink-0 px-[clamp(0.4rem,2cqmin,1rem)] pt-[clamp(0.5rem,2.2cqmin,1.5rem)] text-center select-none opacity-70">
                 <h1 className="text-[length:var(--board-text-xl)] font-black tracking-wider">
-                  <span className="bg-gradient-to-r from-[#4fc3f7] via-[#29b6f6] to-[#26c6da] bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-[#4fc3f7]/80 via-[#29b6f6]/70 to-[#26c6da]/80 bg-clip-text text-transparent">
                     MONOPOLY
                   </span>
                 </h1>
-                <p className="mt-0.5 text-[length:var(--board-text-sm)] font-semibold uppercase tracking-[0.2em] text-gray-500">
+                <p className="mt-0.5 text-[length:var(--board-text-sm)] font-semibold uppercase tracking-[0.2em] text-gray-600">
                   Board Game House
                 </p>
               </div>
 
-              <div className="absolute right-0 bottom-0 left-0 z-10 shrink-0 px-[clamp(0.4rem,2cqmin,1rem)] pb-[clamp(0.5rem,2.2cqmin,1.5rem)] text-center text-[length:var(--board-text-xs)] font-medium text-gray-600 select-none">
+              <div className="absolute right-0 bottom-0 left-0 z-10 shrink-0 px-[clamp(0.4rem,2cqmin,1rem)] pb-[clamp(0.5rem,2.2cqmin,1.5rem)] text-center text-[length:var(--board-text-xs)] font-medium text-gray-600 select-none opacity-60">
                 {state?.turnOrder.length || 0} Players active
               </div>
             </>
@@ -295,10 +288,7 @@ export function Board({
           <div className="absolute inset-0 z-20 flex items-center justify-center p-[clamp(0.5rem,2.5cqmin,1.5rem)]">
             {showAuction && state?.auction ? (
               <div
-                className={cn(
-                  BOARD_OVERLAY_PANEL_CLASS,
-                  "animate-in fade-in zoom-in-95 duration-300",
-                )}
+                className={cn(BOARD_OVERLAY_PANEL_CLASS, "animate-card-deal")}
               >
                 <AuctionPanel
                   auction={state.auction}
@@ -311,10 +301,7 @@ export function Board({
               </div>
             ) : showPropertyCard && currentPlayer ? (
               <div
-                className={cn(
-                  BOARD_OVERLAY_PANEL_CLASS,
-                  "animate-in fade-in zoom-in-95 duration-300",
-                )}
+                className={cn(BOARD_OVERLAY_PANEL_CLASS, "animate-card-deal")}
               >
                 <PropertyPanel
                   mode="buy"
@@ -328,10 +315,7 @@ export function Board({
               </div>
             ) : viewedPosition !== null ? (
               <div
-                className={cn(
-                  BOARD_OVERLAY_PANEL_CLASS,
-                  "animate-in fade-in zoom-in-95 duration-300",
-                )}
+                className={cn(BOARD_OVERLAY_PANEL_CLASS, "animate-card-deal")}
               >
                 {viewingOwnProperty && canManageProperties ? (
                   <PropertyPanel
@@ -390,6 +374,7 @@ export function Board({
                       null)
                     : null
                 }
+                pendingCardDeck={state?.pendingCard?.deck ?? null}
                 goojfCards={currentPlayer?.goojfCards ?? 0}
                 cash={currentPlayer?.cash ?? 0}
                 loading={false}
@@ -404,6 +389,6 @@ export function Board({
           </div>
         </div>
       </div>
-    </div>
+    </FeltSurface>
   );
 }

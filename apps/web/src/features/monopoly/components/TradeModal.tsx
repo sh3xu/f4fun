@@ -3,8 +3,8 @@
 import type { GameState, TradeOffer } from "@f4fun/monopoly-engine";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { GameCard } from "@/components/ui/GameCard";
 import { cn } from "@/lib/cn";
-import { GLASS_CARD } from "../theme/board-theme";
 import { TradeOfferSummary } from "./IncomingTradeOfferCard";
 import { getTileLabelAt } from "./tile-labels";
 
@@ -79,15 +79,15 @@ export function TradeModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div
+      <GameCard
+        stock="property"
         className={cn(
-          "max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl p-4",
-          GLASS_CARD,
+          "max-h-[90vh] w-full max-w-lg overflow-y-auto p-4 animate-card-deal",
         )}
       >
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-bold text-white">Trade</h2>
-          <Button size="sm" variant="outline" onClick={onClose}>
+          <Button size="sm" variant="tokenGhost" onClick={onClose}>
             Close
           </Button>
         </div>
@@ -198,6 +198,7 @@ export function TradeModal({
             </div>
 
             <Button
+              variant="token"
               disabled={loading || !toPlayerId}
               onClick={() => onPropose(toPlayerId, offer, request)}
               className="w-full"
@@ -206,7 +207,7 @@ export function TradeModal({
             </Button>
           </div>
         )}
-      </div>
+      </GameCard>
     </div>
   );
 }

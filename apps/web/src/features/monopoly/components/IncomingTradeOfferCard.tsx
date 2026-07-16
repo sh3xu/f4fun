@@ -2,8 +2,8 @@
 
 import type { GameState, PendingTrade } from "@f4fun/monopoly-engine";
 import { Button } from "@/components/ui/Button";
+import { GameCard } from "@/components/ui/GameCard";
 import { cn } from "@/lib/cn";
-import { GLASS_CARD } from "../theme/board-theme";
 import { ActionCountdown } from "./ActionCountdown";
 import { getTileLabelAt } from "./tile-labels";
 
@@ -79,6 +79,7 @@ export function TradeOfferSummary({
       </p>
       <div className="mt-3 flex gap-2">
         <Button
+          variant="token"
           size="sm"
           disabled={loading}
           onClick={() => onAccept(trade.tradeId)}
@@ -86,8 +87,8 @@ export function TradeOfferSummary({
           Accept
         </Button>
         <Button
+          variant="tokenGhost"
           size="sm"
-          variant="outline"
           disabled={loading}
           onClick={() => onReject(trade.tradeId)}
         >
@@ -121,11 +122,9 @@ export function IncomingTradeOfferCard({
 
   return (
     <div className="pointer-events-none fixed inset-x-0 top-3 z-40 flex justify-center px-3 sm:top-4 sm:justify-end sm:pr-4 lg:right-[16.5rem] xl:right-[19.5rem]">
-      <div
-        className={cn(
-          "pointer-events-auto w-full max-w-sm space-y-2 rounded-xl p-3 shadow-lg",
-          GLASS_CARD,
-        )}
+      <GameCard
+        stock="buyPrompt"
+        className="pointer-events-auto w-full max-w-sm space-y-2 p-3 animate-card-deal"
       >
         <h3 className="text-xs font-bold uppercase tracking-wider text-white/80">
           Incoming trades
@@ -140,7 +139,7 @@ export function IncomingTradeOfferCard({
             onReject={onReject}
           />
         ))}
-      </div>
+      </GameCard>
     </div>
   );
 }

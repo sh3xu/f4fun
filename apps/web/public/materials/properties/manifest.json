@@ -1,0 +1,33 @@
+{
+  "generatedAt": "2026-07-16T10:50:29.488Z",
+  "cards": {
+    "1": "/materials/properties/rio.svg",
+    "3": "/materials/properties/belem.svg",
+    "5": "/materials/properties/reno-rail.svg",
+    "6": "/materials/properties/goa.svg",
+    "8": "/materials/properties/pune.svg",
+    "9": "/materials/properties/agra.svg",
+    "11": "/materials/properties/seoul.svg",
+    "12": "/materials/properties/electricity.svg",
+    "13": "/materials/properties/busan.svg",
+    "14": "/materials/properties/daegu.svg",
+    "15": "/materials/properties/tulsa-rail.svg",
+    "16": "/materials/properties/tokyo.svg",
+    "18": "/materials/properties/osaka.svg",
+    "19": "/materials/properties/kyoto.svg",
+    "21": "/materials/properties/rome.svg",
+    "23": "/materials/properties/milan.svg",
+    "24": "/materials/properties/pisa.svg",
+    "25": "/materials/properties/omaha-rail.svg",
+    "26": "/materials/properties/paris.svg",
+    "27": "/materials/properties/lyon.svg",
+    "28": "/materials/properties/water-co.svg",
+    "29": "/materials/properties/nice.svg",
+    "31": "/materials/properties/leon.svg",
+    "32": "/materials/properties/vigo.svg",
+    "34": "/materials/properties/cadiz.svg",
+    "35": "/materials/properties/boise-rail.svg",
+    "37": "/materials/properties/dubai.svg",
+    "39": "/materials/properties/ajman.svg"
+  }
+}

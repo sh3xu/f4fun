@@ -4,12 +4,13 @@ import type { GameEvent, GameState, TradeOffer } from "@f4fun/monopoly-engine";
 import { TILE_BY_POSITION, timeoutSecsForPhase } from "@f4fun/monopoly-engine";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Toaster, toast } from "sonner";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { Button } from "@/components/ui/Button";
+import { GameLoader } from "@/components/ui/GameLoader";
+import { RailFrame } from "@/components/ui/RailFrame";
 import { useRoomStore } from "@/features/room/store/roomStore";
 import { cn } from "@/lib/cn";
 import { emitWithCallback, getSocket } from "@/lib/socket";
 import { useGameStore } from "../store/gameStore";
-import { GLASS_PANEL } from "../theme/board-theme";
 import { Board } from "./Board";
 import { IncomingTradeOfferCard } from "./IncomingTradeOfferCard";
 import { PlayerHUD } from "./PlayerHUD";
@@ -498,12 +499,16 @@ export function GamePage() {
 
   if (initializing || !state) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[#0b0f17] text-gray-100">
-        <LoadingSpinner size="lg" />
-        <p className="text-xl text-gray-200 mt-4 font-bold tracking-wide">
-          Loading f4fun...
-        </p>
-        <p className="text-sm text-gray-500 mt-2">Connecting to game room</p>
+      <div className="material-felt flex min-h-screen flex-col items-center justify-center text-gray-100">
+        <div className="relative z-[2] flex flex-col items-center">
+          <GameLoader size="lg" label="Loading table" />
+          <p className="mt-4 text-xl font-bold tracking-wide text-gray-200">
+            Setting up the table...
+          </p>
+          <p className="mt-2 text-sm text-gray-500">
+            Connecting to your game room
+          </p>
+        </div>
       </div>
     );
   }
@@ -518,12 +523,21 @@ export function GamePage() {
   return (
     <div
       className={cn(
-        "flex h-dvh max-h-dvh flex-col overflow-hidden bg-[#0b0f17] font-sans text-gray-100 select-none",
+        "material-felt flex h-dvh max-h-dvh flex-col overflow-hidden font-sans text-gray-100 select-none",
         "lg:flex-row",
-        "gap-3 p-2 sm:p-3 lg:gap-4 lg:p-4",
+        "gap-4 p-3 sm:p-4 lg:gap-6 lg:p-5",
       )}
     >
-      <Toaster position="top-center" richColors />
+      <Toaster
+        position="top-center"
+        richColors
+        toastOptions={{
+          classNames: {
+            toast:
+              "material-cardstock !border-[var(--material-cardstock-edge)] !bg-[var(--material-cardstock-bg)] !text-gray-100",
+          },
+        }}
+      />
 
       {winnerId && (
         <WinScreen
@@ -556,7 +570,7 @@ export function GamePage() {
       )}
 
       {/* NOTE: container-type:size enables cqi/cqb so the board fills the frame as a square without clipping. */}
-      <main className="order-1 relative min-h-[min(100vw,calc(100dvh-12rem))] min-w-0 flex-1 [container-type:size] lg:min-h-0">
+      <main className="relative z-[2] order-1 min-h-[min(100vw,calc(100dvh-14rem))] min-w-0 flex-1 [container-type:size] lg:min-h-0">
         <div className="absolute inset-0 flex items-center justify-center">
           <div
             className="aspect-square max-h-full max-w-full"
@@ -589,19 +603,19 @@ export function GamePage() {
         </div>
       </main>
 
-      <aside
+      <RailFrame
+        as="aside"
         className={cn(
-          "order-2 flex w-full shrink-0 flex-col gap-2.5 overflow-hidden p-3",
-          "max-h-[14rem] lg:max-h-none lg:h-full lg:w-60 xl:w-72",
-          GLASS_PANEL,
+          "relative z-[2] order-2 flex w-full shrink-0 flex-col gap-3 overflow-hidden p-3.5",
+          "max-h-[18rem] lg:max-h-none lg:h-full lg:w-60 xl:w-72",
         )}
       >
-        <div className="flex shrink-0 items-center justify-between border-b border-white/[0.08] px-0.5 pb-2">
+        <div className="flex shrink-0 items-center justify-between border-b border-white/[0.08] px-0.5 pb-2.5">
           <span className="bg-gradient-to-r from-[#4fc3f7] to-[#26c6da] bg-clip-text text-base font-black tracking-widest text-transparent">
             f4fun
           </span>
           {roomCode && (
-            <div className="rounded-lg border border-[#2a3a52] bg-[#1a2332] px-2 py-0.5 text-[9px] font-medium text-gray-500 md:text-[10px]">
+            <div className="rounded-md border border-white/10 bg-black/25 px-2 py-0.5 text-[9px] font-medium text-gray-500 md:text-[10px]">
               <span className="font-mono font-bold text-[#4fc3f7]">
                 {roomCode}
               </span>
@@ -610,21 +624,26 @@ export function GamePage() {
         </div>
 
         {myPlayerId && (
-          <button
+          <Button
             type="button"
+            variant={pendingTradeCount > 0 ? "token" : "tokenGhost"}
             onClick={() => setTradeOpen(true)}
-            className="relative rounded-lg border border-white/15 bg-white/5 px-2 py-1.5 text-xs font-semibold text-white/70 hover:bg-white/10"
+            className="relative h-auto w-full py-1.5 text-xs"
           >
             Trade
             {pendingTradeCount > 0 && (
-              <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#2196f3] px-1 text-[10px] font-bold text-white">
+              <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#4fc3f7] px-1 text-[10px] font-bold text-[#0b0f17]">
                 {pendingTradeCount}
               </span>
             )}
-          </button>
+          </Button>
         )}
 
-        <div className="grid grid-cols-2 gap-2 min-h-0 w-full flex-1 overflow-y-auto overflow-x-hidden lg:flex lg:flex-col lg:overflow-y-auto">
+        <p className="px-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/35">
+          The ledger
+        </p>
+
+        <div className="grid min-h-0 w-full flex-1 grid-cols-2 gap-2.5 overflow-y-auto overflow-x-hidden lg:flex lg:flex-col lg:overflow-y-auto">
           {state.turnOrder.map((playerId) => (
             <div key={playerId} className="w-full lg:min-w-0">
               <PlayerHUD
@@ -649,7 +668,7 @@ export function GamePage() {
             </div>
           ))}
         </div>
-      </aside>
+      </RailFrame>
     </div>
   );
 }

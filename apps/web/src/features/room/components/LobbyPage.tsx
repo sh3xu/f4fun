@@ -10,9 +10,10 @@ import { Copy, Users } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { GameCard } from "@/components/ui/GameCard";
+import { GameLoader } from "@/components/ui/GameLoader";
 import { PlayerBadge } from "@/components/ui/PlayerBadge";
+import { TableShell } from "@/components/ui/TableShell";
 import { cn } from "@/lib/cn";
 import { loadPlayer, loadRoom, saveRoom } from "@/lib/player-storage";
 import { connectSocket, emitWithCallback, getSocket } from "@/lib/socket";
@@ -206,116 +207,118 @@ export function LobbyPage() {
 
   if (syncing) {
     return (
-      <div className="min-h-screen bg-[#0b0f17] text-gray-100 flex flex-col items-center justify-center">
-        <LoadingSpinner size="lg" />
-        <p className="text-sm text-gray-500 mt-4">Loading lobby...</p>
+      <div className="material-felt flex min-h-screen flex-col items-center justify-center text-gray-100">
+        <div className="relative z-[2] flex flex-col items-center">
+          <GameLoader size="lg" label="Loading lobby" />
+          <p className="mt-4 text-sm text-gray-500">
+            Pulling up chairs at the table...
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0b0f17] text-gray-100 flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans select-none">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-20%] w-[60%] h-[60%] bg-blue-500/8 rounded-full filter blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-500/8 rounded-full filter blur-[120px]" />
-      </div>
-
-      <header className="text-center mb-6 relative z-10">
-        <h1 className="text-2xl md:text-3xl font-black bg-gradient-to-r from-[#4fc3f7] to-[#26c6da] bg-clip-text text-transparent tracking-tight">
-          Room Lobby
-        </h1>
-        <p className="text-gray-500 text-xs mt-1 font-medium">
-          Share the code with friends to join
-        </p>
-      </header>
-
-      <Card className="w-full max-w-md relative z-10 border border-white/[0.1] bg-white/[0.05] backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] rounded-2xl overflow-hidden">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg text-gray-200">Waiting Room</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex items-center justify-between p-4 bg-white/[0.04] border border-white/[0.08] rounded-xl">
+    <TableShell
+      title="Room lobby"
+      subtitle="Share the code — seats fill as friends arrive"
+    >
+      <GameCard stock="property" dealIn className="w-full p-5">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between rounded-md border border-white/10 bg-black/25 p-4">
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold">
-                Room Code
+              <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
+                Room code
               </p>
-              <p className="text-2xl font-black text-[#4fc3f7] font-mono tracking-widest mt-0.5">
+              <p className="mt-0.5 font-mono text-2xl font-black tracking-widest text-[#4fc3f7]">
                 {activeRoomCode}
               </p>
             </div>
             <Button
-              variant="outline"
+              variant="tokenGhost"
               size="sm"
               onClick={handleCopyCode}
-              className="border-white/15 text-gray-300 hover:bg-white/[0.06] hover:text-white gap-1.5"
+              className="gap-1.5"
             >
-              <Copy className="w-3.5 h-3.5" />
+              <Copy className="h-3.5 w-3.5" />
               {copied ? "Copied" : "Copy"}
             </Button>
           </div>
 
           <div>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2.5 flex items-center gap-1.5">
-              <Users className="w-3.5 h-3.5" />
-              Players ({players.length}/8)
+            <p className="mb-2.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-gray-400">
+              <Users className="h-3.5 w-3.5" />
+              Seats ({players.length}/8)
             </p>
-            <div className="flex flex-col gap-2">
-              {players.map((player) => (
-                <div
-                  key={player.id}
-                  className={cn(
-                    "p-2.5 rounded-lg bg-white/[0.04] border border-white/[0.08]",
-                    player.id === myPlayerId && "border-[#4fc3f7]/30",
-                  )}
-                >
-                  <PlayerBadge
-                    name={player.name}
-                    avatarId={resolvePlayerAvatar(player, myPlayerId, myToken)}
-                    isHost={player.isHost}
-                    isOnline={player.isConnected}
-                  />
-                </div>
-              ))}
-            </div>
+            {players.length === 0 ? (
+              <p className="rounded-md border border-dashed border-white/15 bg-black/20 px-3 py-6 text-center text-sm text-gray-500">
+                Pull up a chair — no one&apos;s here yet
+              </p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {players.map((player, index) => (
+                  <div
+                    key={player.id}
+                    className={cn(
+                      "animate-token-settle rounded-md border border-white/10 bg-black/20 p-2.5",
+                      player.id === myPlayerId && "border-[#4fc3f7]/35",
+                    )}
+                    style={{ animationDelay: `${index * 60}ms` }}
+                  >
+                    <PlayerBadge
+                      name={player.name}
+                      avatarId={resolvePlayerAvatar(
+                        player,
+                        myPlayerId,
+                        myToken,
+                      )}
+                      isHost={player.isHost}
+                      isOnline={player.isConnected}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {error && (
-            <div className="bg-rose-500/10 border border-rose-400/20 rounded-lg p-3 text-xs text-rose-300 font-semibold">
+            <div className="rounded-md border border-rose-400/20 bg-rose-500/10 p-3 text-xs font-semibold text-rose-300">
               {error}
             </div>
           )}
 
           {isHost && (
             <Button
+              variant="token"
               onClick={handleStart}
               disabled={!canStart || loading}
               size="lg"
-              className="w-full h-12 bg-gradient-to-r from-[#2196f3] to-[#1e88e5] hover:from-[#1e88e5] hover:to-[#1976d2] text-white font-extrabold shadow-lg rounded-xl border-0"
+              className="h-12 w-full font-extrabold"
             >
               {loading ? (
                 <span className="flex items-center gap-2">
-                  <LoadingSpinner size="sm" />
+                  <GameLoader size="sm" />
                   Starting...
                 </span>
               ) : (
-                "Start Game"
+                "Start game"
               )}
             </Button>
           )}
 
           {!isHost && (
-            <p className="text-sm text-center text-gray-500 font-medium">
-              Waiting for host to start the game...
+            <p className="text-center text-sm font-medium text-gray-500">
+              Waiting for the host to start the game...
             </p>
           )}
 
           {isHost && !canStart && players.length < 2 && (
-            <p className="text-xs text-center text-gray-600">
-              Need at least 2 players to start
+            <p className="text-center text-xs text-gray-600">
+              Need at least 2 players at the table to start
             </p>
           )}
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </GameCard>
+    </TableShell>
   );
 }

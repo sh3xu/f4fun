@@ -3,19 +3,21 @@ import { type ButtonHTMLAttributes, forwardRef } from "react";
 import { cn } from "@/lib/cn";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center font-medium focus-visible:outline-none disabled:pointer-events-none",
   {
     variants: {
       variant: {
-        default:
-          "bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-500",
+        default: "material-token text-white font-bold",
+        token: "material-token text-white font-bold",
+        tokenGhost: "material-token-ghost font-semibold",
         secondary:
-          "bg-gray-200 text-gray-900 hover:bg-gray-300 focus-visible:ring-gray-500",
+          "material-token-ghost bg-white/[0.06] text-gray-100 font-semibold",
         outline:
-          "border-2 border-gray-300 bg-transparent hover:bg-gray-100 focus-visible:ring-gray-500",
-        ghost: "hover:bg-gray-100 focus-visible:ring-gray-500",
+          "material-token-ghost border-white/25 bg-transparent text-white/85",
+        ghost:
+          "rounded-md bg-transparent text-white/70 hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-[var(--material-focus-glow)]",
         danger:
-          "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500",
+          "material-token bg-red-600 text-white font-bold [--material-token-face:#dc2626]",
       },
       size: {
         sm: "h-9 px-3 text-sm",
@@ -24,7 +26,7 @@ const buttonVariants = cva(
       },
     },
     defaultVariants: {
-      variant: "default",
+      variant: "token",
       size: "md",
     },
   },
@@ -34,6 +36,7 @@ export interface ButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {}
 
+/** Pressable game control — token (primary) or ghost (secondary) materials. */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, ...props }, ref) => {
     return (
