@@ -1,0 +1,82 @@
+apps/web/src/features/monopoly/components/Board.tsx
+  s_03d0b22c16ff27::t_d7a78b3b551bf0 24,44,81,179-188,205,312-328,368
+apps/web/src/features/monopoly/components/DiceTray.tsx
+  s_03d0b22c16ff27::t_974b8740f81353 40
+apps/web/src/features/monopoly/components/GamePage.tsx
+  s_03d0b22c16ff27::t_56943ba381d33c 178-199,267-269,479-487,627
+apps/web/src/features/monopoly/components/PropertyActions.tsx
+  s_03d0b22c16ff27::t_f66ac62efe4ac0 26,111,169-178
+apps/web/src/features/monopoly/components/PropertyPanel.tsx
+  s_03d0b22c16ff27::t_21ceda0f6ba6ca 36,282
+apps/web/src/features/monopoly/components/RaiseCashBanner.tsx
+  s_03d0b22c16ff27::t_24511068ba9caa 1-36
+apps/web/src/features/monopoly/store/gameStore.ts
+  s_03d0b22c16ff27::t_69ee823ae4f4d8 70
+packages/monopoly-engine/src/__tests__/auction.test.ts
+  s_03d0b22c16ff27::t_d67ea0aa9b9728 19,27,68,89,143-162
+packages/monopoly-engine/src/__tests__/bankSale.test.ts
+  s_03d0b22c16ff27::t_e5e29270bea6fe 1-26
+packages/monopoly-engine/src/__tests__/bankruptcy.test.ts
+  s_03d0b22c16ff27::t_ab5212787f7fbf 34-52,69-73
+packages/monopoly-engine/src/__tests__/debt.test.ts
+  s_03d0b22c16ff27::t_d81f7ee18754d7 1-79
+packages/monopoly-engine/src/__tests__/integration.test.ts
+  s_03d0b22c16ff27::t_a1e0fba411f804 85,101-103
+packages/monopoly-engine/src/__tests__/issue30-bankruptcy.test.ts
+  s_03d0b22c16ff27::t_30ca78c8ad792b 1-96
+packages/monopoly-engine/src/__tests__/jail.test.ts
+  s_03d0b22c16ff27::t_d9e619eb9ba8e3 207,225,227,229-231,234,257-260
+packages/monopoly-engine/src/__tests__/liquidate.test.ts
+  s_03d0b22c16ff27::t_32e430876fbffb 38,45-94,105,108-109,130-148
+packages/monopoly-engine/src/__tests__/resolveLanding.test.ts
+  s_03d0b22c16ff27::t_3d3ad9a976cabd 10,24-25,27-29
+packages/monopoly-engine/src/__tests__/turnTimeout.test.ts
+  s_03d0b22c16ff27::t_0ebe7cb424200d 21,67-73
+packages/monopoly-engine/src/auction.ts
+  s_03d0b22c16ff27::t_d4bbd8b50329c2 2-23,25-27,155,195,203,240-241,251,272-277,295-297
+packages/monopoly-engine/src/bankSale.ts
+  s_03d0b22c16ff27::t_0bc8f8d289cc11 1-89
+packages/monopoly-engine/src/bankruptcy.ts
+  s_03d0b22c16ff27::t_2102f2a20a485f 2-31,41-49,58
+packages/monopoly-engine/src/cards.ts
+  s_03d0b22c16ff27::t_b5b52a712d8793 10,95,108-109,119,139
+packages/monopoly-engine/src/debt.ts
+  s_03d0b22c16ff27::t_e1e850bec27b0c 1-125
+packages/monopoly-engine/src/index.ts
+  s_03d0b22c16ff27::t_f443c6f48794b4 7,17,54-57,61-68,130,312,322,338,354,370,386,402,418-434,466,500-508,602,616-620
+packages/monopoly-engine/src/jail.ts
+  s_03d0b22c16ff27::t_70d5e28e57323d 2,173,175-177,179-190
+packages/monopoly-engine/src/liquidate.ts
+  s_03d0b22c16ff27::t_160f18b6855cd2 1,56,59-70,72-76,78-80,83,88-89,107-109,113-115
+packages/monopoly-engine/src/phase.ts
+  s_03d0b22c16ff27::t_3244d31dd5a922 1,16,25-28
+packages/monopoly-engine/src/turnTimeout.ts
+  s_03d0b22c16ff27::t_d1af560152bdf7 26-27,41-46,81-85,96-99,104
+packages/monopoly-engine/src/types.ts
+  s_03d0b22c16ff27::t_dde94dd62496f4 39,43-49,74-80,114-115,128,153,185-186,281-287
+packages/shared-types/src/game-events.ts
+  s_03d0b22c16ff27::t_c9e82036d71b82 89-93
+server/src/games/monopoly/handlers.ts
+  s_03d0b22c16ff27::t_0cf2490aa20672 31,85-88,115-127,380-393
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "35a862428d60ecd62a7896f281499d6446844a05",
+  "prompts": {},
+  "humans": {
+    "h_54cccc4af8e4fc": {
+      "author": "sh3xu <s43khu@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_03d0b22c16ff27": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1b52c413-05bb-4734-a810-7ed1e818e07d",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
