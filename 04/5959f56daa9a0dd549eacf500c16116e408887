@@ -1,0 +1,27 @@
+apps/web/src/features/room/components/HomePage.tsx
+  s_8b90937628c7ae::t_0a8d76a1480e16 178-179
+apps/web/src/components/ui/GameLoader.tsx
+  s_8b90937628c7ae::t_424fee347ec583 44,48-54
+apps/web/src/app/globals.css
+  s_8b90937628c7ae::t_d735f43ce35868 48
+apps/web/src/features/monopoly/components/PropertyPanel.tsx
+  s_8b90937628c7ae::t_b62538129a2d88 160
+apps/web/src/components/ui/LoadingSpinner.tsx
+  s_8b90937628c7ae::t_c9cb96bcdad889 15-17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "045959f56daa9a0dd549eacf500c16116e408887",
+  "prompts": {},
+  "sessions": {
+    "s_8b90937628c7ae": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d2babbe7-8328-4054-9dd4-eea3bdea952a",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
