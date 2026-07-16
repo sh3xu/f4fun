@@ -1,0 +1,20 @@
+apps/web/src/features/monopoly/components/BoardTile.tsx
+  s_e74dfd39b1ed12::t_cb14b6a14e6b5b 258,264-268,299-323,325-357,359-397,402-407
+  s_e74dfd39b1ed12::t_c5122596da4efd 399,408-409,412
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "5359b11b82472b68293e3a5404bb303fa08e3802",
+  "prompts": {},
+  "sessions": {
+    "s_e74dfd39b1ed12": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4cc61280-6714-424a-ab9c-41f3c8959ef2",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
