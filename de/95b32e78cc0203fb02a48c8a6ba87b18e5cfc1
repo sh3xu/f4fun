@@ -1,0 +1,21 @@
+server/src/socket/middleware.ts
+  s_fa9bb2b0407b22::t_916be5fab6fcb3 9,24
+pnpm-lock.yaml
+  s_fa9bb2b0407b22::t_af74deb254c54a 69-70,100-101,113-114,141-142,2044-2045,3662
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "de95b32e78cc0203fb02a48c8a6ba87b18e5cfc1",
+  "prompts": {},
+  "sessions": {
+    "s_fa9bb2b0407b22": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "7c8a2589-7dfb-43e1-966d-1e6c911384f6",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
