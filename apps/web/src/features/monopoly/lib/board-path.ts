@@ -35,3 +35,16 @@ export function hopCount(
   }
   return (from - to + BOARD_SIZE) % BOARD_SIZE;
 }
+
+/**
+ * Slide-to-jail direction that never wraps across Go.
+ * from < jail → forward (e.g. 5→10); from > jail → backward (e.g. 30→10).
+ * Always-backward would wrap 0→39 from positions 0–9.
+ */
+export function jailSlideDirection(
+  from: number,
+  jailPosition: number,
+): BoardPathDirection {
+  if (from <= jailPosition) return "forward";
+  return "backward";
+}

@@ -118,4 +118,37 @@ describe("gameStore animation gating", () => {
     expect(store.pendingAnimation.fromPosition).toBe(30);
     expect(store.pendingAnimation.toPosition).toBe(10);
   });
+
+  it("slides forward to jail from positions before Jail so the path does not wrap past Go", () => {
+    const initial = createInitialState("test", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    initial.players.p1.position = 5;
+    useGameStore.getState().setFromSnapshot(structuredClone(initial));
+
+    const after = structuredClone(initial);
+    after.players.p1.position = 10;
+    after.players.p1.isInJail = true;
+    after.players.p1.jailState = {
+      turnsInJail: 0,
+      hasGetOutOfJailFreeCard: false,
+    };
+
+    useGameStore.getState().applyServerUpdate(after, [
+      {
+        type: "DICE_ROLLED",
+        playerId: "p1",
+        dice: [1, 1],
+        newPosition: 10,
+      },
+      { type: "SENT_TO_JAIL", playerId: "p1" },
+    ]);
+
+    const store = useGameStore.getState();
+    expect(store.pendingAnimation.moveMode).toBe("slide");
+    expect(store.pendingAnimation.moveDirection).toBe("forward");
+    expect(store.pendingAnimation.fromPosition).toBe(5);
+    expect(store.pendingAnimation.toPosition).toBe(10);
+  });
 });

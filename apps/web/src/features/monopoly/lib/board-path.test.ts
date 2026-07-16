@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildBoardPath, hopCount } from "./board-path";
+import { buildBoardPath, hopCount, jailSlideDirection } from "./board-path";
 
 describe("buildBoardPath", () => {
   it("builds a forward path wrapping past Go", () => {
@@ -31,5 +31,24 @@ describe("hopCount", () => {
   it("counts shorter backward distance when applicable", () => {
     expect(hopCount(15, 10, "backward")).toBe(5);
     expect(hopCount(15, 10, "forward")).toBe(35);
+  });
+});
+
+describe("jailSlideDirection", () => {
+  it("uses forward from positions before jail so the path does not wrap past Go", () => {
+    expect(jailSlideDirection(5, 10)).toBe("forward");
+    expect(jailSlideDirection(0, 10)).toBe("forward");
+    expect(jailSlideDirection(9, 10)).toBe("forward");
+    const path = buildBoardPath(5, 10, jailSlideDirection(5, 10));
+    expect(path).toEqual([6, 7, 8, 9, 10]);
+    expect(path).not.toContain(39);
+  });
+
+  it("uses backward from positions after jail so the path does not pass Go", () => {
+    expect(jailSlideDirection(30, 10)).toBe("backward");
+    expect(jailSlideDirection(15, 10)).toBe("backward");
+    expect(jailSlideDirection(39, 10)).toBe("backward");
+    const path = buildBoardPath(30, 10, jailSlideDirection(30, 10));
+    expect(path).not.toContain(0);
   });
 });
