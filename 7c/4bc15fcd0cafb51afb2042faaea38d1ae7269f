@@ -1,0 +1,19 @@
+packages/monopoly-engine/src/__tests__/trade.test.ts
+  s_317a36c52a1b3c::t_430e9e4bb37e24 64,66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "7c4bc15fcd0cafb51afb2042faaea38d1ae7269f",
+  "prompts": {},
+  "sessions": {
+    "s_317a36c52a1b3c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "dd116991-cae8-4f9a-b68f-8416240ce3b3",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
