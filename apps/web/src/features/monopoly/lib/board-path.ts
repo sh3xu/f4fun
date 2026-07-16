@@ -4,7 +4,8 @@ export type BoardPathDirection = "forward" | "backward";
 
 /**
  * Hop path from `from` to `to` (exclusive of `from`, inclusive of `to`).
- * Forward follows the board clockwise; backward is counter-clockwise (e.g. Go Back 3).
+ * Forward follows the board clockwise; backward is counter-clockwise (e.g. Go Back 3,
+ * or slide-to-jail so the token does not appear to pass Go).
  */
 export function buildBoardPath(
   from: number,
@@ -38,7 +39,11 @@ export function hopCount(
 /**
  * Slide-to-jail direction that never wraps across Go.
  * from <= jail → forward (e.g. 5→10); from > jail → backward (e.g. 30→10).
+ * Always-backward would wrap 0→39 from positions 0–9.
  */
-export function jailSlideDirection(from: number): BoardPathDirection {
-  return from <= JAIL_POSITION ? "forward" : "backward";
+export function jailSlideDirection(
+  from: number,
+  jailPosition: number = JAIL_POSITION,
+): BoardPathDirection {
+  return from <= jailPosition ? "forward" : "backward";
 }

@@ -11,7 +11,7 @@ import type {
   PieceMoveDirection,
   PieceMoveMode,
 } from "@/components/animation/PieceMover";
-import { jailSlideDirection } from "../lib/board-path";
+import { jailSlideDirection } from "@/features/monopoly/lib/board-path";
 
 interface PendingNextMove {
   fromPosition: number;
@@ -82,7 +82,7 @@ function buildDicePendingAnimation(
     dice: diceEvent.dice,
   };
 
-  // Land on Go To Jail: hop along the dice path to 30, then slide to jail
+  // Land on Go To Jail: hop along the dice path to 30, then slide to jail without crossing Go
   if (sentToJail && diceEvent.newPosition === GO_TO_JAIL_POSITION) {
     return {
       ...base,
@@ -99,7 +99,7 @@ function buildDicePendingAnimation(
     };
   }
 
-  // 3 doubles (or other direct jail): slide to jail without hopping around
+  // 3 doubles (or other direct jail): slide to jail without wrapping across Go
   if (sentToJail && diceEvent.newPosition === JAIL_POSITION) {
     return {
       ...base,
