@@ -90,25 +90,30 @@ export function PlayerHUD({
             )}
           />
 
-          <button
-            type="button"
-            onClick={() => setPropsOpen((o) => !o)}
-            className="mt-0.5 flex items-center gap-1 text-[10px] text-gray-500 hover:text-gray-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--material-focus-glow)]"
-            aria-expanded={propsOpen}
-          >
-            <span>Properties:</span>
-            <span className="font-bold text-gray-300">
-              {player.ownedPositions.length}
-            </span>
-            {player.ownedPositions.length > 0 && (
+          {player.ownedPositions.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => setPropsOpen((o) => !o)}
+              className="mt-0.5 flex items-center gap-1 text-[10px] text-gray-500 hover:text-gray-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--material-focus-glow)]"
+              aria-expanded={propsOpen}
+            >
+              <span>Properties:</span>
+              <span className="font-bold text-gray-300">
+                {player.ownedPositions.length}
+              </span>
               <ChevronDown
                 className={cn(
                   "h-3 w-3 transition-transform",
                   propsOpen && "rotate-180",
                 )}
               />
-            )}
-          </button>
+            </button>
+          ) : (
+            <p className="mt-0.5 flex items-center gap-1 text-[10px] text-gray-500">
+              <span>Properties:</span>
+              <span className="font-bold text-gray-300">0</span>
+            </p>
+          )}
 
           {player.isInJail && (
             <span className="mt-0.5 flex items-center gap-1 text-[10px] font-bold text-amber-400">

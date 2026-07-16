@@ -101,18 +101,22 @@ export function PropertyPanel(props: PropertyPanelProps) {
       )}
 
       <div className="flex flex-col gap-[clamp(0.25rem,1cqmin,0.5rem)] p-[clamp(0.35rem,1.4cqmin,0.65rem)]">
-        <h3 className="flex items-center gap-1 text-[length:var(--board-text-sm)] font-bold text-white/90">
-          {tile.type === "railroad" && (
-            <Train className="h-[1em] w-[1em] text-white/70" />
-          )}
-          {tile.type === "utility" &&
-            (tile.name.includes("Electric") ? (
-              <Zap className="h-[1em] w-[1em] text-yellow-300" />
-            ) : (
-              <Droplets className="h-[1em] w-[1em] text-sky-300" />
-            ))}
-          {label}
-        </h3>
+        {(tile.type === "railroad" || tile.type === "utility") && (
+          <div
+            className="flex items-center gap-1 text-[length:var(--board-text-sm)]"
+            aria-hidden
+          >
+            {tile.type === "railroad" && (
+              <Train className="h-[1em] w-[1em] text-white/70" />
+            )}
+            {tile.type === "utility" &&
+              (tile.name.includes("Electric") ? (
+                <Zap className="h-[1em] w-[1em] text-yellow-300" />
+              ) : (
+                <Droplets className="h-[1em] w-[1em] text-sky-300" />
+              ))}
+          </div>
+        )}
 
         {ownerName && (
           <p className="text-[length:var(--board-text-xs)] text-white/50">

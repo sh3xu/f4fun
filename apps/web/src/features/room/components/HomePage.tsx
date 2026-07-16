@@ -18,11 +18,12 @@ import { useRoomStore } from "../store/roomStore";
 
 function tableError(message: string): string {
   const lower = message.toLowerCase();
-  if (lower.includes("not found") || lower.includes("room")) {
-    return "That room code didn't match — try again, or host a new table.";
-  }
+  // NOTE: "Room is full" contains "room" — check capacity before the generic room match.
   if (lower.includes("full")) {
     return "That table's full — pull up a chair at another room.";
+  }
+  if (lower.includes("not found") || lower.includes("room")) {
+    return "That room code didn't match — try again, or host a new table.";
   }
   return message;
 }
@@ -140,10 +141,14 @@ export function HomePage() {
         {mode === "menu" ? (
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-2.5">
-              <span className="px-0.5 text-xs font-bold uppercase tracking-widest text-slate-300">
+              <label
+                htmlFor="home-nickname"
+                className="px-0.5 text-xs font-bold uppercase tracking-widest text-slate-300"
+              >
                 Your nickname
-              </span>
+              </label>
               <Input
+                id="home-nickname"
                 value={name}
                 onChange={(e) => {
                   setName(e.target.value);
@@ -246,10 +251,14 @@ export function HomePage() {
             </div>
 
             <div className="flex flex-col gap-2.5">
-              <span className="px-0.5 text-xs font-bold uppercase tracking-widest text-slate-300">
+              <label
+                htmlFor="home-room-code"
+                className="px-0.5 text-xs font-bold uppercase tracking-widest text-slate-300"
+              >
                 Enter 6-digit room code
-              </span>
+              </label>
               <Input
+                id="home-room-code"
                 value={roomCode}
                 onChange={(e) => {
                   setRoomCode(e.target.value.toUpperCase());

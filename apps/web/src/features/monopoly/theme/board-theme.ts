@@ -86,39 +86,6 @@ export const GLASS_PANEL = MATERIAL_PANEL;
 /** @deprecated Prefer MATERIAL_CARD */
 export const GLASS_CARD = MATERIAL_CARD;
 
-export type CardStock =
-  | "property"
-  | "chance"
-  | "community"
-  | "buyPrompt"
-  | "auction";
-
-export const CARD_STOCK: Record<
-  CardStock,
-  { headerClass: string; edgeClass: string }
-> = {
-  property: {
-    headerClass: "",
-    edgeClass: "border-white/[0.18]",
-  },
-  chance: {
-    headerClass: "bg-gradient-to-b from-[#f7941d] to-[#d97d0f]",
-    edgeClass: "border-amber-400/35",
-  },
-  community: {
-    headerClass: "bg-gradient-to-b from-[#00aeef] to-[#0090c8]",
-    edgeClass: "border-sky-400/35",
-  },
-  buyPrompt: {
-    headerClass: "bg-gradient-to-b from-[#4fc3f7] to-[#2196f3]",
-    edgeClass: "border-[#4fc3f7]/40 shadow-[4px_10px_22px_rgba(0,0,0,0.5)]",
-  },
-  auction: {
-    headerClass: "bg-gradient-to-b from-amber-400 to-amber-600",
-    edgeClass: "border-amber-400/40",
-  },
-};
-
 /** NOTE: Board-level text tokens — cqmin here tracks the full board, not individual tiles. */
 export const BOARD_TEXT_VARS: Record<string, string> = {
   "--board-text-xs": "clamp(7px, 1.15cqmin, 14px)",

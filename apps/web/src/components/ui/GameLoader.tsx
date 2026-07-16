@@ -23,7 +23,8 @@ export function GameLoader({
   className,
   label = "Loading",
 }: GameLoaderProps) {
-  const [preferReduce, setPreferReduce] = useState(false);
+  // NOTE: Default true so SSR matches reduced-motion users (no animated-die → spinner flash).
+  const [preferReduce, setPreferReduce] = useState(true);
 
   useEffect(() => {
     setPreferReduce(reducedMotion());
