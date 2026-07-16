@@ -255,7 +255,7 @@ export function BoardTile({
   const tileTitle = `${getTileLabel(tile.name)}${isOwned && ownerName ? ` (owned by ${ownerName})` : ""}${isMortgaged ? " [Mortgaged]" : ""}`;
 
   const rootClassName = cn(
-    "relative flex h-full w-full overflow-hidden rounded-md select-none",
+    "relative flex h-full w-full overflow-visible rounded-md select-none",
     "transition-all duration-200",
     isCorner && "material-medallion",
     isClickable &&
@@ -295,13 +295,20 @@ export function BoardTile({
       <div className={cn("absolute inset-0 z-[1] rounded-md", MATERIAL_TILE)} />
       {isOwned && ownerColor && (
         <div
+          aria-hidden
           className={cn(
-            "absolute z-20 rounded-full",
-            side === "bottom" && "inset-x-1.5 top-0 h-[3px]",
-            side === "top" && "inset-x-1.5 bottom-0 h-[3px]",
-            side === "left" && "inset-y-1.5 right-0 w-[3px]",
-            side === "right" && "inset-y-1.5 left-0 w-[3px]",
-            isCorner && "inset-x-2 top-0 h-[3px]",
+            "pointer-events-none absolute z-30 shadow-[0_1px_3px_rgba(0,0,0,0.35)]",
+            // Dome sits outside the card on the board-facing edge
+            side === "bottom" &&
+              "left-1/2 bottom-full h-[clamp(0.4rem,2.2cqmin,0.65rem)] w-[clamp(0.7rem,4cqmin,1.1rem)] -translate-x-1/2 rounded-t-full",
+            side === "top" &&
+              "left-1/2 top-full h-[clamp(0.4rem,2.2cqmin,0.65rem)] w-[clamp(0.7rem,4cqmin,1.1rem)] -translate-x-1/2 rounded-b-full",
+            side === "left" &&
+              "top-1/2 left-full h-[clamp(0.7rem,4cqmin,1.1rem)] w-[clamp(0.4rem,2.2cqmin,0.65rem)] -translate-y-1/2 rounded-r-full",
+            side === "right" &&
+              "top-1/2 right-full h-[clamp(0.7rem,4cqmin,1.1rem)] w-[clamp(0.4rem,2.2cqmin,0.65rem)] -translate-y-1/2 rounded-l-full",
+            isCorner &&
+              "left-1/2 bottom-full h-[clamp(0.4rem,2.2cqmin,0.65rem)] w-[clamp(0.7rem,4cqmin,1.1rem)] -translate-x-1/2 rounded-t-full",
           )}
           style={{ backgroundColor: ownerColor.hex }}
         />

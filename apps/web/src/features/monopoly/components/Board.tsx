@@ -216,7 +216,7 @@ export function Board({
               else tileRefs.current.delete(tile.position);
             }}
             style={getGridStyles(tile.position)}
-            className="min-h-0 min-w-0"
+            className="relative min-h-0 min-w-0 overflow-visible"
           >
             <BoardTile
               tile={tile}
