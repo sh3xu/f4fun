@@ -15,8 +15,9 @@ export function timeoutSecsForPhase(
   switch (phase) {
     case "PRE_ROLL":
     case "CARD_DRAWN":
-    case "END_TURN":
       return config.shortTimeoutSecs;
+    case "END_TURN":
+      return config.endTurnTimeoutSecs;
     case "JAIL_DECISION":
     case "BUY_OR_DECLINE":
       return config.longTimeoutSecs;

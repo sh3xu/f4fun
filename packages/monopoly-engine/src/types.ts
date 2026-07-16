@@ -88,10 +88,12 @@ export interface GameConfig {
   freeParkingJackpot: boolean;
   disconnectGraceSecs: number;
   maxPlayers: number;
-  /** PRE_ROLL, CARD_DRAWN, END_TURN */
+  /** PRE_ROLL, CARD_DRAWN */
   shortTimeoutSecs: number;
   /** JAIL_DECISION, BUY_OR_DECLINE */
   longTimeoutSecs: number;
+  /** END_TURN property-manage window */
+  endTurnTimeoutSecs: number;
   /** AUCTION per current bidder */
   auctionTimeoutSecs: number;
   /** Incoming trade offer response window */
@@ -104,9 +106,10 @@ export const DEFAULT_GAME_CONFIG: GameConfig = {
   disconnectGraceSecs: 60,
   maxPlayers: 8,
   shortTimeoutSecs: 10,
-  longTimeoutSecs: 40,
+  longTimeoutSecs: 30,
+  endTurnTimeoutSecs: 60,
   auctionTimeoutSecs: 30,
-  tradeTimeoutSecs: 60,
+  tradeTimeoutSecs: 40,
 };
 
 export interface GameState {
