@@ -3,7 +3,11 @@
 import { gsap } from "gsap";
 import { useEffect, useRef } from "react";
 import { Avatar } from "@/components/ui/Avatar";
-import { buildBoardPath, hopCount } from "@/features/monopoly/lib/board-path";
+import {
+  type BoardPathDirection,
+  buildBoardPath,
+  hopCount,
+} from "@/features/monopoly/lib/board-path";
 import { cn } from "@/lib/cn";
 
 const MAX_MOVE_MS = 3200;
@@ -15,6 +19,7 @@ const SLIDE_MAX_MS = 1400;
 const SLIDE_PER_TILE_MS = 90;
 
 export type PieceMoveMode = "hop" | "slide";
+export type PieceMoveDirection = BoardPathDirection;
 
 interface PieceMoverProps {
   playerId: string;
@@ -23,6 +28,8 @@ interface PieceMoverProps {
   fromPosition: number;
   toPosition: number;
   mode?: PieceMoveMode;
+  /** Forward = normal play; backward = counter-clockwise (e.g. Go Back 3, slide-to-jail). */
+  direction?: PieceMoveDirection;
   colorHex?: string;
   isActive?: boolean;
   getTileCenter: (position: number) => { x: number; y: number } | null;
@@ -39,6 +46,7 @@ export function PieceMover({
   fromPosition,
   toPosition,
   mode = "hop",
+  direction = "forward",
   colorHex,
   isActive = false,
   getTileCenter,
@@ -60,7 +68,7 @@ export function PieceMover({
     if (!el) return;
 
     completedRef.current = false;
-    const path = buildBoardPath(fromPosition, toPosition);
+    const path = buildBoardPath(fromPosition, toPosition, direction);
     const start = getTileCenterRef.current(fromPosition);
 
     const finish = () => {
@@ -92,7 +100,7 @@ export function PieceMover({
     const tl = gsap.timeline({ onComplete: finish });
 
     if (mode === "slide") {
-      const hops = hopCount(fromPosition, toPosition) || path.length;
+      const hops = hopCount(fromPosition, toPosition, direction) || path.length;
       const totalDuration = Math.min(
         SLIDE_MAX_MS / 1000,
         Math.max(SLIDE_MIN_MS / 1000, (hops * SLIDE_PER_TILE_MS) / 1000),
@@ -113,7 +121,7 @@ export function PieceMover({
         });
       }
     } else {
-      const hops = hopCount(fromPosition, toPosition) || path.length;
+      const hops = hopCount(fromPosition, toPosition, direction) || path.length;
       const hopDuration = Math.min(
         MAX_HOP_MS / 1000,
         Math.max(MIN_HOP_MS / 1000, MAX_MOVE_MS / 1000 / hops),
@@ -152,7 +160,7 @@ export function PieceMover({
     return () => {
       tl.kill();
     };
-  }, [fromPosition, toPosition, mode]);
+  }, [fromPosition, toPosition, mode, direction]);
 
   return (
     <div

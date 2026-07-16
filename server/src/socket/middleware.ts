@@ -6,7 +6,7 @@ export interface SocketWithPlayer extends Socket {
   roomId?: string;
 }
 
-export function validatePayload<T extends z.ZodTypeAny>(schema: T) {
+export function validatePayload<T extends z.ZodType>(schema: T) {
   return (
     payload: unknown,
     callback?: (error: string | null, data?: z.infer<T>) => void,
@@ -21,7 +21,7 @@ export function validatePayload<T extends z.ZodTypeAny>(schema: T) {
     }
     const result = schema.safeParse(payload);
     if (!result.success) {
-      const error = `Validation failed: ${result.error.errors.map((e) => e.message).join(", ")}`;
+      const error = `Validation failed: ${result.error.issues.map((e) => e.message).join(", ")}`;
       if (callback) callback(error);
       return null;
     }

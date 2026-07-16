@@ -143,7 +143,7 @@ function registerIntent(
   io: Server,
   socket: SocketWithPlayer,
   eventName: string,
-  schema: ZodType,
+  schema: ZodType<{ roomId: string }>,
   options: ActionHandlerOptions,
 ): void {
   socket.on(eventName, async (payload, callback) => {
