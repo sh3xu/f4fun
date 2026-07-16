@@ -42,6 +42,8 @@ describe("gameStore animation gating", () => {
     expect(store.pendingAnimation.type).toBe("dice");
     expect(store.diceAnimationComplete).toBe(false);
     expect(store.rollAnimationKey).toBeGreaterThan(0);
+    expect(store.deferredToastEvents.length).toBeGreaterThan(0);
+    expect(store.takeDeferredToastEvents()).toEqual([]);
 
     // Property card gate: must not settle yet
     expect(
@@ -52,11 +54,15 @@ describe("gameStore animation gating", () => {
     store = useGameStore.getState();
     expect(store.pendingAnimation.type).toBe("move");
     expect(store.diceAnimationComplete).toBe(false);
+    expect(store.takeDeferredToastEvents()).toEqual([]);
 
     useGameStore.getState().completeMoveAnimation();
     store = useGameStore.getState();
     expect(store.pendingAnimation.type).toBe("none");
     expect(store.diceAnimationComplete).toBe(true);
+    const flushed = store.takeDeferredToastEvents();
+    expect(flushed.some((e) => e.type === "DICE_ROLLED")).toBe(true);
+    expect(useGameStore.getState().deferredToastEvents).toEqual([]);
   });
 
   it("BUG repro: setFromSnapshot after roll wipes dice pending and unlocks UI", () => {
@@ -74,6 +80,9 @@ describe("gameStore animation gating", () => {
     );
     useGameStore.getState().applyServerUpdate(roll.state, roll.events);
     expect(useGameStore.getState().pendingAnimation.type).toBe("dice");
+    expect(useGameStore.getState().deferredToastEvents.length).toBeGreaterThan(
+      0,
+    );
 
     // Simulates game:rejoin → stateSnapshot mid-animation
     useGameStore.getState().setFromSnapshot(roll.state);
@@ -86,6 +95,78 @@ describe("gameStore animation gating", () => {
     expect(
       store.diceAnimationComplete && store.pendingAnimation.type === "none",
     ).toBe(true);
+    // Deferred toasts survive the wipe so they can flush once settled
+    expect(store.takeDeferredToastEvents().length).toBeGreaterThan(0);
+  });
+
+  it("does not defer toast events for non-roll updates", () => {
+    const initial = createInitialState("test", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    useGameStore.getState().setFromSnapshot(structuredClone(initial));
+
+    useGameStore.getState().applyServerUpdate(structuredClone(initial), [
+      {
+        type: "PROPERTY_BOUGHT",
+        playerId: "p1",
+        position: 1,
+        price: 60,
+      },
+    ]);
+
+    expect(useGameStore.getState().deferredToastEvents).toEqual([]);
+  });
+
+  it("queues roll toast events when stateUpdated arrives before any snapshot", () => {
+    const initial = createInitialState("test", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    const roll = applyAction(
+      structuredClone(initial),
+      { type: "ROLL_DICE" },
+      seededRng([0.2, 0.4]),
+    );
+    expect(roll.error).toBeUndefined();
+
+    useGameStore.getState().applyServerUpdate(roll.state, roll.events);
+
+    const store = useGameStore.getState();
+    expect(store.state).not.toBeNull();
+    expect(store.deferredToastEvents.length).toBeGreaterThan(0);
+    // No prior positions — animation skipped; settled so toasts can flush now.
+    expect(store.pendingAnimation.type).toBe("none");
+    expect(store.diceAnimationComplete).toBe(true);
+    expect(
+      store.takeDeferredToastEvents().some((e) => e.type === "DICE_ROLLED"),
+    ).toBe(true);
+  });
+
+  it("clears deferred toasts when snapshot is for a different gameId", () => {
+    const gameA = createInitialState("game-a", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    useGameStore.getState().setFromSnapshot(structuredClone(gameA));
+
+    const roll = applyAction(
+      structuredClone(gameA),
+      { type: "ROLL_DICE" },
+      seededRng([0.2, 0.4]),
+    );
+    useGameStore.getState().applyServerUpdate(roll.state, roll.events);
+    expect(useGameStore.getState().deferredToastEvents.length).toBeGreaterThan(
+      0,
+    );
+
+    const gameB = createInitialState("game-b", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    useGameStore.getState().setFromSnapshot(gameB);
+
+    expect(useGameStore.getState().deferredToastEvents).toEqual([]);
   });
 
   it("animates Chance go-to after acknowledge, ending on the card destination", () => {
