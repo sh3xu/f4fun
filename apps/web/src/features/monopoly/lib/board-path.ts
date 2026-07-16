@@ -1,11 +1,11 @@
-const BOARD_SIZE = 40;
+import { BOARD_SIZE, JAIL_POSITION } from "@f4fun/monopoly-engine";
 
 export type BoardPathDirection = "forward" | "backward";
 
 /**
  * Hop path from `from` to `to` (exclusive of `from`, inclusive of `to`).
- * Forward follows normal play; backward is used for go-to-jail slides so the
- * token does not appear to pass Go.
+ * Forward follows the board clockwise; backward is counter-clockwise (e.g. Go Back 3,
+ * or slide-to-jail so the token does not appear to pass Go).
  */
 export function buildBoardPath(
   from: number,
@@ -38,13 +38,12 @@ export function hopCount(
 
 /**
  * Slide-to-jail direction that never wraps across Go.
- * from < jail → forward (e.g. 5→10); from > jail → backward (e.g. 30→10).
+ * from <= jail → forward (e.g. 5→10); from > jail → backward (e.g. 30→10).
  * Always-backward would wrap 0→39 from positions 0–9.
  */
 export function jailSlideDirection(
   from: number,
-  jailPosition: number,
+  jailPosition: number = JAIL_POSITION,
 ): BoardPathDirection {
-  if (from <= jailPosition) return "forward";
-  return "backward";
+  return from <= jailPosition ? "forward" : "backward";
 }

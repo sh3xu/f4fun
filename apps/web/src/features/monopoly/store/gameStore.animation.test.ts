@@ -1,4 +1,8 @@
-import { applyAction, createInitialState } from "@f4fun/monopoly-engine";
+import {
+  applyAction,
+  createInitialState,
+  JAIL_POSITION,
+} from "@f4fun/monopoly-engine";
 import { beforeEach, describe, expect, it } from "vitest";
 import { useGameStore } from "./gameStore";
 
@@ -84,6 +88,110 @@ describe("gameStore animation gating", () => {
     ).toBe(true);
   });
 
+  it("animates Chance go-to after acknowledge, ending on the card destination", () => {
+    const initial = createInitialState("test", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    // Position 5 + roll 2 → Chance (7)
+    initial.players.p1.position = 5;
+    initial.chanceDeck.drawPile = [
+      "ch_advance_illinois",
+      ...initial.chanceDeck.drawPile.filter(
+        (id) => id !== "ch_advance_illinois",
+      ),
+    ];
+    useGameStore.getState().setFromSnapshot(structuredClone(initial));
+
+    const roll = applyAction(
+      structuredClone(initial),
+      { type: "ROLL_DICE" },
+      seededRng([0.0, 0.16]),
+    );
+    expect(roll.error).toBeUndefined();
+    expect(roll.state.phase).toBe("CARD_DRAWN");
+    expect(roll.state.players.p1.position).toBe(7);
+
+    useGameStore.getState().applyServerUpdate(roll.state, roll.events);
+    useGameStore.getState().completeDiceAnimation();
+    useGameStore.getState().completeMoveAnimation();
+    expect(useGameStore.getState().displayPositions.p1).toBe(7);
+    expect(useGameStore.getState().pendingAnimation.type).toBe("none");
+
+    // NOTE: Engine mutates in place — clone so store prev positions stay at Chance.
+    const ack = applyAction(structuredClone(roll.state), {
+      type: "ACKNOWLEDGE_CARD",
+    });
+    expect(ack.error).toBeUndefined();
+    // Illinois Avenue
+    expect(ack.state.players.p1.position).toBe(24);
+
+    useGameStore.getState().applyServerUpdate(ack.state, ack.events);
+    let store = useGameStore.getState();
+    expect(store.pendingAnimation.type).toBe("move");
+    expect(store.pendingAnimation.fromPosition).toBe(7);
+    expect(store.pendingAnimation.toPosition).toBe(24);
+    expect(store.displayPositions.p1).toBe(7);
+    expect(store.diceAnimationComplete).toBe(false);
+
+    useGameStore.getState().completeMoveAnimation();
+    store = useGameStore.getState();
+    expect(store.pendingAnimation.type).toBe("none");
+    expect(store.displayPositions.p1).toBe(24);
+    expect(store.diceAnimationComplete).toBe(true);
+  });
+
+  it("chains card go-to when ACK arrives mid dice-move (timeout race)", () => {
+    const initial = createInitialState("test", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    initial.players.p1.position = 5;
+    initial.chanceDeck.drawPile = [
+      "ch_advance_illinois",
+      ...initial.chanceDeck.drawPile.filter(
+        (id) => id !== "ch_advance_illinois",
+      ),
+    ];
+    useGameStore.getState().setFromSnapshot(structuredClone(initial));
+
+    const roll = applyAction(
+      structuredClone(initial),
+      { type: "ROLL_DICE" },
+      seededRng([0.0, 0.16]),
+    );
+    useGameStore.getState().applyServerUpdate(roll.state, roll.events);
+    expect(useGameStore.getState().pendingAnimation.type).toBe("dice");
+    expect(useGameStore.getState().pendingAnimation.toPosition).toBe(7);
+
+    // Server auto-ACK while client still animating hop to Chance
+    const ack = applyAction(structuredClone(roll.state), {
+      type: "ACKNOWLEDGE_CARD",
+    });
+    expect(ack.state.players.p1.position).toBe(24);
+
+    useGameStore.getState().applyServerUpdate(ack.state, ack.events);
+    let store = useGameStore.getState();
+    expect(store.pendingAnimation.type).toBe("dice");
+    expect(store.pendingAnimation.toPosition).toBe(7);
+    expect(store.pendingAnimation.nextMove?.toPosition).toBe(24);
+    // Must not snap to Chance as final while state is already at Illinois
+    expect(store.displayPositions.p1).not.toBe(24);
+
+    useGameStore.getState().completeDiceAnimation();
+    useGameStore.getState().completeMoveAnimation();
+    store = useGameStore.getState();
+    expect(store.pendingAnimation.type).toBe("move");
+    expect(store.pendingAnimation.fromPosition).toBe(7);
+    expect(store.pendingAnimation.toPosition).toBe(24);
+    expect(store.displayPositions.p1).toBe(7);
+
+    useGameStore.getState().completeMoveAnimation();
+    store = useGameStore.getState();
+    expect(store.pendingAnimation.type).toBe("none");
+    expect(store.displayPositions.p1).toBe(24);
+  });
+
   it("slides backward to jail after landing on Go To Jail", () => {
     const initial = createInitialState("test", [
       { id: "p1", name: "Alice", token: "car" },
@@ -117,6 +225,41 @@ describe("gameStore animation gating", () => {
     expect(store.pendingAnimation.moveDirection).toBe("backward");
     expect(store.pendingAnimation.fromPosition).toBe(30);
     expect(store.pendingAnimation.toPosition).toBe(10);
+  });
+
+  it("slides to jail on Chance go-to-jail after acknowledge", () => {
+    const initial = createInitialState("test", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    initial.players.p1.position = 5;
+    initial.chanceDeck.drawPile = [
+      "ch_go_to_jail",
+      ...initial.chanceDeck.drawPile.filter((id) => id !== "ch_go_to_jail"),
+    ];
+    useGameStore.getState().setFromSnapshot(structuredClone(initial));
+
+    const roll = applyAction(
+      structuredClone(initial),
+      { type: "ROLL_DICE" },
+      seededRng([0.0, 0.16]),
+    );
+    useGameStore.getState().applyServerUpdate(roll.state, roll.events);
+    useGameStore.getState().completeDiceAnimation();
+    useGameStore.getState().completeMoveAnimation();
+
+    const ack = applyAction(structuredClone(roll.state), {
+      type: "ACKNOWLEDGE_CARD",
+    });
+    expect(ack.state.players.p1.position).toBe(JAIL_POSITION);
+    expect(ack.events.some((e) => e.type === "SENT_TO_JAIL")).toBe(true);
+
+    useGameStore.getState().applyServerUpdate(ack.state, ack.events);
+    const store = useGameStore.getState();
+    expect(store.pendingAnimation.type).toBe("move");
+    expect(store.pendingAnimation.toPosition).toBe(JAIL_POSITION);
+    expect(store.pendingAnimation.moveMode).toBe("slide");
+    expect(store.pendingAnimation.moveDirection).toBe("forward");
   });
 
   it("slides forward to jail from positions before Jail so the path does not wrap past Go", () => {
