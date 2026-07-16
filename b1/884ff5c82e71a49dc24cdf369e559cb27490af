@@ -1,0 +1,29 @@
+apps/web/src/features/monopoly/lib/board-path.test.ts
+  s_156cc4e2d3e96b::t_821f7c45828414 2
+  s_156cc4e2d3e96b::t_ccedc3d84a0cb8 36-53
+  s_156cc4e2d3e96b::t_1ad63ca4cb1824 54
+apps/web/src/features/monopoly/lib/board-path.ts
+  s_156cc4e2d3e96b::t_920bbe4695c394 38-50
+apps/web/src/features/monopoly/store/gameStore.animation.test.ts
+  s_156cc4e2d3e96b::t_21003a1561744d 121-153
+apps/web/src/features/monopoly/store/gameStore.ts
+  s_156cc4e2d3e96b::t_a5edb700f2c1c3 12
+  s_156cc4e2d3e96b::t_821f7c45828414 91
+  s_156cc4e2d3e96b::t_9b5cd6cf0a8d1e 79,96,103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "b1884ff5c82e71a49dc24cdf369e559cb27490af",
+  "prompts": {},
+  "sessions": {
+    "s_156cc4e2d3e96b": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "133258b2-83e9-44b9-ba16-fce2a3ad8e01",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
