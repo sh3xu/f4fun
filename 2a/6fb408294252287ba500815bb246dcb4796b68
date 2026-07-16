@@ -1,0 +1,33 @@
+apps/web/src/components/animation/PieceMover.tsx
+  s_ccd1abf5f2f436::t_67fb74d9d1ec44 48,70
+  s_ccd1abf5f2f436::t_df881f9456b737 102,123,162
+  s_ccd1abf5f2f436::t_ca75757d78be74 6-10,22,31
+apps/web/src/features/monopoly/components/Board.tsx
+  s_ccd1abf5f2f436::t_80bf235ef63d3d 248,255
+apps/web/src/features/monopoly/lib/board-path.ts
+  s_ccd1abf5f2f436::t_d685b80b0b5ffc 3-13,17,20,27-39,41-42
+  s_ccd1abf5f2f436::t_d7bc65e393bdac 1,40,43
+apps/web/src/features/monopoly/store/gameStore.animation.test.ts
+  s_ccd1abf5f2f436::t_860e07818445fa 1-5,90-227
+apps/web/src/features/monopoly/store/gameStore.ts
+  s_ccd1abf5f2f436::t_431daaaac8a631 6,10-14,20,30,69-72,92,97,109,118-186,190-196,237-240,242,244-255,257,265,268-269,272-284,290,292-293,296-298,311-312,356,372
+  s_ccd1abf5f2f436::t_5e67b30af21066 7
+  s_ccd1abf5f2f436::t_08f2efca1e4db0 256,258-264,266-267,270-271
+  s_ccd1abf5f2f436::t_a420b6b1d9793d 291,294-295,299-300
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "2a6fb408294252287ba500815bb246dcb4796b68",
+  "prompts": {},
+  "sessions": {
+    "s_ccd1abf5f2f436": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "cc2a6e7e-f951-4385-9412-d8811039b9e4",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
