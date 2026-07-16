@@ -28,8 +28,8 @@ interface PieceMoverProps {
   fromPosition: number;
   toPosition: number;
   mode?: PieceMoveMode;
-  /** Forward = normal play; backward = go-to-jail (avoid appearing to pass Go). */
-  direction?: BoardPathDirection;
+  /** Forward = normal play; backward = counter-clockwise (e.g. Go Back 3, slide-to-jail). */
+  direction?: PieceMoveDirection;
   colorHex?: string;
   isActive?: boolean;
   getTileCenter: (position: number) => { x: number; y: number } | null;
