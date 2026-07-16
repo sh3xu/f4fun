@@ -40,6 +40,16 @@ describe("deferred-toasts", () => {
         },
       ]),
     ).toBe(false);
+    expect(
+      shouldDeferGameEventToasts([
+        {
+          type: "AUCTION_STARTED",
+          position: 1,
+          kind: "bank",
+          sellerId: null,
+        },
+      ]),
+    ).toBe(false);
   });
 
   it("treats animations as settled only after dice and move clear", () => {

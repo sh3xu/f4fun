@@ -122,11 +122,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setFromSnapshot: (state) => {
     const normalized = normalizeGameState(state);
+    const prev = get().state;
+    // NOTE: Same gameId mid-roll rejoin keeps deferred toasts so they flush after settle;
+    // a different game must not inherit the previous queue.
+    const sameGame = prev?.gameId === normalized.gameId;
     set({
       state: normalized,
       displayPositions: positionsFromState(normalized),
       lastEvents: [],
-      // Keep deferred toasts — snapshot settles animation so the flush effect can fire them.
+      deferredToastEvents: sameGame ? get().deferredToastEvents : [],
       pendingAnimation: { type: "none" },
       diceAnimationComplete: true,
       rollAnimationKey: 0,
@@ -141,10 +145,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
     state = normalizeGameState(state);
     const prev = get().state;
     if (!prev) {
+      // NOTE: stateUpdated can beat the initial snapshot — still queue roll toasts
+      // (animation skipped without a prior position; flush runs once settled).
       set({
         state,
         displayPositions: positionsFromState(state),
         lastEvents: events,
+        deferredToastEvents: shouldDeferGameEventToasts(events)
+          ? [...get().deferredToastEvents, ...events]
+          : get().deferredToastEvents,
       });
       return;
     }
