@@ -17,7 +17,6 @@ interface DiceTrayProps {
   onPayJailFine?: () => void;
   onUseGoojfCard?: () => void;
   onRollForJail?: () => void;
-  onAcknowledgeCard?: () => void;
   pendingCardText?: string | null;
   pendingCardDeck?: "chance" | "community_chest" | null;
   goojfCards?: number;
@@ -54,7 +53,6 @@ export function DiceTray({
   onPayJailFine,
   onUseGoojfCard,
   onRollForJail,
-  onAcknowledgeCard,
   pendingCardText = null,
   pendingCardDeck = null,
   goojfCards = 0,
@@ -158,31 +156,19 @@ export function DiceTray({
         </div>
       )}
 
-      {isMyTurn && phase === "CARD_DRAWN" && (
-        <div className="flex w-full max-w-[15rem] flex-col gap-2">
-          {pendingCardText && (
-            <CardFlip flipKey={pendingCardText}>
-              <GameCard
-                stock={cardStock}
-                header={cardStock === "chance" ? "Chance" : "Community Chest"}
-                className="text-left"
-              >
-                <p className="p-3 text-center text-[length:var(--board-text-sm)] leading-snug text-gray-200">
-                  {pendingCardText}
-                </p>
-              </GameCard>
-            </CardFlip>
-          )}
-          <Button
-            variant="token"
-            onClick={onAcknowledgeCard}
-            disabled={loading || !onAcknowledgeCard}
-            size="sm"
-            className={cn(trayBtn, "w-full")}
-            aria-label="Acknowledge drawn card"
-          >
-            {loading ? "Applying..." : "OK"}
-          </Button>
+      {isMyTurn && phase === "CARD_DRAWN" && pendingCardText && (
+        <div className="w-full max-w-[15rem]">
+          <CardFlip flipKey={pendingCardText}>
+            <GameCard
+              stock={cardStock}
+              header={cardStock === "chance" ? "Chance" : "Community Chest"}
+              className="text-left"
+            >
+              <p className="p-3 text-center text-[length:var(--board-text-sm)] leading-snug text-gray-200">
+                {pendingCardText}
+              </p>
+            </GameCard>
+          </CardFlip>
         </div>
       )}
 

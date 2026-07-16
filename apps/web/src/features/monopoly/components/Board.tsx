@@ -33,7 +33,6 @@ interface BoardProps {
   onPayJailFine: () => void;
   onUseGoojfCard: () => void;
   onRollForJail: () => void;
-  onAcknowledgeCard: () => void;
   onBuildHouse: (position: number) => void;
   onSellHouse: (position: number) => void;
   onBuildHotel: (position: number) => void;
@@ -70,7 +69,6 @@ export function Board({
   onPayJailFine,
   onUseGoojfCard,
   onRollForJail,
-  onAcknowledgeCard,
   onBuildHouse,
   onSellHouse,
   onBuildHotel,
@@ -362,9 +360,6 @@ export function Board({
                 onPayJailFine={onPayJailFine}
                 onUseGoojfCard={onUseGoojfCard}
                 onRollForJail={onRollForJail}
-                onAcknowledgeCard={
-                  animationsSettled ? onAcknowledgeCard : undefined
-                }
                 pendingCardText={
                   state?.pendingCard
                     ? ((state.pendingCard.deck === "chance"
