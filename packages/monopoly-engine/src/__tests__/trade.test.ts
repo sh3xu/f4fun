@@ -61,9 +61,9 @@ describe("trade", () => {
       now,
     );
     expect(result.error).toBeUndefined();
-    expect(state.pendingTrades[0]?.expiresAt).toBe("2026-01-01T00:01:00.000Z");
+    expect(state.pendingTrades[0]?.expiresAt).toBe("2026-01-01T00:00:40.000Z");
     expect(expiredTradeIds(state, now)).toEqual([]);
-    expect(expiredTradeIds(state, now + 60_000)).toEqual(["t-exp"]);
+    expect(expiredTradeIds(state, now + 40_000)).toEqual(["t-exp"]);
   });
 
   it("transfers mortgaged property via trade", () => {
