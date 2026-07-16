@@ -1,0 +1,111 @@
+apps/web/src/features/monopoly/components/Board.tsx
+  s_ccffe444efcbcb::t_1bd0035fab8e7f 188
+  s_ccffe444efcbcb::t_2ce5eed350e0e2 24,45,83,181-187,189-190,207,324-340,386
+packages/monopoly-engine/src/__tests__/bankSale.test.ts
+  s_ccffe444efcbcb::t_6eadb83574c629 1-26
+packages/monopoly-engine/src/__tests__/auction.test.ts
+  s_ccffe444efcbcb::t_79799a349fd6a3 68,89,159
+  s_ccffe444efcbcb::t_df208ff896f630 19,27,143-158,160-161
+  s_d71fd4fedd90ac::t_ae480150a30b03 162
+packages/monopoly-engine/src/__tests__/jail.test.ts
+  s_ccffe444efcbcb::t_2ce5eed350e0e2 207,225,227,229-231,234,257-260
+apps/web/src/features/monopoly/components/RaiseCashBanner.tsx
+  s_ccffe444efcbcb::t_2ce5eed350e0e2 1-36
+packages/monopoly-engine/src/__tests__/resolveLanding.test.ts
+  s_ccffe444efcbcb::t_2ce5eed350e0e2 10,24-25,27-29
+packages/monopoly-engine/src/bankSale.ts
+  s_ccffe444efcbcb::t_23a6a141d32ab8 1-89
+server/src/games/monopoly/handlers.ts
+  s_ccffe444efcbcb::t_8abfc9693e345d 85-88
+  s_ccffe444efcbcb::t_84a6a577913706 115-127
+  s_ccffe444efcbcb::t_0abb3f77dadf2a 31
+  s_ccffe444efcbcb::t_095cc2cfced2da 380-393
+packages/monopoly-engine/src/bankruptcy.ts
+  s_ccffe444efcbcb::t_608268fd277eda 45
+  s_ccffe444efcbcb::t_71ba80303345c2 2-31,41-44,46-49,58
+packages/monopoly-engine/src/phase.ts
+  s_ccffe444efcbcb::t_4e1953745b3bf9 1,16,25-28
+packages/monopoly-engine/src/jail.ts
+  s_ccffe444efcbcb::t_2ce5eed350e0e2 2,173,175-177,179-190
+apps/web/src/features/monopoly/components/GamePage.tsx
+  s_ccffe444efcbcb::t_6d984f09266d70 262-264,489-493
+  s_ccffe444efcbcb::t_b62bb698bb27de 176-197,485-488,621
+packages/monopoly-engine/src/liquidate.ts
+  s_ccffe444efcbcb::t_dab93ee98f182e 56,59-70,72-76,78,83,107-109,113-115
+  s_ccffe444efcbcb::t_d9b491b1002197 1,79-80,88-89
+packages/monopoly-engine/src/index.ts
+  s_ccffe444efcbcb::t_2ce5eed350e0e2 7,17,54-57,61-68,130,312,322,338,354,370,386,402,418-434,466,500-508,578,602,616-620
+apps/web/src/features/monopoly/components/PropertyPanel.tsx
+  s_ccffe444efcbcb::t_f4c598f813560e 37
+  s_ccffe444efcbcb::t_6e63c88ba01158 257
+packages/monopoly-engine/src/turnTimeout.ts
+  s_ccffe444efcbcb::t_16d638d20afdea 25-26,40-45,80-84,95-98,103
+apps/web/src/features/monopoly/components/DiceTray.tsx
+  s_ccffe444efcbcb::t_63bda57235c468 38
+packages/monopoly-engine/src/__tests__/debt.test.ts
+  s_ccffe444efcbcb::t_2ce5eed350e0e2 1-79
+packages/monopoly-engine/src/debt.ts
+  s_ccffe444efcbcb::t_2ce5eed350e0e2 1-125
+packages/monopoly-engine/src/cards.ts
+  s_ccffe444efcbcb::t_2ce5eed350e0e2 10,95,108-109,119,139
+packages/monopoly-engine/src/auction.ts
+  s_ccffe444efcbcb::t_2ce5eed350e0e2 2-23,25-27,155,195,203,240-241,251,272-277,295-297
+packages/monopoly-engine/src/__tests__/turnTimeout.test.ts
+  s_ccffe444efcbcb::t_b916a32afdc528 21,67-73
+packages/monopoly-engine/src/__tests__/integration.test.ts
+  s_ccffe444efcbcb::t_b2c9096ca1f47d 85,101-103
+apps/web/src/features/monopoly/store/gameStore.ts
+  s_ccffe444efcbcb::t_abe9634726daa4 60
+packages/monopoly-engine/src/__tests__/liquidate.test.ts
+  s_ccffe444efcbcb::t_91c80ea09650cc 130-140,142-148
+  s_ccffe444efcbcb::t_66df53a8726d61 60,72
+  s_ccffe444efcbcb::t_4eafa6cae1c1d9 38,69,76,85,89-90,94,105,108-109,141
+  s_ccffe444efcbcb::t_57f7a9ca9c9659 45-59,77-84,86-88,92-93
+  s_ccffe444efcbcb::t_25fd580fc7fec4 61-68,70-71,73-75
+  s_ccffe444efcbcb::t_61ec88b46dcf75 91
+packages/shared-types/src/game-events.ts
+  s_ccffe444efcbcb::t_26a7e155a6fca0 89-93
+packages/monopoly-engine/src/types.ts
+  s_ccffe444efcbcb::t_3565c50386e4a3 125
+  s_ccffe444efcbcb::t_2da16f21c59156 182-183
+  s_ccffe444efcbcb::t_1b7ed5dfeb8530 112-113
+  s_ccffe444efcbcb::t_5b3b78f20647c7 39,43-45,48-49
+  s_ccffe444efcbcb::t_af5f7515cd11e9 150
+  s_ccffe444efcbcb::t_4eb61fa807240f 46-47
+  s_ccffe444efcbcb::t_a0d2477bb86d33 74-80
+  s_ccffe444efcbcb::t_6b69265efb119e 278-284
+packages/monopoly-engine/src/__tests__/bankruptcy.test.ts
+  s_ccffe444efcbcb::t_4113e6932fcf27 43
+  s_ccffe444efcbcb::t_fec55b1d7fa0de 34-42,44-51
+  s_ccffe444efcbcb::t_f9ab2d065a2fbd 52,69-73
+apps/web/src/features/monopoly/components/PropertyActions.tsx
+  s_ccffe444efcbcb::t_2ce5eed350e0e2 26,109,166-175
+packages/monopoly-engine/src/__tests__/issue30-bankruptcy.test.ts
+  s_ccffe444efcbcb::t_a1243bec7691cf 10,32-33,56,61,64,82-84,91,93
+  s_ccffe444efcbcb::t_2ce5eed350e0e2 85-90
+  s_ccffe444efcbcb::t_90e7f621a6f24a 1-9,11-31,34-55,57-60,62-63,65-81,92,94-96
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "716654baee60831235dd5759a50f249a6590cbb6",
+  "prompts": {},
+  "sessions": {
+    "s_ccffe444efcbcb": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4be1fcd0-11db-4601-8f86-4db588adeb62",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    },
+    "s_d71fd4fedd90ac": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1dbe6e62-aa50-416d-a0d2-1c9714c7051e",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
