@@ -83,4 +83,39 @@ describe("gameStore animation gating", () => {
       store.diceAnimationComplete && store.pendingAnimation.type === "none",
     ).toBe(true);
   });
+
+  it("slides backward to jail after landing on Go To Jail", () => {
+    const initial = createInitialState("test", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    // Position 24 + roll 6 (non-doubles) lands on Go To Jail (30)
+    initial.players.p1.position = 24;
+    useGameStore.getState().setFromSnapshot(structuredClone(initial));
+
+    // faces: floor(0.2*6)+1=2, floor(0.5*6)+1=4 → sum 6
+    const goToJail = applyAction(
+      structuredClone(initial),
+      { type: "ROLL_DICE" },
+      seededRng([0.2, 0.5]),
+    );
+    expect(goToJail.error).toBeUndefined();
+    expect(goToJail.events.some((e) => e.type === "SENT_TO_JAIL")).toBe(true);
+
+    useGameStore.getState().applyServerUpdate(goToJail.state, goToJail.events);
+    let store = useGameStore.getState();
+    expect(store.pendingAnimation.toPosition).toBe(30);
+    expect(store.pendingAnimation.moveDirection).toBe("forward");
+    expect(store.pendingAnimation.nextMove?.moveDirection).toBe("backward");
+    expect(store.pendingAnimation.nextMove?.toPosition).toBe(10);
+
+    useGameStore.getState().completeDiceAnimation();
+    useGameStore.getState().completeMoveAnimation();
+    store = useGameStore.getState();
+    expect(store.pendingAnimation.type).toBe("move");
+    expect(store.pendingAnimation.moveMode).toBe("slide");
+    expect(store.pendingAnimation.moveDirection).toBe("backward");
+    expect(store.pendingAnimation.fromPosition).toBe(30);
+    expect(store.pendingAnimation.toPosition).toBe(10);
+  });
 });
