@@ -4,8 +4,7 @@ import type { AuctionState, GameState } from "@f4fun/monopoly-engine";
 import { TILE_BY_POSITION } from "@f4fun/monopoly-engine";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { cn } from "@/lib/cn";
-import { GLASS_CARD } from "../theme/board-theme";
+import { GameCard } from "@/components/ui/GameCard";
 import { getTileLabel } from "./tile-labels";
 
 interface AuctionPanelProps {
@@ -45,18 +44,13 @@ export function AuctionPanel({
     : null;
 
   return (
-    <div
-      className={cn(
-        "overflow-hidden rounded-[clamp(0.5rem,1.5cqmin,0.85rem)]",
-        GLASS_CARD,
-      )}
+    <GameCard
+      stock="auction"
+      header={`Auction · ${tile ? getTileLabel(tile.name) : `Tile ${auction.position}`}`}
+      className="animate-card-deal"
     >
       <div className="flex flex-col gap-[clamp(0.4rem,1.5cqmin,0.75rem)] p-[clamp(0.5rem,2cqmin,0.85rem)]">
-        <h3 className="text-[length:var(--board-text)] font-bold text-amber-200">
-          Auction: {tile ? getTileLabel(tile.name) : `Tile ${auction.position}`}
-        </h3>
-
-        <div className="space-y-1 rounded-lg border border-white/[0.06] bg-white/[0.05] p-[clamp(0.5rem,1.8cqmin,0.9rem)] text-[length:var(--board-text-sm)]">
+        <div className="space-y-1 rounded-md border border-white/[0.06] bg-white/[0.05] p-[clamp(0.5rem,1.8cqmin,0.9rem)] text-[length:var(--board-text-sm)]">
           <div className="flex justify-between">
             <span className="text-white/50">Type:</span>
             <span className="font-bold text-white/90">
@@ -103,26 +97,27 @@ export function AuctionPanel({
               max={myCash}
               value={bidAmount}
               onChange={(e) => setBidAmount(Number(e.target.value))}
-              className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-[length:var(--board-text-sm)] text-white"
+              className="w-full rounded-md border border-white/15 bg-black/30 px-3 py-2 text-[length:var(--board-text-sm)] text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--material-focus-glow)]"
               aria-label="Bid amount"
             />
             <div className="flex gap-2">
               <Button
+                variant="token"
                 onClick={() => onBid(bidAmount)}
                 disabled={
                   loading || !canAffordMin || bidAmount < auction.minNextBid
                 }
                 size="sm"
-                className="h-auto flex-1 border-0 bg-amber-500/80 py-[clamp(0.4rem,1.4cqmin,0.65rem)] text-[length:var(--board-text-sm)] font-bold hover:bg-amber-500"
+                className="h-auto flex-1 py-[clamp(0.4rem,1.4cqmin,0.65rem)] text-[length:var(--board-text-sm)] font-bold [--material-token-face:#f59e0b]"
               >
                 Bid
               </Button>
               <Button
+                variant="tokenGhost"
                 onClick={onPass}
                 disabled={loading}
-                variant="outline"
                 size="sm"
-                className="h-auto flex-1 border-white/20 py-[clamp(0.4rem,1.4cqmin,0.65rem)] text-[length:var(--board-text-sm)] font-bold text-white/80"
+                className="h-auto flex-1 py-[clamp(0.4rem,1.4cqmin,0.65rem)] text-[length:var(--board-text-sm)] font-bold"
               >
                 Pass
               </Button>
@@ -136,6 +131,6 @@ export function AuctionPanel({
           </p>
         )}
       </div>
-    </div>
+    </GameCard>
   );
 }

@@ -1,15 +1,13 @@
 import { forwardRef, type HTMLAttributes } from "react";
 import { cn } from "@/lib/cn";
 
+/** Generic card — defaults to cardstock material for table surfaces. */
 export const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => {
     return (
       <div
         ref={ref}
-        className={cn(
-          "rounded-lg border border-gray-200 bg-white shadow-sm",
-          className,
-        )}
+        className={cn("material-cardstock overflow-hidden", className)}
         {...props}
       />
     );
@@ -34,7 +32,7 @@ export const CardTitle = forwardRef<
   return (
     <h3
       ref={ref}
-      className={cn("text-2xl font-bold text-gray-900", className)}
+      className={cn("text-2xl font-bold text-white", className)}
       {...props}
     />
   );

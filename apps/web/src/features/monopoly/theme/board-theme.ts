@@ -70,15 +70,21 @@ export const GAME_BG = "#0b0f17";
 export const BOARD_CENTER_BG = "#111827";
 export const SIDEBAR_BG = "#131a27";
 
-/** Frosted-glass surface for board tiles — transparency only, no backdrop-blur (blur smears across adjacent grid cells). */
-export const GLASS_TILE =
-  "bg-[rgba(18,26,40,0.52)] border border-white/[0.14] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]";
+/** Slotted tile surface — no backdrop-blur (blur smears across adjacent grid cells). */
+export const MATERIAL_TILE = "material-tile rounded-md";
 
-export const GLASS_PANEL =
-  "bg-white/[0.06] backdrop-blur-md border border-white/[0.1] shadow-[0_8px_32px_rgba(0,0,0,0.35)] rounded-2xl";
+/** Rail / ledger panel for sidebar and scoreboard frames. */
+export const MATERIAL_PANEL = "material-rail rounded-xl overflow-hidden";
 
-export const GLASS_CARD =
-  "bg-white/[0.08] backdrop-blur-sm border border-white/[0.12] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] rounded-xl";
+/** Printed cardstock surface for overlays and HUD cards. */
+export const MATERIAL_CARD = "material-cardstock";
+
+/** @deprecated Prefer MATERIAL_TILE */
+export const GLASS_TILE = MATERIAL_TILE;
+/** @deprecated Prefer MATERIAL_PANEL */
+export const GLASS_PANEL = MATERIAL_PANEL;
+/** @deprecated Prefer MATERIAL_CARD */
+export const GLASS_CARD = MATERIAL_CARD;
 
 /** NOTE: Board-level text tokens — cqmin here tracks the full board, not individual tiles. */
 export const BOARD_TEXT_VARS: Record<string, string> = {
@@ -87,7 +93,6 @@ export const BOARD_TEXT_VARS: Record<string, string> = {
   "--board-text": "clamp(11px, 1.9cqmin, 22px)",
   "--board-text-lg": "clamp(1.1rem, 4.8cqmin, 3rem)",
   "--board-text-xl": "clamp(1.35rem, 6cqmin, 3.5rem)",
-  // Money on tiles — small but legible mono digits
   "--board-money": "clamp(7px, 1.2cqmin, 11px)",
 };
 

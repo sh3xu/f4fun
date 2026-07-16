@@ -1,29 +1,23 @@
 import type { BoardTile as TileData } from "@f4fun/monopoly-engine";
-import {
-  Coins,
-  Compass,
-  Droplets,
-  Flag,
-  Gem,
-  Gift,
-  Lock,
-  Siren,
-  Sparkles,
-  Train,
-  Zap,
-} from "lucide-react";
+import { Coins, Droplets, Gem, Gift, Sparkles, Train, Zap } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { cn } from "@/lib/cn";
 import { getPlayerColor } from "@/lib/player-colors";
 import { PROPERTY_IMAGES } from "../lib/property-images";
 import {
   BOARD_MONEY_CLASS,
-  GLASS_TILE,
+  MATERIAL_TILE,
   PROPERTY_COLORS,
 } from "../theme/board-theme";
 import { PropertyCoverImage } from "./PropertyCoverImage";
 import { getTileLabel } from "./tile-labels";
 
+const CORNER_MEDALLIONS: Partial<Record<TileData["type"], string>> = {
+  go: "/materials/corners/go.svg",
+  jail: "/materials/corners/jail.svg",
+  free_parking: "/materials/corners/parking.svg",
+  go_to_jail: "/materials/corners/goto-jail.svg",
+};
 interface BoardTileProps {
   tile: TileData;
   ownerId?: string;
@@ -163,9 +157,24 @@ function FlagBackdrop({ colorGroup }: { colorGroup: string }) {
 }
 
 function getTileIcon(tile: TileData) {
-  const cls = "h-3.5 w-3.5 shrink-0";
+  const medallion = CORNER_MEDALLIONS[tile.type];
+  if (medallion) {
+    return (
+      // NOTE: Local SVG motif — next/image unnecessary for tiny static public assets
+      // biome-ignore lint/performance/noImgElement: corner medallion SVG from /public
+      <img
+        src={medallion}
+        alt=""
+        className="h-[clamp(1.1rem,4.5cqmin,2rem)] w-[clamp(1.1rem,4.5cqmin,2rem)] drop-shadow-md"
+        draggable={false}
+      />
+    );
+  }
+
+  const cls =
+    "h-[clamp(0.7rem,2.8cqmin,1rem)] w-[clamp(0.7rem,2.8cqmin,1rem)] shrink-0";
   if (tile.type === "railroad") {
-    return <Train className={cn(cls, "text-white/80")} />;
+    return <Train className={cn(cls, "text-white/85")} />;
   }
   if (tile.type === "utility") {
     return tile.name.includes("Electric") ? (
@@ -186,18 +195,6 @@ function getTileIcon(tile: TileData) {
   }
   if (tile.type === "community_chest") {
     return <Gift className={cn(cls, "text-purple-300/90")} />;
-  }
-  if (tile.type === "go") {
-    return <Flag className="h-5 w-5 text-emerald-300/90" />;
-  }
-  if (tile.type === "jail") {
-    return <Lock className={cn(cls, "text-white/60")} />;
-  }
-  if (tile.type === "free_parking") {
-    return <Compass className={cn(cls, "text-blue-300/90")} />;
-  }
-  if (tile.type === "go_to_jail") {
-    return <Siren className={cn(cls, "text-rose-400/90")} />;
   }
   return null;
 }
@@ -258,150 +255,164 @@ export function BoardTile({
   const tileTitle = `${getTileLabel(tile.name)}${isOwned && ownerName ? ` (owned by ${ownerName})` : ""}${isMortgaged ? " [Mortgaged]" : ""}`;
 
   const rootClassName = cn(
-    "relative flex h-full w-full overflow-hidden rounded-lg select-none",
-    "shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]",
+    "relative h-full w-full overflow-visible select-none",
     "transition-all duration-200",
+    isCorner && "material-medallion",
     isClickable &&
-      "cursor-pointer appearance-none border-0 bg-transparent p-0 text-left hover:z-20 hover:brightness-110 hover:ring-2 hover:ring-sky-400/60",
+      "cursor-pointer appearance-none border-0 bg-transparent p-0 text-left hover:z-20 hover:brightness-110 hover:ring-2 hover:ring-[var(--material-focus-glow)]",
     !isClickable && "hover:z-20 hover:brightness-105",
-    // NOTE: Same card chrome on every edge; only flex axis + writing-mode change per side.
+    isMortgaged && "opacity-50 saturate-[0.55]",
+  );
+
+  const cardClassName = cn(
+    "relative flex h-full w-full overflow-hidden rounded-md",
     side === "bottom" && "flex-col",
     side === "top" && "flex-col-reverse",
     side === "left" && "flex-row-reverse",
     side === "right" && "flex-row",
     isCorner && "flex-col items-center justify-center",
-    isMortgaged && "opacity-50 saturate-[0.55]",
   );
 
   const content = (
     <>
-      <div className="absolute inset-0 z-0 flex items-center justify-center overflow-hidden rounded-lg">
-        {PROPERTY_IMAGES[tile.position] && (
-          <>
-            <PropertyCoverImage
-              src={PROPERTY_IMAGES[tile.position]}
-              alt=""
-              className="opacity-40 transition-opacity duration-200"
-              sizes="80px"
-            />
-            <div className="absolute inset-0 bg-black/35" />
-          </>
-        )}
-        {tile.type === "property" && colorStyle ? (
-          <>
-            <div className={cn("absolute inset-0", colorStyle.tint)} />
-            <FlagBackdrop colorGroup={tile.colorGroup} />
-          </>
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-700/35 via-slate-800/25 to-slate-900/45" />
-        )}
-      </div>
-      <div className={cn("absolute inset-0 z-[1] rounded-lg", GLASS_TILE)} />
-
       {isOwned && ownerColor && (
         <div
+          aria-hidden
           className={cn(
-            "absolute z-20 rounded-full",
-            side === "bottom" && "inset-x-1.5 top-0 h-[3px]",
-            side === "top" && "inset-x-1.5 bottom-0 h-[3px]",
-            side === "left" && "inset-y-1.5 right-0 w-[3px]",
-            side === "right" && "inset-y-1.5 left-0 w-[3px]",
-            isCorner && "inset-x-2 top-0 h-[3px]",
+            "pointer-events-none absolute z-30 shadow-[0_1px_3px_rgba(0,0,0,0.35)]",
+            // Dome sits outside the card on the board-facing edge
+            side === "bottom" &&
+              "left-1/2 bottom-full h-[clamp(0.4rem,2.2cqmin,0.65rem)] w-[clamp(0.7rem,4cqmin,1.1rem)] -translate-x-1/2 rounded-t-full",
+            side === "top" &&
+              "left-1/2 top-full h-[clamp(0.4rem,2.2cqmin,0.65rem)] w-[clamp(0.7rem,4cqmin,1.1rem)] -translate-x-1/2 rounded-b-full",
+            side === "left" &&
+              "top-1/2 left-full h-[clamp(0.7rem,4cqmin,1.1rem)] w-[clamp(0.4rem,2.2cqmin,0.65rem)] -translate-y-1/2 rounded-r-full",
+            side === "right" &&
+              "top-1/2 right-full h-[clamp(0.7rem,4cqmin,1.1rem)] w-[clamp(0.4rem,2.2cqmin,0.65rem)] -translate-y-1/2 rounded-l-full",
+            isCorner &&
+              "left-1/2 bottom-full h-[clamp(0.4rem,2.2cqmin,0.65rem)] w-[clamp(0.7rem,4cqmin,1.1rem)] -translate-x-1/2 rounded-t-full",
           )}
           style={{ backgroundColor: ownerColor.hex }}
         />
       )}
 
-      <div className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 overflow-hidden p-0.5">
-        {!isMortgaged && (houses > 0 || hotels > 0) && (
-          <div
-            className={cn(
-              "absolute z-20 flex gap-px",
-              side === "bottom" && "inset-x-0 top-0.5 justify-center",
-              side === "top" && "inset-x-0 bottom-0.5 justify-center",
-              side === "left" &&
-                "inset-y-0 right-0.5 flex-col items-center justify-center",
-              side === "right" &&
-                "inset-y-0 left-0.5 flex-col items-center justify-center",
-            )}
-          >
-            {hotels > 0 ? (
-              <div
-                className="flex h-2 w-2.5 shrink-0 items-center justify-center rounded-sm border border-rose-400/50 bg-rose-600/90 text-[6px] font-bold leading-none text-white"
-                title="Hotel"
-              >
-                H
-              </div>
-            ) : (
-              [1, 2, 3, 4]
-                .slice(0, houses)
-                .map((houseNum) => (
-                  <div
-                    key={`house-${houseNum}`}
-                    className="h-1.5 w-1.5 shrink-0 rounded-sm border border-emerald-300/40 bg-emerald-500/90"
-                    title="House"
-                  />
-                ))
-            )}
-          </div>
-        )}
+      <div className={cardClassName}>
+        <div className="absolute inset-0 z-0 flex items-center justify-center overflow-hidden rounded-md">
+          {PROPERTY_IMAGES[tile.position] && (
+            <>
+              <PropertyCoverImage
+                src={PROPERTY_IMAGES[tile.position]}
+                alt=""
+                className="opacity-40 transition-opacity duration-200"
+                sizes="80px"
+              />
+              <div className="absolute inset-0 bg-black/35" />
+            </>
+          )}
+          {tile.type === "property" && colorStyle ? (
+            <>
+              <div className={cn("absolute inset-0", colorStyle.tint)} />
+              <FlagBackdrop colorGroup={tile.colorGroup} />
+            </>
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-700/35 via-slate-800/25 to-slate-900/45" />
+          )}
+        </div>
+        <div
+          className={cn("absolute inset-0 z-[1] rounded-md", MATERIAL_TILE)}
+        />
 
-        {tileIcon && (
-          <div className="shrink-0 opacity-90 drop-shadow-sm">{tileIcon}</div>
-        )}
-
-        <span className={textMode}>{label}</span>
-
-        {playersOnTile.length > 0 && (
-          <div
-            className={cn(
-              "absolute z-30 flex flex-wrap justify-center gap-0.5",
-              side === "bottom" && "inset-x-0 bottom-0.5",
-              side === "top" && "inset-x-0 top-0.5",
-              side === "left" && "inset-y-0 left-0.5 flex-col items-center",
-              side === "right" && "inset-y-0 right-0.5 flex-col items-center",
-              isCorner && "inset-x-0 bottom-0.5",
-            )}
-          >
-            {playersOnTile.map((player) => {
-              const playerColor =
-                turnOrder.length > 0
-                  ? getPlayerColor(player.id, turnOrder)
-                  : null;
-              return (
+        <div className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 overflow-hidden p-0.5">
+          {!isMortgaged && (houses > 0 || hotels > 0) && (
+            <div
+              className={cn(
+                "absolute z-20 flex gap-px",
+                side === "bottom" && "inset-x-0 top-0.5 justify-center",
+                side === "top" && "inset-x-0 bottom-0.5 justify-center",
+                side === "left" &&
+                  "inset-y-0 right-0.5 flex-col items-center justify-center",
+                side === "right" &&
+                  "inset-y-0 left-0.5 flex-col items-center justify-center",
+              )}
+            >
+              {hotels > 0 ? (
                 <div
-                  key={player.id}
-                  className="shadow-md transition-transform duration-150 hover:z-40 hover:scale-110"
-                  title={player.name}
+                  className="flex h-2 w-2.5 shrink-0 items-center justify-center rounded-sm border border-rose-400/50 bg-rose-600/90 text-[6px] font-bold leading-none text-white"
+                  title="Hotel"
                 >
-                  <Avatar
-                    avatarId={player.token}
-                    size="xs"
-                    backgroundColor={playerColor?.hex}
-                  />
+                  H
                 </div>
-              );
-            })}
+              ) : (
+                [1, 2, 3, 4]
+                  .slice(0, houses)
+                  .map((houseNum) => (
+                    <div
+                      key={`house-${houseNum}`}
+                      className="h-1.5 w-1.5 shrink-0 rounded-sm border border-emerald-300/40 bg-emerald-500/90"
+                      title="House"
+                    />
+                  ))
+              )}
+            </div>
+          )}
+
+          {tileIcon && (
+            <div className="shrink-0 opacity-90 drop-shadow-sm">{tileIcon}</div>
+          )}
+
+          <span className={textMode}>{label}</span>
+
+          {playersOnTile.length > 0 && (
+            <div
+              className={cn(
+                "absolute z-30 flex flex-wrap justify-center gap-0.5",
+                side === "bottom" && "inset-x-0 bottom-0.5",
+                side === "top" && "inset-x-0 top-0.5",
+                side === "left" && "inset-y-0 left-0.5 flex-col items-center",
+                side === "right" && "inset-y-0 right-0.5 flex-col items-center",
+                isCorner && "inset-x-0 bottom-0.5",
+              )}
+            >
+              {playersOnTile.map((player) => {
+                const playerColor =
+                  turnOrder.length > 0
+                    ? getPlayerColor(player.id, turnOrder)
+                    : null;
+                return (
+                  <div
+                    key={player.id}
+                    className="shadow-md transition-transform duration-150 hover:z-40 hover:scale-110"
+                    title={player.name}
+                  >
+                    <Avatar
+                      avatarId={player.token}
+                      size="xs"
+                      backgroundColor={playerColor?.hex}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {(colorStyle || (!isCorner && displayPrice)) && (
+          <div
+            className={cn(
+              "relative z-20 flex shrink-0 items-center justify-center material-tile-band",
+              colorStyle
+                ? cn(colorStyle.bg, colorStyle.text, colorStyle.border)
+                : "border-white/10 bg-white/10 text-white/80",
+              side === "bottom" && "h-[22%] min-h-[14px] w-full border-t",
+              side === "top" && "h-[22%] min-h-[14px] w-full border-b",
+              side === "left" && "h-full w-[22%] min-w-[14px] border-r",
+              side === "right" && "h-full w-[22%] min-w-[14px] border-l",
+            )}
+          >
+            {displayPrice && <span className={priceMode}>{displayPrice}</span>}
           </div>
         )}
       </div>
-
-      {(colorStyle || (!isCorner && displayPrice)) && (
-        <div
-          className={cn(
-            "relative z-20 flex shrink-0 items-center justify-center",
-            colorStyle
-              ? cn(colorStyle.bg, colorStyle.text, colorStyle.border)
-              : "border-white/10 bg-white/10 text-white/80",
-            side === "bottom" && "h-[22%] min-h-[14px] w-full border-t",
-            side === "top" && "h-[22%] min-h-[14px] w-full border-b",
-            side === "left" && "h-full w-[22%] min-w-[14px] border-r",
-            side === "right" && "h-full w-[22%] min-w-[14px] border-l",
-          )}
-        >
-          {displayPrice && <span className={priceMode}>{displayPrice}</span>}
-        </div>
-      )}
     </>
   );
 

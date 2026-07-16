@@ -9,19 +9,21 @@ interface PropertyCoverImageProps {
   className?: string;
 }
 
-/** Fill-parent Unsplash/property cover using next/image. */
+/** Fill-parent property cover using next/image (local procedural SVG/PNG). */
 export function PropertyCoverImage({
   src,
   alt,
   className,
   sizes,
 }: PropertyCoverImageProps) {
+  const isSvg = src.endsWith(".svg");
   return (
     <Image
       src={src}
       alt={alt}
       fill
       sizes={sizes}
+      unoptimized={isSvg}
       className={cn("object-cover", className)}
     />
   );

@@ -10,13 +10,13 @@ import {
 import { DEFAULT_GAME_CONFIG } from "../types.js";
 
 describe("turnTimeout", () => {
-  it("maps phases to short, long, and auction timeouts", () => {
+  it("maps phases to short, long, end-turn, and auction timeouts", () => {
     const cfg = DEFAULT_GAME_CONFIG;
     expect(timeoutSecsForPhase("PRE_ROLL", cfg)).toBe(10);
     expect(timeoutSecsForPhase("CARD_DRAWN", cfg)).toBe(10);
-    expect(timeoutSecsForPhase("END_TURN", cfg)).toBe(10);
-    expect(timeoutSecsForPhase("JAIL_DECISION", cfg)).toBe(40);
-    expect(timeoutSecsForPhase("BUY_OR_DECLINE", cfg)).toBe(40);
+    expect(timeoutSecsForPhase("END_TURN", cfg)).toBe(60);
+    expect(timeoutSecsForPhase("JAIL_DECISION", cfg)).toBe(30);
+    expect(timeoutSecsForPhase("BUY_OR_DECLINE", cfg)).toBe(30);
     expect(timeoutSecsForPhase("AUCTION", cfg)).toBe(30);
     expect(timeoutSecsForPhase("RAISE_CASH", cfg)).toBe(60);
     expect(timeoutSecsForPhase("GAME_OVER", cfg)).toBeNull();
