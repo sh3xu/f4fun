@@ -1,5 +1,5 @@
-import { checkBankruptcy } from "./bankruptcy.js";
 import { JAIL_FINE } from "./config/board.js";
+import { enterRaiseCashIfNeeded } from "./debt.js";
 import { diceSum, rollDice } from "./dice.js";
 import { applyMove } from "./movement.js";
 import { resolveLanding } from "./resolveLanding.js";
@@ -10,7 +10,6 @@ import type {
   PlayerId,
   RNG,
 } from "./types.js";
-import { checkWinCondition } from "./win.js";
 
 function requireJailDecision(
   state: GameState,
@@ -171,25 +170,24 @@ export function rollForJail(
     state.freeParkingPool += JAIL_FINE;
   }
 
-  const bankruptEvents = checkBankruptcy(state, playerId, null);
-  const winEvents = checkWinCondition(state);
+  const fineEvents: GameEvent[] = [releaseFromJail(state, playerId, "fine")];
 
-  if (player.isBankrupt) {
-    const events: GameEvent[] = [
-      releaseFromJail(state, playerId, "fine"),
-      {
-        type: "DICE_ROLLED",
-        playerId,
-        dice,
-        newPosition: player.position,
-      },
-      ...bankruptEvents,
-      ...winEvents,
-    ];
-    if (state.winnerId === null) {
-      state.phase = "END_TURN";
+  if (enterRaiseCashIfNeeded(state, playerId, null, fineEvents)) {
+    if (state.pendingDebt) {
+      state.pendingDebt.pendingJailMove = { dice, spaces };
     }
-    return { state, events };
+    return {
+      state,
+      events: [
+        ...fineEvents,
+        {
+          type: "DICE_ROLLED",
+          playerId,
+          dice,
+          newPosition: player.position,
+        },
+      ],
+    };
   }
 
   return {

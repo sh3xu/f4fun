@@ -1,3 +1,4 @@
+import { sellPropertyToBank } from "./bankSale.js";
 import { sellHotel, sellHouse } from "./building.js";
 import { TILE_BY_POSITION } from "./config/board.js";
 import { mortgageProperty } from "./mortgage.js";
@@ -52,52 +53,44 @@ function unmortgagedPositions(state: GameState, playerId: PlayerId): number[] {
     .sort((a, b) => (mortgageValueAt(b) ?? 0) - (mortgageValueAt(a) ?? 0));
 }
 
-function sellPropertyToBank(
+function tryMortgageOneProperty(
   state: GameState,
   playerId: PlayerId,
-  position: number,
-): GameEvent[] {
-  const player = state.players[playerId];
-  if (!player) return [];
+): GameEvent[] | null {
+  for (const position of unmortgagedPositions(state, playerId)) {
+    const result = mortgageProperty(state, playerId, position);
+    if (!result.error) return result.events;
+  }
+  return null;
+}
 
-  const ownership = state.ownership[position];
-  const mortgageValue = mortgageValueAt(position);
-  if (!ownership || ownership.ownerId !== playerId || mortgageValue === null) {
-    return [];
+function trySellOnePropertyToBank(
+  state: GameState,
+  playerId: PlayerId,
+): GameEvent[] | null {
+  const player = state.players[playerId];
+  if (!player) return null;
+
+  const sorted = [...player.ownedPositions].sort(
+    (a, b) => (mortgageValueAt(b) ?? 0) - (mortgageValueAt(a) ?? 0),
+  );
+
+  for (const position of sorted) {
+    const result = sellPropertyToBank(state, playerId, position);
+    if (!result.error) return result.events;
   }
 
-  // NOTE: Mortgaged deed → bank pays half mortgage; unmortgaged → full mortgage (~half price).
-  const amount = ownership.isMortgaged
-    ? Math.floor(mortgageValue / 2)
-    : mortgageValue;
-
-  player.cash += amount;
-  player.ownedPositions = player.ownedPositions.filter((p) => p !== position);
-  player.mortgaged = player.mortgaged.filter((p) => p !== position);
-  delete player.houses[position];
-  delete player.hotels[position];
-  delete state.ownership[position];
-
-  return [
-    {
-      type: "PROPERTY_SOLD_TO_BANK",
-      playerId,
-      position,
-      amount,
-    },
-  ];
+  return null;
 }
 
 /**
  * Forced raise-cash order when debt makes cash negative:
- * 1) sell houses/hotels, 2) mortgage properties one by one.
- * 3) Only when bankrupt to the bank (no player creditor): sell deeds to bank
- *    (mortgaged deeds pay half mortgage value). Stops when cash >= 0.
+ * 1) sell houses/hotels, 2) mortgage properties one by one,
+ * 3) sell deeds to bank at 90% (price or mortgage value). Stops when cash >= 0.
  */
 export function autoLiquidateAssets(
   state: GameState,
   playerId: PlayerId,
-  creditorId: PlayerId | null = null,
 ): GameEvent[] {
   const player = state.players[playerId];
   if (!player || player.cash >= 0) return [];
@@ -111,23 +104,15 @@ export function autoLiquidateAssets(
   }
 
   while (player.cash < 0) {
-    const next = unmortgagedPositions(state, playerId)[0];
-    if (next === undefined) break;
-    const result = mortgageProperty(state, playerId, next);
-    if (result.error) break;
-    events.push(...result.events);
+    const mortgaged = tryMortgageOneProperty(state, playerId);
+    if (!mortgaged) break;
+    events.push(...mortgaged);
   }
 
-  // NOTE: Player creditors receive remaining deeds on bankrupt — do not sell to bank.
-  if (creditorId !== null) return events;
-
   while (player.cash < 0 && player.ownedPositions.length > 0) {
-    const sorted = [...player.ownedPositions].sort(
-      (a, b) => (mortgageValueAt(b) ?? 0) - (mortgageValueAt(a) ?? 0),
-    );
-    const position = sorted[0];
-    if (position === undefined) break;
-    events.push(...sellPropertyToBank(state, playerId, position));
+    const sold = trySellOnePropertyToBank(state, playerId);
+    if (!sold) break;
+    events.push(...sold);
   }
 
   return events;

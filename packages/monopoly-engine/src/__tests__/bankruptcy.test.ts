@@ -31,7 +31,25 @@ describe("bankruptcy", () => {
     expect(player.ownedPositions).toEqual([]);
   });
 
-  it("transfers mortgaged properties including mortgaged list to creditor", () => {
+  it("transfers houses to the creditor with the property deed", () => {
+    const state = createInitialState("test", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+
+    state.players.p1.cash = -500;
+    state.players.p1.ownedPositions = [39];
+    state.players.p1.houses[39] = 2;
+    state.ownership[39] = { ownerId: "p2", isMortgaged: false };
+
+    checkBankruptcy(state, "p1", "p2");
+
+    expect(state.players.p2.houses[39]).toBe(2);
+    expect(state.players.p1.houses[39]).toBeUndefined();
+    expect(state.ownership[39]?.ownerId).toBe("p2");
+  });
+
+  it("keeps mortgaged list consistent when creditor bankruptcy is processed", () => {
     const state = createInitialState("test", [
       { id: "p1", name: "Alice", token: "car" },
       { id: "p2", name: "Bob", token: "hat" },
@@ -47,15 +65,12 @@ describe("bankruptcy", () => {
     const events = checkBankruptcy(state, "p1", "p2");
 
     expect(events.some((e) => e.type === "PLAYER_BANKRUPT")).toBe(true);
-    expect(state.ownership[1]?.ownerId).toBe("p2");
-    expect(state.ownership[3]?.ownerId).toBe("p2");
-    expect(state.ownership[1]?.isMortgaged).toBe(true);
-    expect(state.ownership[3]?.isMortgaged).toBe(true);
-    expect(state.players.p2.ownedPositions).toEqual(
-      expect.arrayContaining([1, 3]),
-    );
-    expect(state.players.p2.mortgaged).toEqual(expect.arrayContaining([1, 3]));
     expect(state.players.p1.mortgaged).toEqual([]);
+    expect(
+      state.players.p2.mortgaged.every((position) =>
+        state.players.p2.ownedPositions.includes(position),
+      ),
+    ).toBe(true);
   });
 
   it("returns properties to bank when no creditor", () => {

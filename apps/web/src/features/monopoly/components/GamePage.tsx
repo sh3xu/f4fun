@@ -174,6 +174,28 @@ export function GamePage() {
           toast.info("Property mortgaged", { duration: 2000 });
           break;
         }
+        case "PROPERTY_SOLD_TO_BANK": {
+          const playerName = players?.[event.playerId]?.name || "Player";
+          const tile = TILE_BY_POSITION.get(event.position);
+          const propertyName = tile
+            ? getTileLabel(tile.name)
+            : `Position ${event.position}`;
+          toast.info(
+            `${playerName} sold ${propertyName} to the bank for $${event.amount}`,
+            { duration: 3000 },
+          );
+          break;
+        }
+        case "DEBT_RAISED": {
+          const playerName = players?.[event.playerId]?.name || "Player";
+          toast.warning(`${playerName} must raise cash`, { duration: 3500 });
+          break;
+        }
+        case "DEBT_RESOLVED": {
+          const playerName = players?.[event.playerId]?.name || "Player";
+          toast.success(`${playerName} resolved debt`, { duration: 2500 });
+          break;
+        }
         case "PLAYER_BANKRUPT": {
           const playerName = players?.[event.playerId]?.name || "Player";
           toast.error(`${playerName} went bankrupt!`, { duration: 4000 });
@@ -241,6 +263,9 @@ export function GamePage() {
         console.log("[GamePage] Received game:stateSnapshot");
         if (data?.state) {
           setFromSnapshot(data.state);
+          if (data.state.winnerId) {
+            setWinnerId(data.state.winnerId);
+          }
           setInitializing(false);
         }
       };
@@ -459,6 +484,15 @@ export function GamePage() {
     }
   };
 
+  const handleSellToBank = async (position: number) => {
+    if (!roomId) return;
+    try {
+      await emitWithCallback("game:sellPropertyToBank", { roomId, position });
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
   const handleProposeTrade = async (
     toPlayerId: string,
     offer: TradeOffer,
@@ -586,6 +620,7 @@ export function GamePage() {
               onMortgage={handleMortgage}
               onUnmortgage={handleUnmortgage}
               onOwnerAuction={handleOwnerAuction}
+              onSellToBank={handleSellToBank}
             />
           </div>
         </div>

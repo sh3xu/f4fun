@@ -7,7 +7,7 @@ function seededRng(values: number[]): () => number {
 }
 
 describe("resolveLanding bankruptcy and doubles", () => {
-  it("ends turn on doubles tax bankruptcy when other players remain", () => {
+  it("enters raise-cash on doubles tax debt", () => {
     const state = createInitialState("test", [
       { id: "p1", name: "Alice", token: "car" },
       { id: "p2", name: "Bob", token: "hat" },
@@ -21,12 +21,12 @@ describe("resolveLanding bankruptcy and doubles", () => {
 
     expect(result.error).toBeUndefined();
     expect(state.players.p1.position).toBe(4);
-    expect(state.players.p1.isBankrupt).toBe(true);
-    expect(state.phase).toBe("END_TURN");
+    expect(state.players.p1.isBankrupt).toBe(false);
+    expect(state.phase).toBe("RAISE_CASH");
     expect(state.phase).not.toBe("PRE_ROLL");
-    expect(
-      result.events.filter((e) => e.type === "PLAYER_BANKRUPT"),
-    ).toHaveLength(1);
+    expect(result.events.filter((e) => e.type === "DEBT_RAISED")).toHaveLength(
+      1,
+    );
   });
 
   it("still grants PRE_ROLL after buying on normal doubles", () => {

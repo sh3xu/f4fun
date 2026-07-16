@@ -86,6 +86,11 @@ export const GameUnmortgagePropertySchema = z.object({
   position: z.number().int().min(0).max(39),
 });
 
+export const GameSellPropertyToBankSchema = z.object({
+  roomId: z.string(),
+  position: z.number().int().min(0).max(39),
+});
+
 export const TradeOfferSchema = z.object({
   cash: z.number().int().min(0),
   positions: z.array(z.number().int().min(0).max(39)),

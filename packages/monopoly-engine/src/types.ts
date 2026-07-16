@@ -36,8 +36,16 @@ export type GamePhase =
   | "CARD_DRAWN"
   | "POST_BUY"
   | "AUCTION"
+  | "RAISE_CASH"
   | "END_TURN"
   | "GAME_OVER";
+
+export interface PendingDebt {
+  playerId: PlayerId;
+  creditorId: PlayerId | null;
+  /** Complete jail exit move after debt is resolved (third failed roll + fine). */
+  pendingJailMove?: { dice: [number, number]; spaces: number };
+}
 
 export interface PropertyOwnership {
   ownerId: PlayerId;
@@ -63,8 +71,13 @@ export interface AuctionState {
   bidderOrder: PlayerId[];
   currentBidderIndex: number;
   minNextBid: number;
-  /** Phase to restore if auction cancels with no bids. */
-  resumePhase: "PRE_ROLL" | "END_TURN";
+  /** Phase to restore when auction ends. */
+  resumePhase:
+    | "PRE_ROLL"
+    | "END_TURN"
+    | "BUY_OR_DECLINE"
+    | "JAIL_DECISION"
+    | "RAISE_CASH";
 }
 
 export interface TradeOffer {
@@ -96,6 +109,8 @@ export interface GameConfig {
   auctionTimeoutSecs: number;
   /** Incoming trade offer response window */
   tradeTimeoutSecs: number;
+  /** RAISE_CASH debt resolution window */
+  raiseCashTimeoutSecs: number;
 }
 
 export const DEFAULT_GAME_CONFIG: GameConfig = {
@@ -107,6 +122,7 @@ export const DEFAULT_GAME_CONFIG: GameConfig = {
   longTimeoutSecs: 40,
   auctionTimeoutSecs: 30,
   tradeTimeoutSecs: 60,
+  raiseCashTimeoutSecs: 60,
 };
 
 export interface GameState {
@@ -131,6 +147,7 @@ export interface GameState {
   pendingCard: PendingCard | null;
   auction: AuctionState | null;
   pendingTrades: PendingTrade[];
+  pendingDebt: PendingDebt | null;
   config: GameConfig;
   winnerId: PlayerId | null;
   startedAt: string;
@@ -162,6 +179,8 @@ export type GameAction =
   | { type: "SELL_HOTEL"; position: number }
   | { type: "MORTGAGE_PROPERTY"; position: number }
   | { type: "UNMORTGAGE_PROPERTY"; position: number }
+  | { type: "SELL_PROPERTY_TO_BANK"; position: number }
+  | { type: "FORCE_SETTLE_DEBT" }
   | {
       type: "PROPOSE_TRADE";
       tradeId: string;
@@ -256,6 +275,13 @@ export type GameEvent =
       amount: number;
     }
   | { type: "PLAYER_BANKRUPT"; playerId: PlayerId; creditorId: PlayerId | null }
+  | {
+      type: "DEBT_RAISED";
+      playerId: PlayerId;
+      creditorId: PlayerId | null;
+      amountNeeded: number;
+    }
+  | { type: "DEBT_RESOLVED"; playerId: PlayerId }
   | { type: "TURN_ADVANCED"; playerId: PlayerId }
   | { type: "GAME_WON"; winnerId: PlayerId };
 

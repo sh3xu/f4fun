@@ -204,7 +204,7 @@ describe("jail exit", () => {
     expect(state.phase).toBe("END_TURN");
   });
 
-  it("bankrupts without moving when third attempt fine cannot be covered", () => {
+  it("enters raise-cash without moving when third-attempt fine cannot be covered", () => {
     const state = createInitialState("test", [
       { id: "p1", name: "Alice", token: "car" },
       { id: "p2", name: "Bob", token: "hat" },
@@ -222,16 +222,16 @@ describe("jail exit", () => {
     const result = applyAction(state, { type: "ROLL_FOR_JAIL" }, rng);
 
     expect(result.error).toBeUndefined();
-    expect(state.players.p1.isBankrupt).toBe(true);
+    expect(state.players.p1.isBankrupt).toBe(false);
     expect(state.players.p1.position).toBe(10);
-    expect(state.phase).toBe("END_TURN");
+    expect(state.phase).toBe("RAISE_CASH");
     expect(state.phase).not.toBe("BUY_OR_DECLINE");
-    expect(
-      result.events.filter((e) => e.type === "PLAYER_BANKRUPT"),
-    ).toHaveLength(1);
+    expect(result.events.filter((e) => e.type === "DEBT_RAISED")).toHaveLength(
+      1,
+    );
   });
 
-  it("does not emit duplicate bankruptcy events when forced exit lands on rent", () => {
+  it("does not emit duplicate debt events when forced exit lands on rent", () => {
     const state = createInitialState("test", [
       { id: "p1", name: "Alice", token: "car" },
       { id: "p2", name: "Bob", token: "hat" },
@@ -254,10 +254,10 @@ describe("jail exit", () => {
 
     expect(result.error).toBeUndefined();
     expect(state.players.p1.position).toBe(13);
-    expect(state.players.p1.isBankrupt).toBe(true);
-    expect(
-      result.events.filter((e) => e.type === "PLAYER_BANKRUPT"),
-    ).toHaveLength(1);
+    expect(state.players.p1.isBankrupt).toBe(false);
+    expect(result.events.filter((e) => e.type === "DEBT_RAISED")).toHaveLength(
+      1,
+    );
     expect(result.events.filter((e) => e.type === "GAME_WON")).toHaveLength(0);
   });
 });

@@ -34,6 +34,7 @@ interface PropertyPanelManageProps {
   onMortgage: () => void;
   onUnmortgage: () => void;
   onOwnerAuction: () => void;
+  onSellToBank: () => void;
   onClose: () => void;
 }
 
@@ -253,6 +254,7 @@ export function PropertyPanel(props: PropertyPanelProps) {
             onMortgage={props.onMortgage}
             onUnmortgage={props.onUnmortgage}
             onOwnerAuction={props.onOwnerAuction}
+            onSellToBank={props.onSellToBank}
             onClose={props.onClose}
           />
         )}
