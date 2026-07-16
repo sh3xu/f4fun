@@ -1,0 +1,31 @@
+apps/web/src/components/ui/Button.tsx
+  s_8b90937628c7ae::t_865b39d7ae10a4 6,18
+apps/web/src/features/monopoly/components/PlayerHUD.tsx
+  s_8b90937628c7ae::t_b9b081531a33da 93-103,110-116
+apps/web/src/features/room/components/HomePage.tsx
+  s_8b90937628c7ae::t_ef4acff5b82d7e 144-147,149,151
+  s_8b90937628c7ae::t_f0e28471a36b7a 21,25-26
+  s_8b90937628c7ae::t_2b0e5bb6824190 254-257,259,261
+  s_8b90937628c7ae::t_aef452d53fed0e 27
+apps/web/src/features/monopoly/components/PropertyPanel.tsx
+  s_8b90937628c7ae::t_6be076fba7f4e4 104,109-117,119
+  s_8b90937628c7ae::t_78b495771d8616 105-108,118
+apps/web/src/components/ui/GameLoader.tsx
+  s_8b90937628c7ae::t_ac959536f99711 26-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "d16715336196bbc755eae76f0e6206140ac38bcc",
+  "prompts": {},
+  "sessions": {
+    "s_8b90937628c7ae": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "d2babbe7-8328-4054-9dd4-eea3bdea952a",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
