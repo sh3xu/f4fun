@@ -12,9 +12,9 @@ export function LoadingSpinner({
   className,
 }: LoadingSpinnerProps) {
   const sizeClasses = {
-    sm: "w-4 h-4 border-2",
-    md: "w-8 h-8 border-3",
-    lg: "w-12 h-12 border-4",
+    sm: "h-8 w-8 border-2",
+    md: "h-12 w-12 border-[3px]",
+    lg: "h-16 w-16 border-4",
   };
 
   return (

@@ -175,6 +175,8 @@ export function HomePage() {
                       type="button"
                       onClick={() => setSelectedAvatar(avatar.id)}
                       disabled={loading}
+                      aria-label={avatar.label}
+                      aria-pressed={isSelected}
                       className={`relative flex items-center justify-center rounded-md border p-2 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--material-focus-glow)] ${
                         isSelected
                           ? "scale-[1.02] border-[#4fc3f7]/70 bg-white/10 shadow-lg"

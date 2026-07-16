@@ -45,6 +45,7 @@
   --animate-fade-in: fade-in 400ms var(--ease-settle) both;
   --animate-card-deal: card-deal-in 380ms var(--ease-settle) both;
   --animate-token-settle: token-settle 280ms var(--ease-settle) both;
+  --animate-card-flip: card-flip 420ms var(--ease-settle) both;
 
   @keyframes dice-roll-spin {
     0% {
@@ -430,9 +431,5 @@ body {
   .animate-card-flip,
   .animate-dice-roll {
     animation: none;
-  }
-
-  .motion-safe-scale:hover {
-    transform: none;
   }
 }

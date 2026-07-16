@@ -41,15 +41,17 @@ export function GameLoader({
     >
       <span
         className={cn(
-          "block h-full w-full rounded-[18%] border border-slate-300",
+          "relative block h-full w-full overflow-hidden rounded-[18%] border border-slate-300",
           "bg-gradient-to-br from-white to-slate-100 shadow-md",
           "animate-dice-roll",
         )}
-        style={{
-          backgroundImage: "url('/materials/die-face.svg')",
-          backgroundSize: "cover",
-        }}
-      />
+      >
+        <span
+          className="absolute inset-0 bg-cover"
+          style={{ backgroundImage: "url('/materials/die-face.svg')" }}
+          aria-hidden
+        />
+      </span>
       <span className="sr-only">{label}</span>
     </output>
   );

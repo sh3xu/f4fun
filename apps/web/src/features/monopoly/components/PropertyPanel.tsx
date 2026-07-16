@@ -157,7 +157,7 @@ export function PropertyPanel(props: PropertyPanelProps) {
               className="flex w-full items-center justify-between rounded-md border border-white/[0.08] bg-white/[0.04] px-2 py-1.5 text-[length:var(--board-text-xs)] font-semibold text-white/70 hover:bg-white/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--material-focus-glow)]"
               aria-expanded={rentOpen}
             >
-              Show rent schedule
+              {rentOpen ? "Hide rent schedule" : "Show rent schedule"}
               <ChevronDown
                 className={cn(
                   "h-3.5 w-3.5 transition-transform",
