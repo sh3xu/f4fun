@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@11.5.2",
   "scripts": {
-    "dev": "pnpm --filter @f4fun/shared-types build && pnpm --filter @f4fun/monopoly-engine build && concurrently -n server,web -c blue,magenta \"pnpm --filter @f4fun/server dev\" \"pnpm --filter @f4fun/web dev\"",
+    "dev": "pnpm --filter @f4fun/shared-types build && pnpm --filter @f4fun/monopoly-engine build && pnpm --filter @f4fun/monopoly-bot build && concurrently -n server,web -c blue,magenta \"pnpm --filter @f4fun/server dev\" \"pnpm --filter @f4fun/web dev\"",
     "build": "pnpm -r build",
     "start": "pnpm --filter @f4fun/server start",
     "lint": "biome check .",
