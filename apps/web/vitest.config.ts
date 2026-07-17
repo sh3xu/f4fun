@@ -8,6 +8,8 @@ export default {
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],
+    // NOTE: forks pool hits spawn UNKNOWN on some Windows environments.
+    pool: "threads",
   },
   resolve: {
     alias: {
