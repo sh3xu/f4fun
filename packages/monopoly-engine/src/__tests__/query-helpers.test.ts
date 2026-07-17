@@ -102,7 +102,10 @@ describe("getLegalActions", () => {
     );
 
     expect(sellToBank).toBeTruthy();
-    expect(simulateAction(state, sellToBank!, () => 0.5, "p1").error).toBe(
+    if (!sellToBank) {
+      throw new Error("expected SELL_PROPERTY_TO_BANK action");
+    }
+    expect(simulateAction(state, sellToBank, () => 0.5, "p1").error).toBe(
       undefined,
     );
   });
