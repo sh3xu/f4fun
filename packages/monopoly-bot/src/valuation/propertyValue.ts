@@ -21,12 +21,26 @@ export function countOwnedInGroup(
     .length;
 }
 
+function mortgageRedemptionCost(position: number): number {
+  const tile = TILE_BY_POSITION.get(position);
+  if (
+    !tile ||
+    (tile.type !== "property" &&
+      tile.type !== "railroad" &&
+      tile.type !== "utility")
+  ) {
+    return 0;
+  }
+  return Math.ceil(tile.mortgageValue * 1.1);
+}
+
 export function valuePropertyAt(
   state: GameState,
   playerId: PlayerId,
   position: number,
 ): number {
   const tile = TILE_BY_POSITION.get(position);
+  const ownership = state.ownership[position];
   if (!tile) return 0;
 
   let base = 0;
@@ -55,6 +69,13 @@ export function valuePropertyAt(
     }
   }
 
+  if (ownership?.isMortgaged) {
+    base = Math.max(
+      tile.mortgageValue,
+      base - mortgageRedemptionCost(position),
+    );
+  }
+
   return base;
 }
 
@@ -67,16 +88,32 @@ export function valuePositionForBuyer(
   if (!tile) return 0;
 
   const ownership = state.ownership[position];
-  if (ownership) return valuePropertyAt(state, ownership.ownerId, position);
-
-  let value = valuePropertyAt(state, buyerId, position);
-  if (tile.type === "property") {
-    const owned = countOwnedInGroup(state, buyerId, tile.colorGroup);
-    const groupSize = POSITIONS_BY_COLOR.get(tile.colorGroup)?.length ?? 3;
-    if (owned > 0) {
-      value *= monopolyCompletionPremium(owned + 1, groupSize);
-    }
+  // NOTE: valuePropertyAt already applies mortgage discount for railroads/utilities.
+  if (tile.type !== "property") {
+    return valuePropertyAt(state, buyerId, position);
   }
+
+  const groupSize = POSITIONS_BY_COLOR.get(tile.colorGroup)?.length ?? 3;
+  const prospectiveOwned =
+    countOwnedInGroup(state, buyerId, tile.colorGroup) +
+    (ownership?.ownerId === buyerId ? 0 : 1);
+
+  let value = tile.price;
+  const rentPerDollar = tile.rentLevels[3] / Math.max(tile.price, 1);
+  value *= 0.5 + rentPerDollar * 2;
+  value *= LANDING_FREQUENCY_WEIGHT[tile.colorGroup];
+  value *= monopolyCompletionPremium(prospectiveOwned, groupSize);
+  if (prospectiveOwned >= groupSize) {
+    value *= 1.25;
+  }
+
+  if (ownership?.isMortgaged) {
+    value = Math.max(
+      tile.mortgageValue,
+      value - mortgageRedemptionCost(position),
+    );
+  }
+
   return value;
 }
 

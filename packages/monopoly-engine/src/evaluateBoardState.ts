@@ -43,9 +43,7 @@ function buildingValueAt(
   const player = state.players[playerId];
   const houses = player?.houses[position] ?? 0;
   const hotels = player?.hotels[position] ?? 0;
-  return (
-    houses * tile.houseCost + hotels * (tile.houseCost + tile.houseCost / 2)
-  );
+  return houses * tile.houseCost + hotels * tile.houseCost * 5;
 }
 
 function countMonopolies(state: GameState, playerId: PlayerId): number {
@@ -109,7 +107,7 @@ export function evaluateBoardState(
   const monopolyCount = countMonopolies(state, playerId);
   const rentPotential = rentPotentialForPlayer(state, playerId);
   const opponentThreat = opponentRentThreat(state, playerId);
-  const netWorth = cash + propertyValue;
+  const netWorth = cash + propertyValue + buildingValue;
   const score =
     netWorth + rentPotential * 2 + monopolyCount * 200 - opponentThreat * 0.25;
 

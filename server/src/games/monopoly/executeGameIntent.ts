@@ -156,18 +156,24 @@ export async function executeGameIntent(
 
     if (result.error) {
       if (backfilled) {
-        await saveGame(state.gameId, state, 0);
+        const saved = await saveGame(state.gameId, state, 0);
+        if (!saved) {
+          return { ok: false, error: "Game not found" };
+        }
         afterGameStateCommit(io, roomId, state);
       }
       return { ok: false, error: result.error };
     }
 
     refreshActionDeadline(stateBefore, result.state, result.events);
-    await saveGame(
+    const saved = await saveGame(
       result.state.gameId,
       result.state,
       options.turnCountDelta ?? 0,
     );
+    if (!saved) {
+      return { ok: false, error: "Game not found" };
+    }
 
     try {
       await logGameAction(

@@ -10,6 +10,7 @@ import type { StrategyContext } from "../strategy/types.js";
 import {
   playerNetScore,
   valuePositionForBuyer,
+  valuePropertyAt,
 } from "../valuation/propertyValue.js";
 import { wouldCompleteOpponentMonopoly } from "./buy.js";
 
@@ -17,6 +18,32 @@ const MAX_TRADE_PROPOSALS = 8;
 
 function emptyOffer(): TradeOffer {
   return { cash: 0, positions: [], goojfCards: 0 };
+}
+
+function selectOfferPositions(
+  ctx: StrategyContext,
+  blockedGroup: string,
+): number[] {
+  const { state, actorId } = ctx;
+  const player = state.players[actorId];
+  if (!player) return [];
+
+  return [...player.ownedPositions]
+    .filter((position) => {
+      const tile = TILE_BY_POSITION.get(position);
+      if (tile?.type === "property" && tile.colorGroup === blockedGroup) {
+        return false;
+      }
+      return (
+        (player.houses[position] ?? 0) === 0 &&
+        (player.hotels[position] ?? 0) === 0
+      );
+    })
+    .sort(
+      (a, b) =>
+        valuePropertyAt(state, actorId, a) - valuePropertyAt(state, actorId, b),
+    )
+    .slice(0, 1);
 }
 
 export function generateTradeProposals(ctx: StrategyContext): GameAction[] {
@@ -50,7 +77,7 @@ export function generateTradeProposals(ctx: StrategyContext): GameAction[] {
       const offer: TradeOffer = {
         ...emptyOffer(),
         cash: offerCash,
-        positions: owned.slice(0, 1),
+        positions: selectOfferPositions(ctx, group),
       };
       const request: TradeOffer = {
         ...emptyOffer(),
@@ -104,15 +131,15 @@ export function scoreTradeResponse(ctx: StrategyContext): {
       );
       if (!trade) continue;
 
-      let penalty = 0;
+      let adjustment = 0;
       for (const pos of trade.offer.positions) {
         if (wouldCompleteOpponentMonopoly(state, actorId, pos)) {
-          penalty += 500;
+          adjustment += 500;
         }
       }
       for (const pos of trade.request.positions) {
         if (wouldCompleteOpponentMonopoly(state, trade.fromPlayerId, pos)) {
-          penalty -= 200;
+          adjustment -= 200;
         }
       }
 
@@ -121,7 +148,7 @@ export function scoreTradeResponse(ctx: StrategyContext): {
       const after = simulated.error
         ? before
         : playerNetScore(simulated.state, actorId);
-      const delta = after - before - penalty;
+      const delta = after - before + adjustment;
 
       options.push({
         action,
@@ -148,9 +175,16 @@ export function scoreTradeProposals(
   for (const action of proposals) {
     if (action.type !== "PROPOSE_TRADE") continue;
     const before = playerNetScore(state, actorId);
-    const simulated = simulateAction(state, action, rng, actorId);
-    if (simulated.error) continue;
-    const after = playerNetScore(simulated.state, actorId);
+    const proposed = simulateAction(state, action, rng, actorId);
+    if (proposed.error) continue;
+    const accepted = simulateAction(
+      proposed.state,
+      { type: "ACCEPT_TRADE", tradeId: action.tradeId },
+      rng,
+      action.toPlayerId,
+    );
+    if (accepted.error) continue;
+    const after = playerNetScore(accepted.state, actorId);
     const delta = after - before;
     if (delta <= 50) continue;
 

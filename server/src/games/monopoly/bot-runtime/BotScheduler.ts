@@ -1,6 +1,10 @@
 import { BotPlayer, expertStrategy, resolveActorId } from "@f4fun/monopoly-bot";
 import type { GameAction, GameEvent, GameState } from "@f4fun/monopoly-engine";
-import { getLegalActions, timeoutActionForState } from "@f4fun/monopoly-engine";
+import {
+  getLegalActions,
+  lookupCard,
+  timeoutActionForState,
+} from "@f4fun/monopoly-engine";
 import type { Server } from "socket.io";
 import { getBotPlayerIds } from "../../../rooms/RoomManager.js";
 import {
@@ -19,10 +23,22 @@ const botPlayers = new Map<string, BotPlayer>();
 
 /** Mirrors client DiceRoller TUMBLE_MS. */
 const DICE_ANIMATION_MS = 800;
-/** Mirrors client PieceMover MAX_MOVE_MS cap for token hops. */
-const MOVE_ANIMATION_MS = 3200;
+/** Mirrors client PieceMover hop timing. */
+const MAX_HOP_SEQUENCE_MS = 3200;
+const MIN_HOP_MS = 200;
+const MAX_HOP_MS = 320;
+const HOP_DWELL_MS = 200;
+const FINAL_HOP_SETTLE_MS = 260;
+/** Mirrors client PieceMover slide timing. */
+const SLIDE_MIN_MS = 500;
+const SLIDE_MAX_MS = 1400;
+const SLIDE_PER_TILE_MS = 90;
 /** Extra settle time after animations before the bot acts. */
 const ANIMATION_SETTLE_MS = 400;
+/** Conservative bound for forward movement cards (Chance 7 -> Reading Railroad). */
+const MAX_FORWARD_CARD_MOVE_HOPS = 38;
+/** Longest shortest-path slide into jail used by the client. */
+const MAX_JAIL_SLIDE_HOPS = 20;
 
 function botTimerKey(roomId: string, actorId: string): string {
   return `${roomId}:${actorId}`;
@@ -76,25 +92,81 @@ function thinkingDelayMs(): number {
   return 900 + Math.floor(Math.random() * 1100);
 }
 
+function hopAnimationMs(hops: number): number {
+  if (hops <= 0) return 0;
+  const hopDurationMs = Math.min(
+    MAX_HOP_MS,
+    Math.max(MIN_HOP_MS, MAX_HOP_SEQUENCE_MS / hops),
+  );
+  return Math.ceil(
+    hops * (hopDurationMs * 0.9 + HOP_DWELL_MS) + FINAL_HOP_SETTLE_MS,
+  );
+}
+
+function slideAnimationMs(hops: number): number {
+  if (hops <= 0) return 0;
+  return Math.ceil(
+    Math.min(SLIDE_MAX_MS, Math.max(SLIDE_MIN_MS, hops * SLIDE_PER_TILE_MS)),
+  );
+}
+
+function cardAnimationMs(
+  cardApplied: Extract<GameEvent, { type: "CARD_APPLIED" }>,
+): number {
+  const deck = cardApplied.cardId.startsWith("cc_")
+    ? "community_chest"
+    : "chance";
+  const card = lookupCard(deck, cardApplied.cardId);
+  if (!card) return 0;
+
+  switch (card.effect.kind) {
+    case "go_back_spaces":
+      return hopAnimationMs(card.effect.spaces);
+    case "go_to_jail":
+      return slideAnimationMs(MAX_JAIL_SLIDE_HOPS);
+    case "move_to":
+    case "move_to_nearest":
+      return hopAnimationMs(MAX_FORWARD_CARD_MOVE_HOPS);
+    default:
+      return 0;
+  }
+}
+
 /**
  * NOTE: Server cannot observe client animation completion — approximate wait so
  * bots do not act through in-flight dice/token animations.
  */
 function animationWaitMs(events: readonly GameEvent[]): number {
   let wait = 0;
-  const hasDice = events.some((e) => e.type === "DICE_ROLLED");
-  const sentOrReleased = events.some(
-    (e) => e.type === "SENT_TO_JAIL" || e.type === "RELEASED_FROM_JAIL",
+  const diceEvent = events.find(
+    (event): event is Extract<GameEvent, { type: "DICE_ROLLED" }> =>
+      event.type === "DICE_ROLLED",
   );
-  const cardApplied = events.some((e) => e.type === "CARD_APPLIED");
+  const sentToJail = events.some((event) => event.type === "SENT_TO_JAIL");
+  const cardApplied = events.find(
+    (event): event is Extract<GameEvent, { type: "CARD_APPLIED" }> =>
+      event.type === "CARD_APPLIED",
+  );
 
-  if (hasDice) {
-    wait += DICE_ANIMATION_MS + MOVE_ANIMATION_MS;
-  } else if (sentOrReleased) {
-    wait += MOVE_ANIMATION_MS;
-  } else if (cardApplied) {
-    // NOTE: Money/effect cards are short; movement cards may hop — use mid wait.
-    wait += 1600;
+  if (diceEvent) {
+    wait +=
+      DICE_ANIMATION_MS + hopAnimationMs(diceEvent.dice[0] + diceEvent.dice[1]);
+    if (sentToJail) {
+      wait += slideAnimationMs(MAX_JAIL_SLIDE_HOPS);
+    }
+  }
+
+  if (cardApplied) {
+    const deck = cardApplied.cardId.startsWith("cc_")
+      ? "community_chest"
+      : "chance";
+    const card = lookupCard(deck, cardApplied.cardId);
+    if (
+      card &&
+      !(diceEvent && sentToJail && card.effect.kind === "go_to_jail")
+    ) {
+      wait += cardAnimationMs(cardApplied);
+    }
   }
 
   if (wait > 0) wait += ANIMATION_SETTLE_MS;

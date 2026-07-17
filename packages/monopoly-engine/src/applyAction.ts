@@ -11,6 +11,7 @@ import { JAIL_POSITION } from "./config/board.js";
 import { forceSettleDebt, tryResolveRaiseCash } from "./debt.js";
 import { diceSum, rollDice } from "./dice.js";
 import { payJailFine, rollForJail, spendGoojfCard } from "./jail.js";
+import { canManageAssets, isManagementPhase } from "./management.js";
 import { mortgageProperty, unmortgageProperty } from "./mortgage.js";
 import { applyMove } from "./movement.js";
 import { phaseAfterDiceAction } from "./phase.js";
@@ -30,21 +31,28 @@ import type {
   RNG,
 } from "./types.js";
 
-function managementPhaseOk(phase: GameState["phase"]): boolean {
-  return (
-    phase === "PRE_ROLL" ||
-    phase === "END_TURN" ||
-    phase === "JAIL_DECISION" ||
-    phase === "RAISE_CASH"
-  );
-}
-
 function afterCashAffectingAction(
   state: GameState,
   events: GameEvent[],
   rng: RNG,
 ): void {
   tryResolveRaiseCash(state, events, rng);
+}
+
+function managementActionError(
+  state: GameState,
+  actorId: PlayerId,
+  blockedMessage: string,
+): string | null {
+  if (!isManagementPhase(state.phase)) {
+    return blockedMessage;
+  }
+
+  if (!canManageAssets(state, actorId)) {
+    return "Not your turn";
+  }
+
+  return null;
 }
 
 /**
@@ -200,11 +208,13 @@ export function applyAction(
       }
 
       case "START_OWNER_AUCTION": {
-        if (playerId !== activePlayerId) {
-          return { state, events: [], error: "Not your turn" };
-        }
-        if (!managementPhaseOk(state.phase)) {
-          return { state, events: [], error: "Cannot start owner auction now" };
+        const error = managementActionError(
+          state,
+          playerId,
+          "Cannot start owner auction now",
+        );
+        if (error) {
+          return { state, events: [], error };
         }
         const result = startOwnerAuction(state, playerId, action.position);
         if (result.error) {
@@ -235,11 +245,13 @@ export function applyAction(
       }
 
       case "BUILD_HOUSE": {
-        if (playerId !== activePlayerId) {
-          return { state, events: [], error: "Not your turn" };
-        }
-        if (!managementPhaseOk(state.phase)) {
-          return { state, events: [], error: "Cannot build now" };
+        const error = managementActionError(
+          state,
+          playerId,
+          "Cannot build now",
+        );
+        if (error) {
+          return { state, events: [], error };
         }
         const result = buildHouse(state, playerId, action.position);
         if (result.error) {
@@ -251,11 +263,13 @@ export function applyAction(
       }
 
       case "SELL_HOUSE": {
-        if (playerId !== activePlayerId) {
-          return { state, events: [], error: "Not your turn" };
-        }
-        if (!managementPhaseOk(state.phase)) {
-          return { state, events: [], error: "Cannot sell house now" };
+        const error = managementActionError(
+          state,
+          playerId,
+          "Cannot sell house now",
+        );
+        if (error) {
+          return { state, events: [], error };
         }
         const result = sellHouse(state, playerId, action.position);
         if (result.error) {
@@ -267,11 +281,13 @@ export function applyAction(
       }
 
       case "BUILD_HOTEL": {
-        if (playerId !== activePlayerId) {
-          return { state, events: [], error: "Not your turn" };
-        }
-        if (!managementPhaseOk(state.phase)) {
-          return { state, events: [], error: "Cannot build hotel now" };
+        const error = managementActionError(
+          state,
+          playerId,
+          "Cannot build hotel now",
+        );
+        if (error) {
+          return { state, events: [], error };
         }
         const result = buildHotel(state, playerId, action.position);
         if (result.error) {
@@ -283,11 +299,13 @@ export function applyAction(
       }
 
       case "SELL_HOTEL": {
-        if (playerId !== activePlayerId) {
-          return { state, events: [], error: "Not your turn" };
-        }
-        if (!managementPhaseOk(state.phase)) {
-          return { state, events: [], error: "Cannot sell hotel now" };
+        const error = managementActionError(
+          state,
+          playerId,
+          "Cannot sell hotel now",
+        );
+        if (error) {
+          return { state, events: [], error };
         }
         const result = sellHotel(state, playerId, action.position);
         if (result.error) {
@@ -299,11 +317,13 @@ export function applyAction(
       }
 
       case "MORTGAGE_PROPERTY": {
-        if (playerId !== activePlayerId) {
-          return { state, events: [], error: "Not your turn" };
-        }
-        if (!managementPhaseOk(state.phase)) {
-          return { state, events: [], error: "Cannot mortgage now" };
+        const error = managementActionError(
+          state,
+          playerId,
+          "Cannot mortgage now",
+        );
+        if (error) {
+          return { state, events: [], error };
         }
         const result = mortgageProperty(state, playerId, action.position);
         if (result.error) {
@@ -315,11 +335,13 @@ export function applyAction(
       }
 
       case "UNMORTGAGE_PROPERTY": {
-        if (playerId !== activePlayerId) {
-          return { state, events: [], error: "Not your turn" };
-        }
-        if (!managementPhaseOk(state.phase)) {
-          return { state, events: [], error: "Cannot unmortgage now" };
+        const error = managementActionError(
+          state,
+          playerId,
+          "Cannot unmortgage now",
+        );
+        if (error) {
+          return { state, events: [], error };
         }
         const result = unmortgageProperty(state, playerId, action.position);
         if (result.error) {
@@ -331,11 +353,13 @@ export function applyAction(
       }
 
       case "SELL_PROPERTY_TO_BANK": {
-        if (playerId !== activePlayerId) {
-          return { state, events: [], error: "Not your turn" };
-        }
-        if (!managementPhaseOk(state.phase)) {
-          return { state, events: [], error: "Cannot sell to bank now" };
+        const error = managementActionError(
+          state,
+          playerId,
+          "Cannot sell to bank now",
+        );
+        if (error) {
+          return { state, events: [], error };
         }
         const result = sellPropertyToBank(state, playerId, action.position);
         if (result.error) {
@@ -347,11 +371,13 @@ export function applyAction(
       }
 
       case "PROPOSE_TRADE": {
-        if (playerId !== activePlayerId) {
-          return { state, events: [], error: "Not your turn" };
-        }
-        if (!managementPhaseOk(state.phase)) {
-          return { state, events: [], error: "Cannot trade now" };
+        const error = managementActionError(
+          state,
+          playerId,
+          "Cannot trade now",
+        );
+        if (error) {
+          return { state, events: [], error };
         }
         const result = proposeTrade(
           state,

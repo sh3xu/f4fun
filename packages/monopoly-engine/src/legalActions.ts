@@ -1,18 +1,10 @@
 import { getCurrentAuctionBidder } from "./auction.js";
+import { canManageAssets } from "./management.js";
 import { simulateAction } from "./simulateAction.js";
 import { getActivePlayer } from "./turn.js";
 import type { GameAction, GameState, PlayerId } from "./types.js";
 
 const MAX_AUCTION_BIDS = 50;
-
-function _managementPhaseOk(phase: GameState["phase"]): boolean {
-  return (
-    phase === "PRE_ROLL" ||
-    phase === "END_TURN" ||
-    phase === "JAIL_DECISION" ||
-    phase === "RAISE_CASH"
-  );
-}
 
 function isLegal(
   state: GameState,
@@ -131,6 +123,13 @@ export function getLegalActions(
           actorId,
           legal,
         );
+      } else if (trade.fromPlayerId === actorId) {
+        probeAction(
+          state,
+          { type: "REJECT_TRADE", tradeId: trade.tradeId },
+          actorId,
+          legal,
+        );
       }
     }
     return dedupeActions(legal);
@@ -138,18 +137,22 @@ export function getLegalActions(
 
   switch (state.phase) {
     case "PRE_ROLL":
+      if (canManageAssets(state, actorId)) {
+        managementCandidates(state, actorId, legal);
+      }
       if (actorId === activePlayerId) {
         probeAction(state, { type: "ROLL_DICE" }, actorId, legal);
-        managementCandidates(state, actorId, legal);
       }
       break;
 
     case "JAIL_DECISION":
+      if (canManageAssets(state, actorId)) {
+        managementCandidates(state, actorId, legal);
+      }
       if (actorId === activePlayerId) {
         probeAction(state, { type: "PAY_JAIL_FINE" }, actorId, legal);
         probeAction(state, { type: "USE_GOOJF_CARD" }, actorId, legal);
         probeAction(state, { type: "ROLL_FOR_JAIL" }, actorId, legal);
-        managementCandidates(state, actorId, legal);
       }
       break;
 
@@ -168,9 +171,11 @@ export function getLegalActions(
       break;
 
     case "END_TURN":
+      if (canManageAssets(state, actorId)) {
+        managementCandidates(state, actorId, legal);
+      }
       if (actorId === activePlayerId) {
         probeAction(state, { type: "END_TURN" }, actorId, legal);
-        managementCandidates(state, actorId, legal);
       }
       break;
 
@@ -190,7 +195,7 @@ export function getLegalActions(
     }
 
     case "RAISE_CASH":
-      if (actorId === state.pendingDebt?.playerId) {
+      if (canManageAssets(state, actorId)) {
         managementCandidates(state, actorId, legal);
         probeAction(state, { type: "FORCE_SETTLE_DEBT" }, actorId, legal);
         if (legal.length === 0) {

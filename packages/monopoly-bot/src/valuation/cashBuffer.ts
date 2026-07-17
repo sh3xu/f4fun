@@ -8,7 +8,7 @@ function totalHousesOnBoard(state: GameState): number {
       total += count;
     }
     for (const count of Object.values(player.hotels)) {
-      total += count * 4;
+      total += count * 5;
     }
   }
   return total;
@@ -23,8 +23,10 @@ export function minimumCashBuffer(ctx: StrategyContext): number {
   const houses = totalHousesOnBoard(state);
   const base = 75;
   const developmentBonus = Math.min(houses * 8, 400);
-  const monopolyBonus =
-    Object.values(state.players[actorId]?.houses ?? {}).length > 0 ? 50 : 0;
+  const hasDevelopedMonopoly =
+    Object.values(player.houses).length > 0 ||
+    Object.values(player.hotels).length > 0;
+  const monopolyBonus = hasDevelopedMonopoly ? 50 : 0;
 
   return base + developmentBonus + monopolyBonus;
 }

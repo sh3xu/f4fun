@@ -71,7 +71,7 @@ export function scoreLiquidationOptions(ctx: StrategyContext): {
     if (action.type === "FORCE_SETTLE_DEBT") {
       options.push({
         action,
-        score: -100,
+        score: -2000,
         reasoning: "Force settle debt after liquidating",
       });
     }

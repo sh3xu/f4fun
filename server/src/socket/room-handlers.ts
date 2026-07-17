@@ -13,6 +13,7 @@ import {
 import type { Server } from "socket.io";
 import { afterGameStateCommit } from "../games/monopoly/DeadlineTimers.js";
 import { createGame, generateGameId } from "../games/monopoly/GameStore.js";
+import { withRoomLock } from "../games/monopoly/roomMutex.js";
 import { cancelGrace } from "../rooms/DisconnectGrace.js";
 import {
   addBotPlayer,
@@ -177,40 +178,50 @@ export function registerRoomHandlers(
     if (!data) return;
 
     try {
-      const room = await getRoom(socket.roomId || "");
-      if (!room) {
+      const roomId = socket.roomId;
+      if (!roomId) {
         callback("Room not found");
         return;
       }
 
-      if (socket.playerId !== room.hostId) {
-        callback("Only host can add AI players");
-        return;
-      }
+      await withRoomLock(roomId, async () => {
+        const room = await getRoom(roomId);
+        if (!room) {
+          callback("Room not found");
+          return;
+        }
 
-      if (room.status !== "lobby") {
-        callback("Game already started");
-        return;
-      }
+        if (socket.playerId !== room.hostId) {
+          callback("Only host can add AI players");
+          return;
+        }
 
-      const updated = await addBotPlayer(room.roomId);
-      const botPlayer = updated.players[updated.players.length - 1];
-      if (!botPlayer) {
-        callback("Failed to add AI player");
-        return;
-      }
+        if (room.status !== "lobby") {
+          callback("Game already started");
+          return;
+        }
 
-      const playerInfo = {
-        id: botPlayer.playerId,
-        name: botPlayer.name,
-        token: botPlayer.token,
-        isHost: false,
-        isConnected: true,
-        isBot: true,
-      };
+        const updated = await addBotPlayer(room.roomId);
+        const botPlayer = updated.players[updated.players.length - 1];
+        if (!botPlayer) {
+          callback("Failed to add AI player");
+          return;
+        }
 
-      callback(null, { players: toPlayerInfoList(updated.players) });
-      socket.to(room.roomId).emit("room:playerJoined", { player: playerInfo });
+        const playerInfo = {
+          id: botPlayer.playerId,
+          name: botPlayer.name,
+          token: botPlayer.token,
+          isHost: false,
+          isConnected: true,
+          isBot: true,
+        };
+
+        callback(null, { players: toPlayerInfoList(updated.players) });
+        socket
+          .to(room.roomId)
+          .emit("room:playerJoined", { player: playerInfo });
+      });
     } catch (err) {
       callback((err as Error).message);
     }
@@ -221,53 +232,65 @@ export function registerRoomHandlers(
     if (!data) return;
 
     try {
-      const room = await getRoom(socket.roomId || "");
-      if (!room) {
+      const roomId = socket.roomId;
+      if (!roomId) {
         callback("Room not found");
         return;
       }
 
-      if (socket.playerId !== room.hostId) {
-        callback("Only host can start game");
-        return;
-      }
+      await withRoomLock(roomId, async () => {
+        const room = await getRoom(roomId);
+        if (!room) {
+          callback("Room not found");
+          return;
+        }
 
-      if (room.players.length < 2) {
-        callback("Need at least 2 players");
-        return;
-      }
+        if (socket.playerId !== room.hostId) {
+          callback("Only host can start game");
+          return;
+        }
 
-      const gameId = generateGameId();
-      const playerConfigs = room.players
-        .filter((p) => p.isConnected)
-        .map((p) => ({
-          id: p.playerId,
-          name: p.name,
-          token: p.token,
-        }));
+        if (room.status !== "lobby") {
+          callback("Game already started");
+          return;
+        }
 
-      const initialState = createInitialState(gameId, playerConfigs);
-      stampActionDeadline(initialState);
-      console.log(
-        `[Server] Created game ${gameId} with ${playerConfigs.length} players`,
-      );
+        const gameId = generateGameId();
+        const playerConfigs = room.players
+          .filter((p) => p.isBot || p.isConnected)
+          .map((p) => ({
+            id: p.playerId,
+            name: p.name,
+            token: p.token,
+          }));
+        if (playerConfigs.length < 2) {
+          callback("Need at least 2 players");
+          return;
+        }
 
-      await createGame(room.roomId, initialState);
-      await setRoomGameStarted(room.roomId, gameId);
+        const initialState = createInitialState(gameId, playerConfigs);
+        stampActionDeadline(initialState);
+        console.log(
+          `[Server] Created game ${gameId} with ${playerConfigs.length} players`,
+        );
 
-      console.log(
-        `[Server] Emitting room:gameStarted and game:stateSnapshot to room ${room.roomId}`,
-      );
+        await createGame(room.roomId, initialState);
+        await setRoomGameStarted(room.roomId, gameId);
 
-      io.to(room.roomId).emit("room:gameStarted", {
-        gameId,
-        roomCode: room.code,
+        console.log(
+          `[Server] Emitting room:gameStarted and game:stateSnapshot to room ${room.roomId}`,
+        );
+
+        io.to(room.roomId).emit("room:gameStarted", {
+          gameId,
+          roomCode: room.code,
+        });
+
+        io.to(room.roomId).emit("game:stateSnapshot", { state: initialState });
+        afterGameStateCommit(io, room.roomId, initialState);
+
+        callback(null, { gameId });
       });
-
-      io.to(room.roomId).emit("game:stateSnapshot", { state: initialState });
-      afterGameStateCommit(io, room.roomId, initialState);
-
-      callback(null, { gameId });
     } catch (err) {
       console.error("[Server] room:startGame error:", err);
       callback((err as Error).message);

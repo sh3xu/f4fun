@@ -2,6 +2,7 @@ import {
   type GameAction,
   type GameState,
   type PlayerId,
+  POSITIONS_BY_COLOR,
   TILE_BY_POSITION,
 } from "@f4fun/monopoly-engine";
 import type { StrategyContext } from "../strategy/types.js";
@@ -65,10 +66,29 @@ export function scoreBuyOptions(ctx: StrategyContext): {
     }
 
     if (action.type === "START_AUCTION") {
+      const position = player.position;
+      const tile = TILE_BY_POSITION.get(position);
+      const price =
+        tile &&
+        (tile.type === "property" ||
+          tile.type === "railroad" ||
+          tile.type === "utility")
+          ? tile.price
+          : 0;
+      const value = valuePositionForBuyer(state, actorId, position);
+      const buffer = minimumCashBuffer(ctx);
+      const reservedBuy = player.cash - price < buffer;
+      const canBidMeaningfully =
+        player.cash - buffer >= Math.max(25, price / 2);
+
       options.push({
         action,
-        score: -5,
-        reasoning: "Start auction instead of buying",
+        score: reservedBuy && canBidMeaningfully ? 120 : -20,
+        reasoning: reservedBuy
+          ? "Start auction — preserve reserve while staying in"
+          : value > price
+            ? "Start auction — try to win below face value"
+            : "Pass instead of forcing an auction",
       });
     }
   }
@@ -84,6 +104,6 @@ export function wouldCompleteOpponentMonopoly(
   const tile = TILE_BY_POSITION.get(position);
   if (tile?.type !== "property") return false;
   const owned = countOwnedInGroup(state, opponentId, tile.colorGroup);
-  const groupSize = 3;
+  const groupSize = POSITIONS_BY_COLOR.get(tile.colorGroup)?.length ?? 3;
   return owned >= groupSize - 1;
 }

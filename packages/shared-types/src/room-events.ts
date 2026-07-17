@@ -77,6 +77,9 @@ export type RoomJoinPayload = z.infer<typeof RoomJoinSchema>;
 export type RoomStartGamePayload = z.infer<typeof RoomStartGameSchema>;
 export type RoomAddBotPlayerPayload = z.infer<typeof RoomAddBotPlayerSchema>;
 export type RoomSyncPayload = z.infer<typeof RoomSyncSchema>;
+export type RoomAddBotPlayerResponsePayload = z.infer<
+  typeof RoomAddBotPlayerResponseSchema
+>;
 export type RoomCreatedPayload = z.infer<typeof RoomCreatedSchema>;
 export type RoomSyncedPayload = z.infer<typeof RoomSyncedSchema>;
 export type RoomPlayerJoinedPayload = z.infer<typeof RoomPlayerJoinedSchema>;

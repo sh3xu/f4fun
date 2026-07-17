@@ -51,6 +51,28 @@ describe("debt and raise-cash", () => {
     expect(state.phase).not.toBe("RAISE_CASH");
   });
 
+  it("lets a non-active debtor sell assets during raise-cash", () => {
+    const state = createInitialState("test", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    state.activePlayerIndex = 1;
+    state.phase = "RAISE_CASH";
+    state.players.p1.cash = -20;
+    state.players.p1.ownedPositions = [1];
+    state.ownership[1] = { ownerId: "p1", isMortgaged: false };
+    state.pendingDebt = { playerId: "p1", creditorId: "p2" };
+
+    const result = applyAction(
+      state,
+      { type: "SELL_PROPERTY_TO_BANK", position: 1 },
+      Math.random,
+      "p1",
+    );
+    expect(result.error).toBeUndefined();
+    expect(result.events.some((e) => e.type === "DEBT_RESOLVED")).toBe(true);
+  });
+
   it("force-settles debt on timeout", () => {
     const state = createInitialState("test", [
       { id: "p1", name: "Alice", token: "car" },

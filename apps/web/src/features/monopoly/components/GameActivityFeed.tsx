@@ -23,9 +23,9 @@ export function GameActivityFeed({
 
   return (
     <div className={cn(MATERIAL_CARD, "flex flex-col gap-1 p-3", className)}>
-      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
+      <h2 className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
         Table log
-      </p>
+      </h2>
       <ul className="max-h-32 space-y-1 overflow-y-auto text-xs text-gray-300">
         {entries.map((entry) => (
           <li key={entry.id} className="leading-snug">

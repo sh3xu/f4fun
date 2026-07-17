@@ -47,15 +47,6 @@ export function scoreBuildOptions(ctx: StrategyContext): {
     if (action.type === "BUILD_HOTEL") {
       const tile = TILE_BY_POSITION.get(action.position);
       if (tile?.type !== "property") continue;
-      const houses = player.houses[action.position] ?? 0;
-      if (houses < 3) {
-        options.push({
-          action,
-          score: -200,
-          reasoning: "Wait for 3 houses before hotel",
-        });
-        continue;
-      }
       const cashAfter = player.cash - tile.houseCost;
       const score = postActionCashOk(ctx, cashAfter)
         ? tile.rentLevels[5] * 2

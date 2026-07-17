@@ -71,7 +71,13 @@ function defaultScores(ctx: StrategyContext): ScoredOption[] {
     options.push(endTurn);
   }
 
-  const proposals = generateTradeProposals(ctx);
+  const proposals = ctx.legalActions.some(
+    (action) => action.type === "PROPOSE_TRADE",
+  )
+    ? ctx.legalActions.filter(
+        (action): action is GameAction => action.type === "PROPOSE_TRADE",
+      )
+    : generateTradeProposals(ctx);
   options.push(...scoreTradeProposals(ctx, proposals));
 
   return options;

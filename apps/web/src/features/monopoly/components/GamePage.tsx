@@ -653,7 +653,7 @@ export function GamePage() {
       <RailFrame
         as="aside"
         className={cn(
-          "relative z-[2] order-2 flex w-full shrink-0 flex-col gap-3 overflow-hidden p-3.5",
+          "relative z-[2] order-2 flex w-full shrink-0 flex-col gap-3 overflow-y-auto p-3.5 lg:overflow-hidden",
           "max-h-[18rem] lg:max-h-none lg:h-full lg:w-60 xl:w-72",
         )}
       >
@@ -690,7 +690,7 @@ export function GamePage() {
           The ledger
         </p>
 
-        <div className="grid min-h-0 w-full flex-1 grid-cols-2 gap-2.5 overflow-y-auto overflow-x-hidden lg:flex lg:flex-col lg:overflow-y-auto">
+        <div className="grid w-full shrink-0 grid-cols-2 gap-2.5 overflow-x-hidden lg:min-h-0 lg:flex lg:flex-1 lg:flex-col lg:overflow-y-auto">
           {state.turnOrder.map((playerId) => (
             <div key={playerId} className="w-full lg:min-w-0">
               <PlayerHUD

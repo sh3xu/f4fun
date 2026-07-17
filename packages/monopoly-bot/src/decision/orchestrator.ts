@@ -27,7 +27,7 @@ export class BotPlayer {
     if (
       actions.length === 0 &&
       state.phase === "RAISE_CASH" &&
-      state.pendingDebt
+      state.pendingDebt?.playerId === actorId
     ) {
       actions = [{ type: "FORCE_SETTLE_DEBT" }];
     }

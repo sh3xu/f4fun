@@ -20,6 +20,8 @@ export interface Room {
   gameId: string | null;
 }
 
+const MAX_ROOM_PLAYERS = 8;
+
 function generateRoomCode(): string {
   return randomBytes(3).toString("hex").toUpperCase();
 }
@@ -85,7 +87,7 @@ export async function joinRoom(
     return docToRoom(doc);
   }
 
-  if (doc.players.length >= 8) throw new Error("Room is full");
+  if (doc.players.length >= MAX_ROOM_PLAYERS) throw new Error("Room is full");
 
   doc.players.push({
     playerId,
@@ -140,7 +142,7 @@ export async function setPlayerConnected(
 export async function allPlayersDisconnected(roomId: string): Promise<boolean> {
   const doc = await RoomModel.findOne({ roomId });
   if (!doc || doc.players.length === 0) return true;
-  return doc.players.every((p) => !p.isConnected);
+  return doc.players.filter((p) => !p.isBot).every((p) => !p.isConnected);
 }
 
 /**
@@ -150,8 +152,15 @@ export async function allPlayersDisconnected(roomId: string): Promise<boolean> {
 export async function deleteRoomIfAbandoned(roomId: string): Promise<boolean> {
   const result = await RoomModel.findOneAndDelete({
     roomId,
-    // NOTE: Fail if any seat has isConnected: true (reconnect race).
-    players: { $not: { $elemMatch: { isConnected: true } } },
+    // NOTE: Fail if any human seat reconnected since the abandonment check.
+    players: {
+      $not: {
+        $elemMatch: {
+          isBot: { $ne: true },
+          isConnected: true,
+        },
+      },
+    },
   });
   return result !== null;
 }
@@ -205,7 +214,7 @@ export async function addBotPlayer(roomId: string): Promise<Room> {
   const doc = await RoomModel.findOne({ roomId });
   if (!doc) throw new Error("Room not found");
   if (doc.status !== "lobby") throw new Error("Game already started");
-  if (doc.players.length >= 8) throw new Error("Room is full");
+  if (doc.players.length >= MAX_ROOM_PLAYERS) throw new Error("Room is full");
 
   const usedTokens = new Set(doc.players.map((p) => p.token));
   const token =
@@ -215,7 +224,7 @@ export async function addBotPlayer(roomId: string): Promise<Room> {
   const playerId = generateId();
   const playerSecret = generatePlayerSecret();
 
-  doc.players.push({
+  const botPlayer: IRoomPlayer = {
     playerId,
     name: `AI Player ${botCount}`,
     token,
@@ -224,10 +233,28 @@ export async function addBotPlayer(roomId: string): Promise<Room> {
     isConnected: true,
     isBot: true,
     joinedAt: new Date(),
-  });
+  };
 
-  await doc.save();
-  return docToRoom(doc);
+  const updated = await RoomModel.findOneAndUpdate(
+    {
+      roomId,
+      status: "lobby",
+      "players.7": { $exists: false },
+    },
+    { $push: { players: botPlayer } },
+    { new: true },
+  );
+  if (!updated) {
+    const current = await RoomModel.findOne({ roomId });
+    if (!current) throw new Error("Room not found");
+    if (current.status !== "lobby") throw new Error("Game already started");
+    if (current.players.length >= MAX_ROOM_PLAYERS) {
+      throw new Error("Room is full");
+    }
+    throw new Error("Failed to add AI player");
+  }
+
+  return docToRoom(updated);
 }
 
 export async function getBotPlayerIds(roomId: string): Promise<string[]> {

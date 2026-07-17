@@ -7,7 +7,7 @@ import {
 } from "../index.js";
 
 describe("expert vs baseline", () => {
-  it("expert wins majority of games against baseline", () => {
+  it("expert wins at least 70% of games against baseline", () => {
     let expertWins = 0;
     const total = 20;
 

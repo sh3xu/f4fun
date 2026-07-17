@@ -30,6 +30,7 @@ interface TradeTimerEntry {
 
 const turnTimers = new Map<string, TurnTimerEntry>();
 const tradeTimers = new Map<string, TradeTimerEntry>();
+const commitVersions = new Map<string, number>();
 
 function tradeTimerKey(roomId: string, tradeId: string): string {
   return `${roomId}:${tradeId}`;
@@ -77,6 +78,7 @@ export function clearRoomTradeTimers(roomId: string): void {
 export function clearAllRoomTimers(roomId: string): void {
   clearTurnTimer(roomId);
   clearRoomTradeTimers(roomId);
+  commitVersions.delete(roomId);
   void import("./bot-runtime/BotScheduler.js").then((m) =>
     m.clearAllBotTimers(roomId),
   );
@@ -174,7 +176,9 @@ export function afterGameStateCommit(
   state: GameState,
   events: readonly GameEvent[] = [],
 ): void {
-  void afterGameStateCommitAsync(io, roomId, state, events);
+  const version = (commitVersions.get(roomId) ?? 0) + 1;
+  commitVersions.set(roomId, version);
+  void afterGameStateCommitAsync(io, roomId, state, events, version);
 }
 
 async function afterGameStateCommitAsync(
@@ -182,9 +186,13 @@ async function afterGameStateCommitAsync(
   roomId: string,
   state: GameState,
   events: readonly GameEvent[],
+  version: number,
 ): Promise<void> {
   const actorId = resolveActorId(state);
   const botTurn = actorId ? await isBotActor(roomId, actorId) : false;
+  if (commitVersions.get(roomId) !== version) {
+    return;
+  }
 
   if (!botTurn) {
     scheduleTurnTimer(io, roomId, state);

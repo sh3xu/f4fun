@@ -1,7 +1,6 @@
-import type { GameAction } from "@f4fun/monopoly-engine";
+import { evaluateBoardState, type GameAction } from "@f4fun/monopoly-engine";
 import type { StrategyContext } from "../strategy/types.js";
 import { opponentBuildingPressure } from "../valuation/cashBuffer.js";
-import { playerNetScore } from "../valuation/propertyValue.js";
 
 export function scoreJailOptions(ctx: StrategyContext): {
   action: GameAction;
@@ -12,8 +11,7 @@ export function scoreJailOptions(ctx: StrategyContext): {
   const player = state.players[actorId];
   if (!player) return [];
 
-  const evalScore = playerNetScore(state, actorId);
-  const monopolies = evalScore;
+  const monopolies = evaluateBoardState(state, actorId).monopolyCount;
   const earlyGame = Object.keys(state.ownership).length < 12;
   const pressure = opponentBuildingPressure(state, actorId);
   const options: { action: GameAction; score: number; reasoning: string }[] =

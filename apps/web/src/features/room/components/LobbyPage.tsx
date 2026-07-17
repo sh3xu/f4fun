@@ -1,7 +1,7 @@
 "use client";
 
 import type {
-  PlayerInfo,
+  RoomAddBotPlayerResponsePayload,
   RoomGameStartedPayload,
   RoomPlayerJoinedPayload,
   RoomPlayerLeftPayload,
@@ -61,6 +61,7 @@ export function LobbyPage() {
   const activeRoomCode = roomCode || codeFromUrl;
   const isHost = players.find((p) => p.id === myPlayerId)?.isHost ?? false;
   const canStart = players.length >= 2 && players.every((p) => p.isConnected);
+  const lobbyActionPending = addingBot || loading;
 
   useEffect(() => {
     let cancelled = false;
@@ -187,13 +188,13 @@ export function LobbyPage() {
   ]);
 
   const handleAddBot = async () => {
-    if (!activeRoomCode) return;
+    if (!activeRoomCode || lobbyActionPending) return;
 
     setAddingBot(true);
     setError("");
 
     try {
-      const response = await emitWithCallback<{ players: PlayerInfo[] }>(
+      const response = await emitWithCallback<RoomAddBotPlayerResponsePayload>(
         "room:addBotPlayer",
         { roomCode: activeRoomCode },
       );
@@ -208,7 +209,7 @@ export function LobbyPage() {
   };
 
   const handleStart = async () => {
-    if (!activeRoomCode) return;
+    if (!activeRoomCode || lobbyActionPending) return;
 
     setLoading(true);
     setError("");
@@ -315,7 +316,7 @@ export function LobbyPage() {
             <Button
               variant="tokenGhost"
               onClick={handleAddBot}
-              disabled={addingBot}
+              disabled={lobbyActionPending}
               className="h-11 w-full gap-2 font-bold"
             >
               <Bot className="h-4 w-4" />
@@ -327,7 +328,7 @@ export function LobbyPage() {
             <Button
               variant="token"
               onClick={handleStart}
-              disabled={!canStart || loading}
+              disabled={!canStart || lobbyActionPending}
               size="lg"
               className="h-12 w-full font-extrabold"
             >
