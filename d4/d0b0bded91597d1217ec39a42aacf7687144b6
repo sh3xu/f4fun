@@ -1,0 +1,21 @@
+.husky/pre-commit
+  s_53f89b22aa9735::t_6bbc965908803e 1
+package.json
+  s_53f89b22aa9735::t_1c1617799bbf9c 14-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "d4d0b0bded91597d1217ec39a42aacf7687144b6",
+  "prompts": {},
+  "sessions": {
+    "s_53f89b22aa9735": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "bd37dbf6-93ed-4ae9-b4db-73b77a899958",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
