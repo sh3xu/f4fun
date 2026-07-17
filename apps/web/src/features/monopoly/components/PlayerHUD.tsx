@@ -15,6 +15,7 @@ interface PlayerHUDProps {
   player: PlayerState;
   isActive: boolean;
   isMe: boolean;
+  isBot?: boolean;
   turnOrder: string[];
   deadlineAt?: string | null;
   deadlinePausedMs?: number | null;
@@ -25,6 +26,7 @@ export function PlayerHUD({
   player,
   isActive,
   isMe,
+  isBot,
   turnOrder,
   deadlineAt = null,
   deadlinePausedMs = null,
@@ -66,6 +68,11 @@ export function PlayerHUD({
             {isMe && (
               <span className="shrink-0 rounded border border-[#4fc3f7]/20 bg-[#4fc3f7]/10 px-1 py-px text-[9px] font-semibold text-[#4fc3f7]">
                 you
+              </span>
+            )}
+            {isBot && !isMe && (
+              <span className="shrink-0 rounded border border-violet-400/20 bg-violet-400/10 px-1 py-px text-[9px] font-semibold text-violet-300">
+                AI
               </span>
             )}
             {isActive && !player.isBankrupt && (

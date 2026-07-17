@@ -6,6 +6,7 @@ interface PlayerBadgeProps {
   name: string;
   avatarId: string;
   isHost?: boolean;
+  isBot?: boolean;
   isOnline?: boolean;
   className?: string;
 }
@@ -14,6 +15,7 @@ export function PlayerBadge({
   name,
   avatarId,
   isHost,
+  isBot,
   isOnline,
   className,
 }: PlayerBadgeProps) {
@@ -39,6 +41,11 @@ export function PlayerBadge({
         {isHost && (
           <span className="text-[10px] text-[#4fc3f7] font-bold uppercase tracking-wide">
             Host
+          </span>
+        )}
+        {!isHost && isBot && (
+          <span className="text-[10px] text-violet-300 font-bold uppercase tracking-wide">
+            AI
           </span>
         )}
       </div>

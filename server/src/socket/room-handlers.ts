@@ -4,6 +4,7 @@ import {
   stampActionDeadline,
 } from "@f4fun/monopoly-engine";
 import {
+  RoomAddBotPlayerSchema,
   RoomCreateSchema,
   RoomJoinSchema,
   RoomStartGameSchema,
@@ -14,6 +15,7 @@ import { afterGameStateCommit } from "../games/monopoly/DeadlineTimers.js";
 import { createGame, generateGameId } from "../games/monopoly/GameStore.js";
 import { cancelGrace } from "../rooms/DisconnectGrace.js";
 import {
+  addBotPlayer,
   createRoom,
   generatePlayerSecret,
   getRoom,
@@ -37,6 +39,7 @@ function toPlayerInfoList(
     token: string;
     isHost: boolean;
     isConnected: boolean;
+    isBot?: boolean;
   }>,
 ) {
   return players.map((p) => ({
@@ -45,6 +48,7 @@ function toPlayerInfoList(
     token: p.token,
     isHost: p.isHost,
     isConnected: p.isConnected,
+    isBot: p.isBot ?? false,
   }));
 }
 
@@ -110,6 +114,7 @@ export function registerRoomHandlers(
         isHost:
           room.players.find((p) => p.playerId === playerId)?.isHost || false,
         isConnected: true,
+        isBot: false,
       };
 
       callback(null, {
@@ -162,6 +167,50 @@ export function registerRoomHandlers(
         roomCode: room.code,
         players: toPlayerInfoList(room.players),
       });
+    } catch (err) {
+      callback((err as Error).message);
+    }
+  });
+
+  socket.on("room:addBotPlayer", async (payload, callback) => {
+    const data = validatePayload(RoomAddBotPlayerSchema)(payload, callback);
+    if (!data) return;
+
+    try {
+      const room = await getRoom(socket.roomId || "");
+      if (!room) {
+        callback("Room not found");
+        return;
+      }
+
+      if (socket.playerId !== room.hostId) {
+        callback("Only host can add AI players");
+        return;
+      }
+
+      if (room.status !== "lobby") {
+        callback("Game already started");
+        return;
+      }
+
+      const updated = await addBotPlayer(room.roomId);
+      const botPlayer = updated.players[updated.players.length - 1];
+      if (!botPlayer) {
+        callback("Failed to add AI player");
+        return;
+      }
+
+      const playerInfo = {
+        id: botPlayer.playerId,
+        name: botPlayer.name,
+        token: botPlayer.token,
+        isHost: false,
+        isConnected: true,
+        isBot: true,
+      };
+
+      callback(null, { players: toPlayerInfoList(updated.players) });
+      socket.to(room.roomId).emit("room:playerJoined", { player: playerInfo });
     } catch (err) {
       callback((err as Error).message);
     }

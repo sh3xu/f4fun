@@ -1,12 +1,13 @@
 "use client";
 
 import type {
+  PlayerInfo,
   RoomGameStartedPayload,
   RoomPlayerJoinedPayload,
   RoomPlayerLeftPayload,
   RoomSyncedPayload,
 } from "@f4fun/shared-types";
-import { Copy, Users } from "lucide-react";
+import { Bot, Copy, Users } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
@@ -52,6 +53,7 @@ export function LobbyPage() {
   } = useRoomStore();
 
   const [loading, setLoading] = useState(false);
+  const [addingBot, setAddingBot] = useState(false);
   const [syncing, setSyncing] = useState(true);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
@@ -184,6 +186,27 @@ export function LobbyPage() {
     router,
   ]);
 
+  const handleAddBot = async () => {
+    if (!activeRoomCode) return;
+
+    setAddingBot(true);
+    setError("");
+
+    try {
+      const response = await emitWithCallback<{ players: PlayerInfo[] }>(
+        "room:addBotPlayer",
+        { roomCode: activeRoomCode },
+      );
+      if (response?.players) {
+        setRoom(roomId || "", activeRoomCode, response.players);
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setAddingBot(false);
+    }
+  };
+
   const handleStart = async () => {
     if (!activeRoomCode) return;
 
@@ -273,6 +296,7 @@ export function LobbyPage() {
                         myToken,
                       )}
                       isHost={player.isHost}
+                      isBot={player.isBot}
                       isOnline={player.isConnected}
                     />
                   </div>
@@ -285,6 +309,18 @@ export function LobbyPage() {
             <div className="rounded-md border border-rose-400/20 bg-rose-500/10 p-3 text-xs font-semibold text-rose-300">
               {error}
             </div>
+          )}
+
+          {isHost && players.length < 8 && (
+            <Button
+              variant="tokenGhost"
+              onClick={handleAddBot}
+              disabled={addingBot}
+              className="h-11 w-full gap-2 font-bold"
+            >
+              <Bot className="h-4 w-4" />
+              {addingBot ? "Adding AI..." : "Add AI Player"}
+            </Button>
           )}
 
           {isHost && (

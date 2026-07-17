@@ -266,6 +266,11 @@ export const GameWonSchema = z.object({
   winnerId: z.string(),
 });
 
+export const GameBotReasoningSchema = z.object({
+  playerId: z.string(),
+  message: z.string().max(120),
+});
+
 export const GameErrorSchema = z.object({
   message: z.string(),
 });
@@ -354,4 +359,5 @@ export type GamePlayerBankruptPayload = z.infer<
 >;
 export type GameTurnAdvancedPayload = z.infer<typeof GameTurnAdvancedSchema>;
 export type GameWonPayload = z.infer<typeof GameWonSchema>;
+export type GameBotReasoningPayload = z.infer<typeof GameBotReasoningSchema>;
 export type GameErrorPayload = z.infer<typeof GameErrorSchema>;

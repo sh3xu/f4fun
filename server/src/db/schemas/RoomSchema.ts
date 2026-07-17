@@ -9,6 +9,7 @@ export interface IRoomPlayer {
   playerSecret: string;
   isHost: boolean;
   isConnected: boolean;
+  isBot: boolean;
   joinedAt: Date;
 }
 
@@ -31,6 +32,7 @@ const RoomPlayerSchema = new Schema<IRoomPlayer>(
     playerSecret: { type: String, required: true },
     isHost: { type: Boolean, default: false },
     isConnected: { type: Boolean, default: true },
+    isBot: { type: Boolean, default: false },
     joinedAt: { type: Date, default: Date.now },
   },
   { _id: false },

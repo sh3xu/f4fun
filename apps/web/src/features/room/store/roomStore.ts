@@ -6,6 +6,7 @@ export interface RoomPlayer {
   token: string;
   isHost: boolean;
   isConnected: boolean;
+  isBot?: boolean;
 }
 
 interface RoomStore {

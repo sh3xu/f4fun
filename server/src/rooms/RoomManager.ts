@@ -8,6 +8,7 @@ export interface RoomPlayer {
   token: string;
   isHost: boolean;
   isConnected: boolean;
+  isBot: boolean;
 }
 
 export interface Room {
@@ -47,6 +48,7 @@ export async function createRoom(
     playerSecret,
     isHost: true,
     isConnected: true,
+    isBot: false,
     joinedAt: new Date(),
   };
 
@@ -92,6 +94,7 @@ export async function joinRoom(
     playerSecret,
     isHost: false,
     isConnected: true,
+    isBot: false,
     joinedAt: new Date(),
   });
 
@@ -187,6 +190,52 @@ export async function verifyPlayerSession(
   return doc ? docToRoom(doc) : null;
 }
 
+const BOT_TOKENS = [
+  "memo_1",
+  "memo_2",
+  "memo_3",
+  "memo_4",
+  "memo_5",
+  "memo_6",
+  "memo_7",
+  "memo_8",
+] as const;
+
+export async function addBotPlayer(roomId: string): Promise<Room> {
+  const doc = await RoomModel.findOne({ roomId });
+  if (!doc) throw new Error("Room not found");
+  if (doc.status !== "lobby") throw new Error("Game already started");
+  if (doc.players.length >= 8) throw new Error("Room is full");
+
+  const usedTokens = new Set(doc.players.map((p) => p.token));
+  const token =
+    BOT_TOKENS.find((t) => !usedTokens.has(t)) ??
+    BOT_TOKENS[doc.players.length % BOT_TOKENS.length];
+  const botCount = doc.players.filter((p) => p.isBot).length + 1;
+  const playerId = generateId();
+  const playerSecret = generatePlayerSecret();
+
+  doc.players.push({
+    playerId,
+    name: `AI Player ${botCount}`,
+    token,
+    playerSecret,
+    isHost: false,
+    isConnected: true,
+    isBot: true,
+    joinedAt: new Date(),
+  });
+
+  await doc.save();
+  return docToRoom(doc);
+}
+
+export async function getBotPlayerIds(roomId: string): Promise<string[]> {
+  const doc = await RoomModel.findOne({ roomId });
+  if (!doc) return [];
+  return doc.players.filter((p) => p.isBot).map((p) => p.playerId);
+}
+
 function docToRoom(doc: Awaited<ReturnType<typeof RoomModel.findOne>>): Room {
   if (!doc) throw new Error("Null doc");
   return {
@@ -200,6 +249,7 @@ function docToRoom(doc: Awaited<ReturnType<typeof RoomModel.findOne>>): Room {
       token: p.token,
       isHost: p.isHost,
       isConnected: p.isConnected,
+      isBot: p.isBot ?? false,
     })),
     gameId: doc.gameId,
   };

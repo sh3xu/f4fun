@@ -6,6 +6,7 @@ export const PlayerInfoSchema = z.object({
   token: z.string(),
   isHost: z.boolean(),
   isConnected: z.boolean(),
+  isBot: z.boolean().default(false),
 });
 
 export type PlayerInfo = z.infer<typeof PlayerInfoSchema>;
@@ -25,10 +26,18 @@ export const RoomStartGameSchema = z.object({
   roomCode: z.string().length(6),
 });
 
+export const RoomAddBotPlayerSchema = z.object({
+  roomCode: z.string().length(6),
+});
+
 export const RoomSyncSchema = z.object({
   roomCode: z.string().length(6),
   playerId: z.string().optional(),
   playerSecret: z.string().min(1).optional(),
+});
+
+export const RoomAddBotPlayerResponseSchema = z.object({
+  players: z.array(PlayerInfoSchema),
 });
 
 export const RoomCreatedSchema = z.object({
@@ -66,6 +75,7 @@ export const RoomErrorSchema = z.object({
 export type RoomCreatePayload = z.infer<typeof RoomCreateSchema>;
 export type RoomJoinPayload = z.infer<typeof RoomJoinSchema>;
 export type RoomStartGamePayload = z.infer<typeof RoomStartGameSchema>;
+export type RoomAddBotPlayerPayload = z.infer<typeof RoomAddBotPlayerSchema>;
 export type RoomSyncPayload = z.infer<typeof RoomSyncSchema>;
 export type RoomCreatedPayload = z.infer<typeof RoomCreatedSchema>;
 export type RoomSyncedPayload = z.infer<typeof RoomSyncedSchema>;

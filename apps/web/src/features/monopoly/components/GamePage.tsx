@@ -2,6 +2,7 @@
 
 import type { GameEvent, GameState, TradeOffer } from "@f4fun/monopoly-engine";
 import { TILE_BY_POSITION, timeoutSecsForPhase } from "@f4fun/monopoly-engine";
+import type { GameBotReasoningPayload } from "@f4fun/shared-types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Toaster, toast } from "sonner";
 import { Button } from "@/components/ui/Button";
@@ -13,6 +14,7 @@ import { emitWithCallback, getSocket } from "@/lib/socket";
 import { useDeferredGameEventToasts } from "../hooks/useDeferredGameEventToasts";
 import { useGameStore } from "../store/gameStore";
 import { Board } from "./Board";
+import { type ActivityEntry, GameActivityFeed } from "./GameActivityFeed";
 import { IncomingTradeOfferCard } from "./IncomingTradeOfferCard";
 import { PlayerHUD } from "./PlayerHUD";
 import { TradeModal } from "./TradeModal";
@@ -36,6 +38,7 @@ export function GamePage() {
     roomCode,
     myPlayerId,
     myPlayerSecret,
+    players: roomPlayers,
     setRoomId,
     setMyPlayerId,
     setMyPlayerSecret,
@@ -45,6 +48,7 @@ export function GamePage() {
   const [initializing, setInitializing] = useState(true);
   const [winnerId, setWinnerId] = useState<string | null>(null);
   const [tradeOpen, setTradeOpen] = useState(false);
+  const [activityEntries, setActivityEntries] = useState<ActivityEntry[]>([]);
 
   useEffect(() => {
     if (!roomId && typeof window !== "undefined") {
@@ -280,8 +284,23 @@ export function GamePage() {
         dispatchGameEventToastsRef.current(data.events);
       };
 
+      const handleBotReasoning = (data: GameBotReasoningPayload) => {
+        const playerName =
+          useGameStore.getState().state?.players[data.playerId]?.name ??
+          "AI Player";
+        const entry: ActivityEntry = {
+          id: `${data.playerId}-${Date.now()}`,
+          playerId: data.playerId,
+          playerName,
+          message: data.message,
+        };
+        setActivityEntries((prev) => [entry, ...prev].slice(0, 8));
+        toast.info(`${playerName}: ${data.message}`, { duration: 3500 });
+      };
+
       socket.on("game:stateSnapshot", handleStateSnapshot);
       socket.on("game:stateUpdated", handleStateUpdated);
+      socket.on("game:botReasoning", handleBotReasoning);
 
       socket.emit("game:rejoin", {
         roomId,
@@ -300,6 +319,7 @@ export function GamePage() {
         clearTimeout(timeout);
         socket.off("game:stateSnapshot", handleStateSnapshot);
         socket.off("game:stateUpdated", handleStateUpdated);
+        socket.off("game:botReasoning", handleBotReasoning);
       };
     }
 
@@ -670,6 +690,8 @@ export function GamePage() {
           The ledger
         </p>
 
+        <GameActivityFeed entries={activityEntries} className="w-full" />
+
         <div className="grid min-h-0 w-full flex-1 grid-cols-2 gap-2.5 overflow-y-auto overflow-x-hidden lg:flex lg:flex-col lg:overflow-y-auto">
           {state.turnOrder.map((playerId) => (
             <div key={playerId} className="w-full lg:min-w-0">
@@ -677,6 +699,9 @@ export function GamePage() {
                 player={state.players[playerId]}
                 isActive={playerId === activePlayerId}
                 isMe={playerId === myPlayerId}
+                isBot={
+                  roomPlayers.find((p) => p.id === playerId)?.isBot ?? false
+                }
                 turnOrder={state.turnOrder}
                 deadlineAt={
                   playerId === activePlayerId ? state.actionDeadlineAt : null

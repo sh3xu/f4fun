@@ -10,6 +10,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@f4fun/monopoly-bot": "workspace:*",
     "@f4fun/monopoly-engine": "workspace:*",
     "@f4fun/shared-types": "workspace:*",
     "dotenv": "^17.4.2",
