@@ -216,8 +216,8 @@ export function BoardTile({
   const tileIcon = getTileIcon(tile);
   const side = getBoardSide(tile.position);
   const isCorner = side === "corner";
-  // NOTE: Top/bottom use vertical lettering; left/right use horizontal (vice versa of classic Monopoly).
-  const isVerticalText = side === "top" || side === "bottom";
+  const isVerticalLabel = side === "top" || side === "bottom";
+  const isVerticalPrice = side === "left" || side === "right";
   const ownerColor =
     ownerId && turnOrder.length > 0 ? getPlayerColor(ownerId, turnOrder) : null;
 
@@ -241,15 +241,14 @@ export function BoardTile({
     "drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]",
     "text-[length:var(--board-text-sm)]",
     "break-words line-clamp-2 overflow-hidden text-ellipsis px-0.5 max-w-full",
-    // vertical-rl: letters stack top→bottom on upper/lower rows
-    isVerticalText && "[writing-mode:vertical-rl] rotate-180",
+    isVerticalLabel && "[writing-mode:vertical-rl] rotate-180",
   );
 
   const priceMode = cn(
     BOARD_MONEY_CLASS,
     "whitespace-nowrap leading-none",
     "text-[length:var(--board-money)]",
-    isVerticalText && "[writing-mode:vertical-rl] rotate-180",
+    isVerticalPrice && "[writing-mode:vertical-rl] rotate-180",
   );
 
   const tileTitle = `${getTileLabel(tile.name)}${isOwned && ownerName ? ` (owned by ${ownerName})` : ""}${isMortgaged ? " [Mortgaged]" : ""}`;
