@@ -1,0 +1,29 @@
+packages/monopoly-engine/vitest.config.ts
+  h_54cccc4af8e4fc 5
+  s_7ed00ff5d8e926::t_3613a0a91b3748 1-4,6-8
+apps/web/vitest.config.ts
+  s_7ed00ff5d8e926::t_cd895b4c8b44c0 11-12
+packages/monopoly-bot/vitest.config.ts
+  s_7ed00ff5d8e926::t_d59d61ae7ff061 1-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "0dea752abaa740fb1d5a47934c9e2778c4602a6f",
+  "prompts": {},
+  "humans": {
+    "h_54cccc4af8e4fc": {
+      "author": "sh3xu <s43khu@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_7ed00ff5d8e926": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "c110103c-270c-4c59-ae10-dd9b8f12d76e",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
