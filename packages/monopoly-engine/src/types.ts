@@ -67,6 +67,15 @@ export interface PendingCard {
 /** Pause so all clients can read Chance / Community Chest before acknowledge. */
 export const CARD_REVEAL_PAUSE_MS = 3000;
 
+/** Clear reveal lock — headless sims and legal-action probes skip the UI pause. */
+export function releaseCardRevealPause(state: {
+  pendingCard: PendingCard | null;
+}): void {
+  if (state.pendingCard?.drawnAt) {
+    state.pendingCard.drawnAt = new Date(0).toISOString();
+  }
+}
+
 export interface AuctionBidLogEntry {
   playerId: PlayerId;
   /** Bid amount, or null when the player passed / autofolded. */

@@ -7,6 +7,7 @@ import type {
   PlayerId,
   RNG,
 } from "./types.js";
+import { releaseCardRevealPause } from "./types.js";
 
 /**
  * Apply an action on a cloned state; the input state is never mutated.
@@ -19,5 +20,7 @@ export function simulateAction(
   actorId?: PlayerId,
 ): ApplyResult {
   const clone = cloneState(state);
+  // NOTE: Reveal pause is a live UX gate; legality probes must still see ACK as valid.
+  releaseCardRevealPause(clone);
   return applyAction(clone, action, rng, actorId);
 }

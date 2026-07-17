@@ -2,6 +2,7 @@ import {
   applyAction,
   createInitialState,
   getLegalActions,
+  releaseCardRevealPause,
   simulateAction,
 } from "@f4fun/monopoly-engine";
 import { describe, expect, it } from "vitest";
@@ -31,6 +32,10 @@ describe("legality", () => {
       const legal = getLegalActions(state, actorId);
       const rng = seededRng(99 + turns);
       const decision = bot.decide(state, actorId, legal, rng);
+
+      if (decision.action.type === "ACKNOWLEDGE_CARD") {
+        releaseCardRevealPause(state);
+      }
 
       const sim = simulateAction(state, decision.action, rng, actorId);
       expect(sim.error).toBeUndefined();

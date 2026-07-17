@@ -6,7 +6,7 @@ import { diceSum } from "../dice.js";
 import { applyAction, createInitialState } from "../index.js";
 import { resolveLanding } from "../resolveLanding.js";
 import type { GameState } from "../types.js";
-import { CARD_REVEAL_PAUSE_MS } from "../types.js";
+import { CARD_REVEAL_PAUSE_MS, releaseCardRevealPause } from "../types.js";
 
 const fixedRng = () => 0;
 
@@ -21,11 +21,8 @@ function seededRng(values: number[]): () => number {
   return () => values[i++ % values.length];
 }
 
-/** Skip the multiplayer card-reveal pause in unit tests. */
 function allowImmediateCardAck(state: GameState) {
-  if (state.pendingCard) {
-    state.pendingCard.drawnAt = new Date(0).toISOString();
-  }
+  releaseCardRevealPause(state);
 }
 
 describe("drawCardId", () => {

@@ -11,6 +11,7 @@ import {
   type PlayerId,
   phaseAfterDiceAction,
   type RNG,
+  releaseCardRevealPause,
   timeoutActionForState,
 } from "@f4fun/monopoly-engine";
 import { BotPlayer } from "../decision/orchestrator.js";
@@ -142,6 +143,11 @@ export function runHeadlessGame(
     }
 
     const decision = bot.decide(state, actorId, legal, rng);
+
+    // NOTE: Headless has no card UI — skip the multiplayer reveal pause.
+    if (decision.action.type === "ACKNOWLEDGE_CARD") {
+      releaseCardRevealPause(state);
+    }
 
     // NOTE: Recipient bot remembers on REJECT inside decide(); also stamp the
     // proposer so they never re-offer the same deal in a loop.
