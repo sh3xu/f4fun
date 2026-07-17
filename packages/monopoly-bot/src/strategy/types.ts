@@ -17,6 +17,12 @@ export interface StrategyContext {
   actorId: PlayerId;
   legalActions: GameAction[];
   rng: RNG;
+  /**
+   * Rejected deal locks (`fingerprint::partnerCondition`).
+   * Blocks re-offer only while the partner's trade conditions are unchanged;
+   * cleared at the start of the bot's next PRE_ROLL turn.
+   */
+  rejectedTradeLocks?: ReadonlySet<string>;
 }
 
 export interface StrategyProfile {

@@ -1,6 +1,11 @@
-import { BotPlayer, expertStrategy, resolveActorId } from "@f4fun/monopoly-bot";
+import {
+  partnerTradeConditionKey,
+  pendingTradeFingerprint,
+  resolveActorId,
+} from "@f4fun/monopoly-bot";
 import type { GameAction, GameEvent, GameState } from "@f4fun/monopoly-engine";
 import {
+  CARD_REVEAL_PAUSE_MS,
   getLegalActions,
   lookupCard,
   timeoutActionForState,
@@ -12,6 +17,7 @@ import {
   emitDiceRolledEvents,
   executeGameIntent,
 } from "../executeGameIntent.js";
+import { getBotPlayer, rememberRejectedDealForProposer } from "./botMemory.js";
 
 interface BotTimerEntry {
   timer: ReturnType<typeof setTimeout>;
@@ -19,7 +25,6 @@ interface BotTimerEntry {
 }
 
 const botTimers = new Map<string, BotTimerEntry>();
-const botPlayers = new Map<string, BotPlayer>();
 
 /** Mirrors client DiceRoller TUMBLE_MS. */
 const DICE_ANIMATION_MS = 800;
@@ -173,15 +178,6 @@ function animationWaitMs(events: readonly GameEvent[]): number {
   return wait;
 }
 
-function getBotPlayer(playerId: string): BotPlayer {
-  let bot = botPlayers.get(playerId);
-  if (!bot) {
-    bot = new BotPlayer(expertStrategy);
-    botPlayers.set(playerId, bot);
-  }
-  return bot;
-}
-
 export async function isBotActor(
   roomId: string,
   actorId: string,
@@ -215,7 +211,9 @@ export function scheduleBotActions(
 
     clearBotTimer(roomId, actorId);
 
-    const delay = thinkingDelayMs() + animationWaitMs(events);
+    // NOTE: CARD_DRAWN — wait out land animation, then hold the card on-screen.
+    const revealPause = state.phase === "CARD_DRAWN" ? CARD_REVEAL_PAUSE_MS : 0;
+    const delay = thinkingDelayMs() + animationWaitMs(events) + revealPause;
     const timer = setTimeout(() => {
       void runBotTurn(io, roomId, actorId);
     }, delay);
@@ -258,6 +256,21 @@ async function runBotTurn(
     decision = bot.decide(state, actorId, legal);
   } catch {
     return;
+  }
+
+  // NOTE: Stamp the proposer so they cannot re-offer the same rejected deal.
+  if (decision.action.type === "REJECT_TRADE") {
+    const rejectAction = decision.action;
+    const trade = state.pendingTrades.find(
+      (t) => t.tradeId === rejectAction.tradeId,
+    );
+    if (trade) {
+      rememberRejectedDealForProposer(
+        trade.fromPlayerId,
+        pendingTradeFingerprint(trade),
+        partnerTradeConditionKey(state, trade.toPlayerId),
+      );
+    }
   }
 
   io.to(roomId).emit("game:botReasoning", {

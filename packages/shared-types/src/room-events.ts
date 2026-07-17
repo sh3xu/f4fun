@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+/** Human nicknames: letters and digits only (bots may use special chars). */
+export const HumanPlayerNameSchema = z
+  .string()
+  .min(1)
+  .max(16)
+  .regex(/^[A-Za-z0-9]+$/, "Name may only contain letters and numbers");
+
 export const PlayerInfoSchema = z.object({
   id: z.string(),
   name: z.string().min(1).max(24),
@@ -12,13 +19,13 @@ export const PlayerInfoSchema = z.object({
 export type PlayerInfo = z.infer<typeof PlayerInfoSchema>;
 
 export const RoomCreateSchema = z.object({
-  playerName: z.string().min(1).max(24),
+  playerName: HumanPlayerNameSchema,
   token: z.string().min(1),
 });
 
 export const RoomJoinSchema = z.object({
   roomCode: z.string().length(6),
-  playerName: z.string().min(1).max(24),
+  playerName: HumanPlayerNameSchema,
   token: z.string().min(1),
 });
 

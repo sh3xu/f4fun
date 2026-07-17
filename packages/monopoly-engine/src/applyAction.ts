@@ -30,6 +30,7 @@ import type {
   PlayerId,
   RNG,
 } from "./types.js";
+import { CARD_REVEAL_PAUSE_MS } from "./types.js";
 
 function afterCashAffectingAction(
   state: GameState,
@@ -466,6 +467,21 @@ export function applyAction(
         }
         if (!state.pendingCard) {
           return { state, events: [], error: "No pending card" };
+        }
+
+        // NOTE: Floor so Chance/CC stay on screen for every client before resolve.
+        if (state.pendingCard.drawnAt) {
+          const drawnMs = Date.parse(state.pendingCard.drawnAt);
+          if (
+            Number.isFinite(drawnMs) &&
+            Date.now() < drawnMs + CARD_REVEAL_PAUSE_MS
+          ) {
+            return {
+              state,
+              events: [],
+              error: "Card reveal in progress",
+            };
+          }
         }
 
         const { deck: deckKey, cardId } = state.pendingCard;

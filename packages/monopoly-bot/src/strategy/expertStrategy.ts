@@ -78,7 +78,23 @@ function defaultScores(ctx: StrategyContext): ScoredOption[] {
         (action): action is GameAction => action.type === "PROPOSE_TRADE",
       )
     : generateTradeProposals(ctx);
-  options.push(...scoreTradeProposals(ctx, proposals));
+  const tradeOptions = scoreTradeProposals(ctx, proposals);
+  options.push(...tradeOptions);
+
+  // Prefer a strong trade over ending the turn when both are available.
+  if (ctx.state.phase === "END_TURN") {
+    const bestTrade = tradeOptions.reduce(
+      (max, o) => Math.max(max, o.score),
+      0,
+    );
+    if (bestTrade >= 650) {
+      for (const option of options) {
+        if (option.action.type === "END_TURN") {
+          option.score = 100;
+        }
+      }
+    }
+  }
 
   return options;
 }

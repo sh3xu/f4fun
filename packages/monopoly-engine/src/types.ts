@@ -60,6 +60,18 @@ export interface DeckState {
 export interface PendingCard {
   deck: "chance" | "community_chest";
   cardId: string;
+  /** ISO time the card entered CARD_DRAWN (server clock). */
+  drawnAt?: string;
+}
+
+/** Pause so all clients can read Chance / Community Chest before acknowledge. */
+export const CARD_REVEAL_PAUSE_MS = 3000;
+
+export interface AuctionBidLogEntry {
+  playerId: PlayerId;
+  /** Bid amount, or null when the player passed / autofolded. */
+  amount: number | null;
+  kind: "bid" | "pass" | "autofold";
 }
 
 export interface AuctionState {
@@ -71,6 +83,8 @@ export interface AuctionState {
   bidderOrder: PlayerId[];
   currentBidderIndex: number;
   minNextBid: number;
+  /** Chronological bid / pass log for the UI. */
+  bidHistory: AuctionBidLogEntry[];
   /** Phase to restore when auction ends. */
   resumePhase:
     | "PRE_ROLL"

@@ -4,6 +4,12 @@ export {
   createBotPlayer,
 } from "./decision/orchestrator.js";
 export {
+  partnerTradeConditionKey,
+  pendingTradeFingerprint,
+  rejectedDealLockKey,
+  tradeDealFingerprint,
+} from "./decision/tradeFingerprint.js";
+export {
   type HeadlessGameResult,
   resolveActorId,
   runHeadlessGame,

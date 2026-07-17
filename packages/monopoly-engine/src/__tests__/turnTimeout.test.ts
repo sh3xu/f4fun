@@ -57,6 +57,7 @@ describe("turnTimeout", () => {
       bidderOrder: ["p2", "p1"],
       currentBidderIndex: 0,
       minNextBid: 10,
+      bidHistory: [],
       resumePhase: "END_TURN",
     };
     expect(timeoutActionForState(state)).toEqual({

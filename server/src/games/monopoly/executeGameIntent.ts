@@ -1,4 +1,8 @@
 import {
+  partnerTradeConditionKey,
+  pendingTradeFingerprint,
+} from "@f4fun/monopoly-bot";
+import {
   applyAction,
   type GameAction,
   type GameEvent,
@@ -10,6 +14,7 @@ import {
   stampActionDeadline,
 } from "@f4fun/monopoly-engine";
 import type { Server } from "socket.io";
+import { rememberRejectedDealForProposer } from "./bot-runtime/botMemory.js";
 import {
   afterGameStateCommit,
   ensureTradeExpiries,
@@ -51,6 +56,10 @@ export function normalizeState(state: GameState): boolean {
   }
   if (state.pendingDebt === undefined) {
     state.pendingDebt = null;
+    changed = true;
+  }
+  if (state.auction && !Array.isArray(state.auction.bidHistory)) {
+    state.auction.bidHistory = [];
     changed = true;
   }
   mergeGameConfig(state);
@@ -152,6 +161,26 @@ export async function executeGameIntent(
     }
 
     const stateBefore = JSON.parse(JSON.stringify(state)) as GameState;
+
+    // NOTE: Capture deal fingerprint before reject clears pendingTrades.
+    let rejectedFingerprint: {
+      fromPlayerId: string;
+      key: string;
+      partnerCondition: string;
+    } | null = null;
+    if (action.type === "REJECT_TRADE") {
+      const trade = state.pendingTrades.find(
+        (t) => t.tradeId === action.tradeId,
+      );
+      if (trade) {
+        rejectedFingerprint = {
+          fromPlayerId: trade.fromPlayerId,
+          key: pendingTradeFingerprint(trade),
+          partnerCondition: partnerTradeConditionKey(state, trade.toPlayerId),
+        };
+      }
+    }
+
     const result = applyAction(state, action, Math.random, playerId);
 
     if (result.error) {
@@ -163,6 +192,14 @@ export async function executeGameIntent(
         afterGameStateCommit(io, roomId, state);
       }
       return { ok: false, error: result.error };
+    }
+
+    if (rejectedFingerprint) {
+      rememberRejectedDealForProposer(
+        rejectedFingerprint.fromPlayerId,
+        rejectedFingerprint.key,
+        rejectedFingerprint.partnerCondition,
+      );
     }
 
     refreshActionDeadline(stateBefore, result.state, result.events);

@@ -38,16 +38,18 @@ export function PlayerBadge({
         <span className="text-sm font-semibold text-gray-100 truncate">
           {name}
         </span>
-        {isHost && (
-          <span className="text-[10px] text-[#4fc3f7] font-bold uppercase tracking-wide">
-            Host
-          </span>
-        )}
-        {!isHost && isBot && (
-          <span className="text-[10px] text-violet-300 font-bold uppercase tracking-wide">
-            AI
-          </span>
-        )}
+        <div className="flex items-center gap-1.5">
+          {isHost && (
+            <span className="text-[10px] text-[#4fc3f7] font-bold uppercase tracking-wide">
+              Host
+            </span>
+          )}
+          {isBot && (
+            <span className="rounded-full border border-violet-400/30 bg-violet-500/20 px-1.5 py-px text-[9px] font-bold uppercase tracking-wide text-violet-200">
+              AI
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

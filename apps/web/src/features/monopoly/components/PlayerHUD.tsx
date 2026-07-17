@@ -7,9 +7,10 @@ import { CounterTicker } from "@/components/animation/CounterTicker";
 import { Avatar } from "@/components/ui/Avatar";
 import { cn } from "@/lib/cn";
 import { getPlayerColor } from "@/lib/player-colors";
+import { useGameStore } from "../store/gameStore";
 import { BOARD_MONEY_CLASS, MATERIAL_CARD } from "../theme/board-theme";
+import { PropertySwatch } from "./PropertySwatch";
 import { TurnTimerRing } from "./TurnTimerRing";
-import { getTileLabelAt } from "./tile-labels";
 
 interface PlayerHUDProps {
   player: PlayerState;
@@ -34,11 +35,14 @@ export function PlayerHUD({
 }: PlayerHUDProps) {
   const playerColor = getPlayerColor(player.id, turnOrder);
   const [propsOpen, setPropsOpen] = useState(false);
+  const displayCash = useGameStore(
+    (s) => s.displayCash[player.id] ?? player.cash,
+  );
 
   return (
     <div
       className={cn(
-        "relative flex w-full flex-col gap-1 overflow-hidden rounded-lg p-3 select-none transition-all",
+        "relative flex w-full flex-col gap-0.5 overflow-hidden rounded-md p-2 select-none transition-all",
         MATERIAL_CARD,
         isActive
           ? "brightness-110"
@@ -49,12 +53,12 @@ export function PlayerHUD({
         isActive && !player.isBankrupt
           ? {
               borderColor: `${playerColor.hex}70`,
-              boxShadow: `0 0 14px ${playerColor.hex}25, inset 0 1px 0 rgba(255,255,255,0.08)`,
+              boxShadow: `0 0 10px ${playerColor.hex}20, inset 0 1px 0 rgba(255,255,255,0.08)`,
             }
           : undefined
       }
     >
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2">
         <Avatar
           avatarId={player.token}
           size="sm"
@@ -63,15 +67,15 @@ export function PlayerHUD({
         />
 
         <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-center gap-1.5 text-sm font-bold text-gray-100">
+          <div className="flex min-w-0 items-center gap-1 text-xs font-bold text-gray-100">
             <span className="truncate">{player.name}</span>
             {isMe && (
-              <span className="shrink-0 rounded border border-[#4fc3f7]/20 bg-[#4fc3f7]/10 px-1 py-px text-[9px] font-semibold text-[#4fc3f7]">
+              <span className="shrink-0 rounded-full border border-[#4fc3f7]/25 bg-[#4fc3f7]/15 px-1.5 py-px text-[8px] font-semibold text-[#4fc3f7]">
                 you
               </span>
             )}
-            {isBot && !isMe && (
-              <span className="shrink-0 rounded border border-violet-400/20 bg-violet-400/10 px-1 py-px text-[9px] font-semibold text-violet-300">
+            {isBot && (
+              <span className="shrink-0 rounded-full border border-violet-400/30 bg-violet-500/20 px-1.5 py-px text-[8px] font-bold uppercase tracking-wide text-violet-200">
                 AI
               </span>
             )}
@@ -85,13 +89,13 @@ export function PlayerHUD({
             )}
           </div>
           <CounterTicker
-            value={player.cash}
+            value={displayCash}
             className={cn(
               BOARD_MONEY_CLASS,
-              "mt-0.5 text-sm",
-              player.cash < 200
+              "mt-0.5 text-xs",
+              displayCash < 200
                 ? "text-rose-400"
-                : player.cash > 1000
+                : displayCash > 1000
                   ? "text-emerald-400"
                   : "text-gray-100",
             )}
@@ -101,7 +105,7 @@ export function PlayerHUD({
             <button
               type="button"
               onClick={() => setPropsOpen((o) => !o)}
-              className="mt-0.5 flex items-center gap-1 text-[10px] text-gray-500 hover:text-gray-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--material-focus-glow)]"
+              className="mt-0.5 flex items-center gap-1 text-[9px] text-gray-500 hover:text-gray-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--material-focus-glow)]"
               aria-expanded={propsOpen}
             >
               <span>Properties:</span>
@@ -116,21 +120,21 @@ export function PlayerHUD({
               />
             </button>
           ) : (
-            <p className="mt-0.5 flex items-center gap-1 text-[10px] text-gray-500">
+            <p className="mt-0.5 flex items-center gap-1 text-[9px] text-gray-500">
               <span>Properties:</span>
               <span className="font-bold text-gray-300">0</span>
             </p>
           )}
 
           {player.isInJail && (
-            <span className="mt-0.5 flex items-center gap-1 text-[10px] font-bold text-amber-400">
+            <span className="mt-0.5 flex items-center gap-1 text-[9px] font-bold text-amber-400">
               <Lock className="h-3 w-3" />
               Jail
             </span>
           )}
 
           {player.isBankrupt && (
-            <span className="mt-0.5 flex items-center gap-1 text-[10px] font-bold text-rose-500">
+            <span className="mt-0.5 flex items-center gap-1 text-[9px] font-bold text-rose-500">
               <Skull className="h-3 w-3" />
               Bankrupt
             </span>
@@ -139,9 +143,11 @@ export function PlayerHUD({
       </div>
 
       {propsOpen && player.ownedPositions.length > 0 && (
-        <ul className="mt-1 max-h-20 space-y-0.5 overflow-y-auto border-t border-white/[0.06] pt-1 text-[10px] text-white/60">
+        <ul className="mt-1 max-h-24 space-y-0.5 overflow-y-auto border-t border-white/[0.06] pt-1 text-[9px] text-white/70">
           {player.ownedPositions.map((pos) => (
-            <li key={pos}>{getTileLabelAt(pos)}</li>
+            <li key={pos}>
+              <PropertySwatch position={pos} />
+            </li>
           ))}
         </ul>
       )}

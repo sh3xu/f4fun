@@ -17,8 +17,8 @@
   --material-felt-base: #0d1420;
   --material-felt-mid: #121a2a;
   --material-felt-edge: #1a2740;
-  --material-cardstock-bg: rgba(18, 26, 40, 0.92);
-  --material-cardstock-edge: rgba(255, 255, 255, 0.18);
+  --material-cardstock-bg: rgba(18, 26, 40, 0.97);
+  --material-cardstock-edge: rgba(255, 255, 255, 0.24);
   --material-token-face: #2196f3;
   --material-token-highlight: rgba(255, 255, 255, 0.22);
   --material-token-shadow: rgba(0, 0, 0, 0.45);
@@ -189,7 +189,7 @@ body {
 }
 
 .material-tile {
-  background-color: rgba(18, 26, 40, 0.72);
+  background-color: rgba(18, 26, 40, 0.48);
   background-image: var(--tex-noise);
   background-size: 80px 80px;
   border: 1px solid rgba(255, 255, 255, 0.14);

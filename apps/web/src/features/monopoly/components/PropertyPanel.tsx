@@ -6,7 +6,11 @@ import { Fragment, useState } from "react";
 import { GameCard } from "@/components/ui/GameCard";
 import { cn } from "@/lib/cn";
 import { PROPERTY_IMAGES } from "../lib/property-images";
-import { BOARD_MONEY_CLASS, PROPERTY_COLORS } from "../theme/board-theme";
+import {
+  BOARD_MONEY_CLASS,
+  PROPERTY_COLORS,
+  propertyHotelCost,
+} from "../theme/board-theme";
 import { PropertyActions } from "./PropertyActions";
 import { PropertyCoverImage } from "./PropertyCoverImage";
 import { getTileLabel } from "./tile-labels";
@@ -93,7 +97,7 @@ export function PropertyPanel(props: PropertyPanelProps) {
           <PropertyCoverImage
             src={PROPERTY_IMAGES[props.position]}
             alt={label}
-            className="brightness-[0.8]"
+            className="brightness-95"
             sizes="280px"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[rgba(18,26,40,0.95)] via-transparent to-transparent" />
@@ -146,6 +150,23 @@ export function PropertyPanel(props: PropertyPanelProps) {
             ${tile.price}
           </span>
         </div>
+
+        {/* {tile.type === "property" && (
+          <div className="grid grid-cols-2 gap-1.5 rounded-md border border-white/[0.08] bg-white/[0.04] px-2 py-1.5 text-[length:var(--board-text-xs)]">
+            <div className="flex items-baseline justify-between gap-1">
+              <span className="text-white/50">House</span>
+              <span className={cn(BOARD_MONEY_CLASS, "font-bold text-white/90")}>
+                ${tile.houseCost}
+              </span>
+            </div>
+            <div className="flex items-baseline justify-between gap-1">
+              <span className="text-white/50">Hotel</span>
+              <span className={cn(BOARD_MONEY_CLASS, "font-bold text-white/90")}>
+                ${propertyHotelCost(tile.houseCost)}
+              </span>
+            </div>
+          </div>
+        )} */}
 
         {(tile.type === "property" ||
           tile.type === "railroad" ||
@@ -206,6 +227,18 @@ export function PropertyPanel(props: PropertyPanelProps) {
                   <span className="text-white/50">Mortgage</span>
                   <span className={cn(BOARD_MONEY_CLASS, "text-emerald-400")}>
                     ${tile.price / 2}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <span className="text-white/50">Houses cost</span>
+                  <span className={cn(BOARD_MONEY_CLASS, "text-white/90")}>
+                    ${tile.houseCost} each
+                  </span>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <span className="text-white/50">Hotels cost</span>
+                  <span className={cn(BOARD_MONEY_CLASS, "text-white/90")}>
+                    ${propertyHotelCost(tile.houseCost)}
                   </span>
                 </div>
               </div>

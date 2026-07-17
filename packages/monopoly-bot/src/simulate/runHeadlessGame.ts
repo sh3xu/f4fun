@@ -14,6 +14,10 @@ import {
   timeoutActionForState,
 } from "@f4fun/monopoly-engine";
 import { BotPlayer } from "../decision/orchestrator.js";
+import {
+  partnerTradeConditionKey,
+  pendingTradeFingerprint,
+} from "../decision/tradeFingerprint.js";
 import type { StrategyProfile } from "../strategy/types.js";
 
 export interface HeadlessGameResult {
@@ -138,6 +142,26 @@ export function runHeadlessGame(
     }
 
     const decision = bot.decide(state, actorId, legal, rng);
+
+    // NOTE: Recipient bot remembers on REJECT inside decide(); also stamp the
+    // proposer so they never re-offer the same deal in a loop.
+    if (decision.action.type === "REJECT_TRADE") {
+      const rejectAction = decision.action;
+      const trade = state.pendingTrades.find(
+        (t) => t.tradeId === rejectAction.tradeId,
+      );
+      if (trade) {
+        const fingerprint = pendingTradeFingerprint(trade);
+        const partnerCondition = partnerTradeConditionKey(
+          state,
+          trade.toPlayerId,
+        );
+        bots
+          .get(trade.fromPlayerId)
+          ?.rememberRejectedTrade(fingerprint, partnerCondition);
+      }
+    }
+
     const result = applyAction(state, decision.action, rng, actorId);
 
     if (result.error) {

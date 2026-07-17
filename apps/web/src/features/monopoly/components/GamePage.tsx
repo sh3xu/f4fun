@@ -1,10 +1,8 @@
 "use client";
 
 import type { GameEvent, GameState, TradeOffer } from "@f4fun/monopoly-engine";
-import { TILE_BY_POSITION, timeoutSecsForPhase } from "@f4fun/monopoly-engine";
-import type { GameBotReasoningPayload } from "@f4fun/shared-types";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Toaster, toast } from "sonner";
+import { timeoutSecsForPhase } from "@f4fun/monopoly-engine";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { GameLoader } from "@/components/ui/GameLoader";
 import { RailFrame } from "@/components/ui/RailFrame";
@@ -12,16 +10,21 @@ import { useRoomStore } from "@/features/room/store/roomStore";
 import { cn } from "@/lib/cn";
 import { emitWithCallback, getSocket } from "@/lib/socket";
 import { useDeferredGameEventToasts } from "../hooks/useDeferredGameEventToasts";
+import {
+  activityEntriesFromEventLog,
+  formatGameEvent,
+  type GameEventLogBatch,
+} from "../lib/formatGameEvent";
 import { useGameStore } from "../store/gameStore";
 import { Board } from "./Board";
 import { type ActivityEntry, GameActivityFeed } from "./GameActivityFeed";
 import { IncomingTradeOfferCard } from "./IncomingTradeOfferCard";
 import { PlayerHUD } from "./PlayerHUD";
 import { TradeModal } from "./TradeModal";
-import { getTileLabel } from "./tile-labels";
 import { WinScreen } from "./WinScreen";
 
 const SESSION_KEY = "monopoly_session";
+const ACTIVITY_CAP = 500;
 
 interface SessionData {
   roomId: string;
@@ -49,6 +52,12 @@ export function GamePage() {
   const [winnerId, setWinnerId] = useState<string | null>(null);
   const [tradeOpen, setTradeOpen] = useState(false);
   const [activityEntries, setActivityEntries] = useState<ActivityEntry[]>([]);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const showError = useCallback((message: string) => {
+    setActionError(message);
+    window.setTimeout(() => setActionError(null), 4000);
+  }, []);
 
   useEffect(() => {
     if (!roomId && typeof window !== "undefined") {
@@ -59,20 +68,14 @@ export function GamePage() {
           const age = Date.now() - session.timestamp;
 
           if (age < 1000 * 60 * 60 && session.playerSecret) {
-            console.log("[GamePage] Restoring session from storage:", {
-              roomId: session.roomId,
-              playerId: session.playerId,
-            });
             setRoomId(session.roomId);
             setMyPlayerId(session.playerId);
             setMyPlayerSecret(session.playerSecret);
 
             const socket = getSocket();
             if (!socket.connected) {
-              console.log("[GamePage] Socket not connected, connecting...");
               socket.connect();
             }
-            console.log("[GamePage] Emitting game:rejoin");
             socket.emit("game:rejoin", {
               roomId: session.roomId,
               playerId: session.playerId,
@@ -110,166 +113,60 @@ export function GamePage() {
     setMyPlayerSecret,
   ]);
 
-  const handleEvent = useCallback(
-    (event: GameEvent) => {
-      // NOTE: Read players from the store so this callback stays stable across state updates.
-      const players = useGameStore.getState().state?.players;
-      switch (event.type) {
-        case "PROPERTY_BOUGHT": {
-          const playerName = players?.[event.playerId]?.name || "Player";
-          const tile = TILE_BY_POSITION.get(event.position);
-          const propertyName = tile
-            ? getTileLabel(tile.name)
-            : `Position ${event.position}`;
-          toast.success(`${playerName} bought ${propertyName}`, {
-            duration: 3000,
-          });
-          break;
-        }
-        case "RENT_PAID": {
-          const payerName = players?.[event.payerId]?.name || "Player";
-          const ownerName = players?.[event.ownerId]?.name || "Owner";
-          toast.info(
-            `${payerName} paid $${event.amount} rent to ${ownerName}`,
-            {
-              duration: 3000,
-            },
-          );
-          break;
-        }
-        case "AUCTION_STARTED": {
-          const tile = TILE_BY_POSITION.get(event.position);
-          toast.info(
-            `Auction started: ${tile ? getTileLabel(tile.name) : event.position}`,
-            {
-              duration: 2500,
-            },
-          );
-          break;
-        }
-        case "AUCTION_WON": {
-          const playerName = players?.[event.playerId]?.name || "Player";
-          const tile = TILE_BY_POSITION.get(event.position);
-          toast.success(
-            `${playerName} won ${tile ? getTileLabel(tile.name) : event.position} for $${event.amount}`,
-            { duration: 3000 },
-          );
-          break;
-        }
-        case "AUCTION_CANCELLED": {
-          toast.info("Auction cancelled — no bids", { duration: 2500 });
-          break;
-        }
-        case "TRADE_COMPLETED": {
-          toast.success("Trade completed", { duration: 2500 });
-          break;
-        }
-        case "TRADE_PROPOSED": {
-          if (event.toPlayerId === myPlayerId) {
-            toast.info("You received a trade offer", { duration: 3000 });
-          }
-          break;
-        }
-        case "HOUSE_BUILT":
-        case "HOTEL_BUILT": {
-          toast.success("Building constructed", { duration: 2000 });
-          break;
-        }
-        case "PROPERTY_MORTGAGED": {
-          toast.info("Property mortgaged", { duration: 2000 });
-          break;
-        }
-        case "PROPERTY_SOLD_TO_BANK": {
-          const playerName = players?.[event.playerId]?.name || "Player";
-          const tile = TILE_BY_POSITION.get(event.position);
-          const propertyName = tile
-            ? getTileLabel(tile.name)
-            : `Position ${event.position}`;
-          toast.info(
-            `${playerName} sold ${propertyName} to the bank for $${event.amount}`,
-            { duration: 3000 },
-          );
-          break;
-        }
-        case "DEBT_RAISED": {
-          const playerName = players?.[event.playerId]?.name || "Player";
-          toast.warning(`${playerName} must raise cash`, { duration: 3500 });
-          break;
-        }
-        case "DEBT_RESOLVED": {
-          const playerName = players?.[event.playerId]?.name || "Player";
-          toast.success(`${playerName} resolved debt`, { duration: 2500 });
-          break;
-        }
-        case "PLAYER_BANKRUPT": {
-          const playerName = players?.[event.playerId]?.name || "Player";
-          toast.error(`${playerName} went bankrupt!`, { duration: 4000 });
-          break;
-        }
-        case "GAME_WON": {
-          const winnerName = players?.[event.winnerId]?.name || "Winner";
+  const appendActivityFromEvents = useCallback(
+    (nextState: GameState, events: GameEvent[]) => {
+      const fresh: ActivityEntry[] = [];
+      for (const event of events) {
+        if (event.type === "GAME_WON") {
           setWinnerId(event.winnerId);
-          toast.success(`${winnerName} won the game!`, { duration: 5000 });
-          break;
         }
-        case "PASSED_GO": {
-          const playerName = players?.[event.playerId]?.name || "Player";
-          toast.success(`${playerName} passed GO! +$200`, { duration: 2000 });
-          break;
-        }
-        case "SENT_TO_JAIL": {
-          const playerName = players?.[event.playerId]?.name || "Player";
-          toast.info(`${playerName} was sent to Jail`, { duration: 3000 });
-          break;
-        }
-        case "RELEASED_FROM_JAIL": {
-          const playerName = players?.[event.playerId]?.name || "Player";
-          const methodLabel =
-            event.method === "fine"
-              ? "paid $50"
-              : event.method === "card"
-                ? "used a Jail Free card"
-                : "rolled doubles";
-          toast.success(`${playerName} left Jail (${methodLabel})`, {
-            duration: 3000,
-          });
-          break;
-        }
+        const formatted = formatGameEvent(nextState, event);
+        if (!formatted) continue;
+        fresh.push({
+          id: `${event.type}-${Date.now()}-${fresh.length}`,
+          playerId: formatted.playerId,
+          playerName: formatted.playerName,
+          message: formatted.message,
+        });
       }
+      if (fresh.length === 0) return;
+      setActivityEntries((prev) => [...fresh, ...prev].slice(0, ACTIVITY_CAP));
     },
-    [myPlayerId],
+    [],
   );
 
-  // NOTE: Dice-roll batches toast after token animation; other events toast immediately.
-  const dispatchGameEventToasts = useDeferredGameEventToasts(handleEvent);
-
-  // NOTE: Keep latest dispatcher in a ref so the socket effect does not re-subscribe
-  // (and re-emit game:rejoin) on every game state change — that wiped dice animations.
-  const dispatchGameEventToastsRef = useRef(dispatchGameEventToasts);
-  dispatchGameEventToastsRef.current = dispatchGameEventToasts;
+  useDeferredGameEventToasts((event) => {
+    const nextState = useGameStore.getState().state;
+    if (!nextState) return;
+    appendActivityFromEvents(nextState, [event]);
+  });
 
   useEffect(() => {
     if (!roomId || !myPlayerId || !myPlayerSecret) return;
 
     const socket = getSocket();
 
-    console.log(
-      "[GamePage] Socket listeners effect running, socket.connected:",
-      socket.connected,
-    );
-
     let cleanupListeners: (() => void) | null = null;
     let waitForConnection: NodeJS.Timeout | null = null;
 
     function setupListeners() {
-      console.log("[GamePage] Setting up listeners now");
-
-      const handleStateSnapshot = (data: { state: GameState }) => {
-        console.log("[GamePage] Received game:stateSnapshot");
+      const handleStateSnapshot = (data: {
+        state: GameState;
+        eventLog?: GameEventLogBatch[];
+      }) => {
         if (data?.state) {
           setFromSnapshot(data.state);
           if (data.state.winnerId) {
             setWinnerId(data.state.winnerId);
+          }
+          if (data.eventLog) {
+            setActivityEntries(
+              activityEntriesFromEventLog(
+                data.state,
+                data.eventLog,
+                ACTIVITY_CAP,
+              ),
+            );
           }
           setInitializing(false);
         }
@@ -279,28 +176,14 @@ export function GamePage() {
         state: GameState;
         events: GameEvent[];
       }) => {
-        console.log("[GamePage] Received game:stateUpdated");
-        applyServerUpdate(data.state, data.events);
-        dispatchGameEventToastsRef.current(data.events);
-      };
-
-      const handleBotReasoning = (data: GameBotReasoningPayload) => {
-        const playerName =
-          useGameStore.getState().state?.players[data.playerId]?.name ??
-          "AI Player";
-        const entry: ActivityEntry = {
-          id: `${data.playerId}-${Date.now()}`,
-          playerId: data.playerId,
-          playerName,
-          message: data.message,
-        };
-        setActivityEntries((prev) => [entry, ...prev].slice(0, 8));
-        toast.info(`${playerName}: ${data.message}`, { duration: 3500 });
+        const deferred = applyServerUpdate(data.state, data.events);
+        if (!deferred) {
+          appendActivityFromEvents(data.state, data.events);
+        }
       };
 
       socket.on("game:stateSnapshot", handleStateSnapshot);
       socket.on("game:stateUpdated", handleStateUpdated);
-      socket.on("game:botReasoning", handleBotReasoning);
 
       socket.emit("game:rejoin", {
         roomId,
@@ -309,9 +192,6 @@ export function GamePage() {
       });
 
       const timeout = setTimeout(() => {
-        console.warn(
-          "[GamePage] Timeout - no snapshot after 5s, stopping initialization",
-        );
         setInitializing(false);
       }, 5000);
 
@@ -319,12 +199,10 @@ export function GamePage() {
         clearTimeout(timeout);
         socket.off("game:stateSnapshot", handleStateSnapshot);
         socket.off("game:stateUpdated", handleStateUpdated);
-        socket.off("game:botReasoning", handleBotReasoning);
       };
     }
 
     if (!socket.connected) {
-      console.log("[GamePage] Connecting socket...");
       socket.connect();
       waitForConnection = setTimeout(() => {
         setupListeners();
@@ -339,170 +217,136 @@ export function GamePage() {
         cleanupListeners();
       }
     };
-  }, [roomId, myPlayerId, myPlayerSecret, setFromSnapshot, applyServerUpdate]);
+  }, [
+    roomId,
+    myPlayerId,
+    myPlayerSecret,
+    setFromSnapshot,
+    applyServerUpdate,
+    appendActivityFromEvents,
+  ]);
+
+  const runAction = async (fn: () => Promise<unknown>) => {
+    try {
+      await fn();
+    } catch (err) {
+      showError((err as Error).message);
+    }
+  };
 
   const handleRoll = async () => {
     if (!roomId) return;
     startDiceRoll();
-    try {
-      await emitWithCallback("game:rollDice", { roomId });
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
+    await runAction(() => emitWithCallback("game:rollDice", { roomId }));
   };
 
   const handleBuy = async () => {
     if (!roomId) return;
-    try {
-      await emitWithCallback("game:buyProperty", { roomId });
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
+    await runAction(() => emitWithCallback("game:buyProperty", { roomId }));
   };
 
   const handleDecline = async () => {
     if (!roomId) return;
-    try {
-      await emitWithCallback("game:declineProperty", { roomId });
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
+    await runAction(() => emitWithCallback("game:declineProperty", { roomId }));
   };
 
   const handleAuction = async () => {
     if (!roomId) return;
-    try {
-      await emitWithCallback("game:startAuction", { roomId });
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
+    await runAction(() => emitWithCallback("game:startAuction", { roomId }));
   };
 
   const handlePlaceBid = async (amount: number) => {
     if (!roomId) return;
-    try {
-      await emitWithCallback("game:placeBid", { roomId, amount });
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
+    await runAction(() =>
+      emitWithCallback("game:placeBid", { roomId, amount }),
+    );
   };
 
   const handlePassAuction = async () => {
     if (!roomId) return;
-    try {
-      await emitWithCallback("game:passAuction", { roomId });
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
+    await runAction(() => emitWithCallback("game:passAuction", { roomId }));
   };
 
   const handleEndTurn = async () => {
     if (!roomId) return;
-    try {
-      await emitWithCallback("game:endTurn", { roomId });
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
+    await runAction(() => emitWithCallback("game:endTurn", { roomId }));
   };
 
   const handlePayJailFine = async () => {
     if (!roomId) return;
-    try {
-      await emitWithCallback("game:payJailFine", { roomId });
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
+    await runAction(() => emitWithCallback("game:payJailFine", { roomId }));
   };
 
   const handleUseGoojfCard = async () => {
     if (!roomId) return;
-    try {
-      await emitWithCallback("game:useGoojfCard", { roomId });
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
+    await runAction(() => emitWithCallback("game:useGoojfCard", { roomId }));
   };
 
   const handleRollForJail = async () => {
     if (!roomId) return;
     startDiceRoll();
-    try {
-      await emitWithCallback("game:rollForJail", { roomId });
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
+    await runAction(() => emitWithCallback("game:rollForJail", { roomId }));
+  };
+
+  const handleAcknowledgeCard = async () => {
+    if (!roomId) return;
+    await runAction(() => emitWithCallback("game:acknowledgeCard", { roomId }));
   };
 
   const handleBuildHouse = async (position: number) => {
     if (!roomId) return;
-    try {
-      await emitWithCallback("game:buildHouse", { roomId, position });
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
+    await runAction(() =>
+      emitWithCallback("game:buildHouse", { roomId, position }),
+    );
   };
 
   const handleSellHouse = async (position: number) => {
     if (!roomId) return;
-    try {
-      await emitWithCallback("game:sellHouse", { roomId, position });
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
+    await runAction(() =>
+      emitWithCallback("game:sellHouse", { roomId, position }),
+    );
   };
 
   const handleBuildHotel = async (position: number) => {
     if (!roomId) return;
-    try {
-      await emitWithCallback("game:buildHotel", { roomId, position });
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
+    await runAction(() =>
+      emitWithCallback("game:buildHotel", { roomId, position }),
+    );
   };
 
   const handleSellHotel = async (position: number) => {
     if (!roomId) return;
-    try {
-      await emitWithCallback("game:sellHotel", { roomId, position });
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
+    await runAction(() =>
+      emitWithCallback("game:sellHotel", { roomId, position }),
+    );
   };
 
   const handleMortgage = async (position: number) => {
     if (!roomId) return;
-    try {
-      await emitWithCallback("game:mortgageProperty", { roomId, position });
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
+    await runAction(() =>
+      emitWithCallback("game:mortgageProperty", { roomId, position }),
+    );
   };
 
   const handleUnmortgage = async (position: number) => {
     if (!roomId) return;
-    try {
-      await emitWithCallback("game:unmortgageProperty", { roomId, position });
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
+    await runAction(() =>
+      emitWithCallback("game:unmortgageProperty", { roomId, position }),
+    );
   };
 
   const handleOwnerAuction = async (position: number) => {
     if (!roomId) return;
-    try {
-      await emitWithCallback("game:startOwnerAuction", { roomId, position });
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
+    await runAction(() =>
+      emitWithCallback("game:startOwnerAuction", { roomId, position }),
+    );
   };
 
   const handleSellToBank = async (position: number) => {
     if (!roomId) return;
-    try {
-      await emitWithCallback("game:sellPropertyToBank", { roomId, position });
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
+    await runAction(() =>
+      emitWithCallback("game:sellPropertyToBank", { roomId, position }),
+    );
   };
 
   const handleProposeTrade = async (
@@ -511,37 +355,30 @@ export function GamePage() {
     request: TradeOffer,
   ) => {
     if (!roomId) return;
-    try {
-      await emitWithCallback("game:proposeTrade", {
+    await runAction(() =>
+      emitWithCallback("game:proposeTrade", {
         roomId,
         tradeId: crypto.randomUUID(),
         toPlayerId,
         offer,
         request,
-      });
-      toast.success("Trade proposed");
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
+      }),
+    );
   };
 
   const handleAcceptTrade = async (tradeId: string) => {
     if (!roomId) return;
-    try {
+    await runAction(async () => {
       await emitWithCallback("game:acceptTrade", { roomId, tradeId });
       setTradeOpen(false);
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
+    });
   };
 
   const handleRejectTrade = async (tradeId: string) => {
     if (!roomId) return;
-    try {
-      await emitWithCallback("game:rejectTrade", { roomId, tradeId });
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
+    await runAction(() =>
+      emitWithCallback("game:rejectTrade", { roomId, tradeId }),
+    );
   };
 
   if (initializing || !state) {
@@ -572,19 +409,14 @@ export function GamePage() {
       className={cn(
         "material-felt flex h-dvh max-h-dvh flex-col overflow-hidden font-sans text-gray-100 select-none",
         "lg:flex-row",
-        "gap-4 p-3 sm:p-4 lg:gap-6 lg:p-5",
+        "gap-3 p-2.5 sm:p-3 lg:gap-4 lg:p-4",
       )}
     >
-      <Toaster
-        position="bottom-left"
-        richColors
-        toastOptions={{
-          classNames: {
-            toast:
-              "material-cardstock !w-auto !max-w-[18rem] !border-[var(--material-cardstock-edge)] !bg-[var(--material-cardstock-bg)] !text-gray-100 !text-sm",
-          },
-        }}
-      />
+      {actionError && (
+        <div className="fixed bottom-3 left-3 z-50 max-w-xs rounded-md border border-rose-400/30 bg-rose-950/90 px-3 py-2 text-xs text-rose-100">
+          {actionError}
+        </div>
+      )}
 
       {winnerId && (
         <WinScreen
@@ -637,6 +469,7 @@ export function GamePage() {
               onPayJailFine={handlePayJailFine}
               onUseGoojfCard={handleUseGoojfCard}
               onRollForJail={handleRollForJail}
+              onAcknowledgeCard={handleAcknowledgeCard}
               onBuildHouse={handleBuildHouse}
               onSellHouse={handleSellHouse}
               onBuildHotel={handleBuildHotel}
@@ -653,16 +486,16 @@ export function GamePage() {
       <RailFrame
         as="aside"
         className={cn(
-          "relative z-[2] order-2 flex w-full shrink-0 flex-col gap-3 overflow-y-auto p-3.5 lg:overflow-hidden",
-          "max-h-[18rem] lg:max-h-none lg:h-full lg:w-60 xl:w-72",
+          "relative z-[2] order-2 flex w-full shrink-0 flex-col gap-2 overflow-y-auto p-2.5 lg:overflow-hidden",
+          "max-h-[16rem] lg:max-h-none lg:h-full lg:w-48 xl:w-56",
         )}
       >
-        <div className="flex shrink-0 items-center justify-between border-b border-white/[0.08] px-0.5 pb-2.5">
-          <span className="bg-gradient-to-r from-[#4fc3f7] to-[#26c6da] bg-clip-text text-base font-black tracking-widest text-transparent">
+        <div className="flex shrink-0 items-center justify-between border-b border-white/[0.08] px-0.5 pb-2">
+          <span className="bg-gradient-to-r from-[#4fc3f7] to-[#26c6da] bg-clip-text text-sm font-black tracking-widest text-transparent">
             f4fun
           </span>
           {roomCode && (
-            <div className="rounded-md border border-white/10 bg-black/25 px-2 py-0.5 text-[9px] font-medium text-gray-500 md:text-[10px]">
+            <div className="rounded-md border border-white/10 bg-black/25 px-1.5 py-0.5 text-[9px] font-medium text-gray-500">
               <span className="font-mono font-bold text-[#4fc3f7]">
                 {roomCode}
               </span>
@@ -675,7 +508,7 @@ export function GamePage() {
             type="button"
             variant={pendingTradeCount > 0 ? "token" : "tokenGhost"}
             onClick={() => setTradeOpen(true)}
-            className="relative h-auto w-full py-1.5 text-xs"
+            className="relative h-auto w-full py-1 text-[11px]"
           >
             Trade
             {pendingTradeCount > 0 && (
@@ -686,11 +519,11 @@ export function GamePage() {
           </Button>
         )}
 
-        <p className="px-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/35">
+        <p className="px-0.5 text-[9px] font-semibold uppercase tracking-wider text-white/35">
           The ledger
         </p>
 
-        <div className="grid w-full shrink-0 grid-cols-2 gap-2.5 overflow-x-hidden lg:min-h-0 lg:flex lg:flex-1 lg:flex-col lg:overflow-y-auto">
+        <div className="grid w-full shrink-0 grid-cols-2 gap-1.5 overflow-x-hidden lg:min-h-0 lg:flex lg:flex-1 lg:flex-col lg:overflow-y-auto">
           {state.turnOrder.map((playerId) => (
             <div key={playerId} className="w-full lg:min-w-0">
               <PlayerHUD

@@ -7,6 +7,7 @@ import {
   ensureTradeExpiries,
   mergeGameConfig,
 } from "../games/monopoly/DeadlineTimers.js";
+import { getGameEventLog } from "../games/monopoly/GameEventLogger.js";
 import { loadGame, saveGame } from "../games/monopoly/GameStore.js";
 import { registerMonopolyHandlers } from "../games/monopoly/handlers.js";
 import { withRoomLock } from "../games/monopoly/roomMutex.js";
@@ -82,7 +83,8 @@ export function createSocketServer(httpServer: HttpServer): Server {
             if (backfilled) {
               await saveGame(state.gameId, state, 0);
             }
-            socket.emit("game:stateSnapshot", { state });
+            const eventLog = await getGameEventLog(state.gameId);
+            socket.emit("game:stateSnapshot", { state, eventLog });
             // NOTE: Rejoin re-arms in-memory timers after server restart / cold room.
             afterGameStateCommit(io, data.roomId, state as GameState);
           });

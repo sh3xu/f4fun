@@ -1,4 +1,8 @@
-import { createInitialState, type GameAction } from "@f4fun/monopoly-engine";
+import {
+  applyAction,
+  createInitialState,
+  type GameAction,
+} from "@f4fun/monopoly-engine";
 import { describe, expect, it } from "vitest";
 import {
   scoreBuyOptions,
@@ -7,6 +11,11 @@ import {
 import { scoreJailOptions } from "../decision/jail.js";
 import { BotPlayer } from "../decision/orchestrator.js";
 import { generateTradeProposals } from "../decision/trade.js";
+import {
+  partnerTradeConditionKey,
+  pendingTradeFingerprint,
+  rejectedDealLockKey,
+} from "../decision/tradeFingerprint.js";
 import { expertStrategy } from "../strategy/expertStrategy.js";
 import type { StrategyContext } from "../strategy/types.js";
 import { minimumCashBuffer } from "../valuation/cashBuffer.js";
@@ -84,9 +93,97 @@ describe("monopoly-bot regressions", () => {
       legalActions: proposals,
       rng: () => 0.5,
     });
-    const tradeScore = scored.find((option) => option.action === proposals[0]);
+    const tradeScore = scored.find(
+      (option) => option.action.type === "PROPOSE_TRADE",
+    );
 
     expect(tradeScore?.score).toBeGreaterThan(50);
+  });
+
+  it("never re-offers the same rejected trade in a recursion loop", () => {
+    const state = createState();
+    state.phase = "END_TURN";
+    state.activePlayerIndex = 0;
+    state.ownership[1] = { ownerId: "p1", isMortgaged: false };
+    state.ownership[6] = { ownerId: "p1", isMortgaged: false };
+    state.ownership[3] = { ownerId: "p2", isMortgaged: false };
+    state.players.p1.ownedPositions = [1, 6];
+    state.players.p2.ownedPositions = [3];
+
+    const proposer = new BotPlayer(expertStrategy);
+    const rng = () => 0.5;
+
+    const first = proposer.decide(state, "p1", [{ type: "END_TURN" }], rng);
+    expect(first.action.type).toBe("PROPOSE_TRADE");
+    if (first.action.type !== "PROPOSE_TRADE") return;
+
+    const proposed = applyAction(state, first.action, rng, "p1");
+    expect(proposed.error).toBeUndefined();
+    Object.assign(state, proposed.state);
+    expect(state.pendingTrades).toHaveLength(1);
+
+    const pending = state.pendingTrades[0];
+    expect(pending).toBeDefined();
+    if (!pending) return;
+    const fingerprint = pendingTradeFingerprint(pending);
+    const partnerCondition = partnerTradeConditionKey(
+      state,
+      pending.toPlayerId,
+    );
+
+    // Simulate partner declining — same path as server memory stamp.
+    const rejected = applyAction(
+      state,
+      { type: "REJECT_TRADE", tradeId: pending.tradeId },
+      rng,
+      "p2",
+    );
+    expect(rejected.error).toBeUndefined();
+    Object.assign(state, rejected.state);
+    proposer.rememberRejectedTrade(fingerprint, partnerCondition);
+
+    expect(state.pendingTrades).toHaveLength(0);
+    expect(state.phase).toBe("END_TURN");
+
+    // Same turn / same partner conditions — must not spam the deal.
+    for (let i = 0; i < 12; i++) {
+      const next = proposer.decide(state, "p1", [{ type: "END_TURN" }], rng);
+      expect(next.action.type).not.toBe("PROPOSE_TRADE");
+      expect(next.action.type).toBe("END_TURN");
+    }
+
+    expect(proposer.hasRejectedTrade(fingerprint, partnerCondition)).toBe(true);
+
+    const regenerations = generateTradeProposals({
+      state,
+      actorId: "p1",
+      legalActions: [{ type: "END_TURN" }],
+      rng,
+      rejectedTradeLocks: new Set([
+        rejectedDealLockKey(fingerprint, partnerCondition),
+      ]),
+    });
+    expect(regenerations).toHaveLength(0);
+
+    // Partner conditions changed — same deal shape may be reconsidered.
+    state.players.p2.cash -= 50;
+    const afterPartnerChange = proposer.decide(
+      state,
+      "p1",
+      [{ type: "END_TURN" }],
+      rng,
+    );
+    expect(afterPartnerChange.action.type).toBe("PROPOSE_TRADE");
+
+    // Next turn (PRE_ROLL) clears locks — may offer again based on scoring.
+    state.players.p2.cash += 50;
+    proposer.rememberRejectedTrade(
+      fingerprint,
+      partnerTradeConditionKey(state, "p2"),
+    );
+    state.phase = "PRE_ROLL";
+    const nextTurn = proposer.decide(state, "p1", [{ type: "END_TURN" }], rng);
+    expect(nextTurn.action.type).toBe("PROPOSE_TRADE");
   });
 
   it("detects two-property color groups when blocking monopoly gifts", () => {

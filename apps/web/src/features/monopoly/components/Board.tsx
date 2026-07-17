@@ -19,6 +19,7 @@ import {
 } from "../theme/board-theme";
 import { AuctionPanel } from "./AuctionPanel";
 import { BoardTile } from "./BoardTile";
+import { CardRevealOverlay } from "./CardRevealOverlay";
 import { DiceTray } from "./DiceTray";
 import { PropertyPanel } from "./PropertyPanel";
 import { RaiseCashBanner } from "./RaiseCashBanner";
@@ -34,6 +35,7 @@ interface BoardProps {
   onPayJailFine: () => void;
   onUseGoojfCard: () => void;
   onRollForJail: () => void;
+  onAcknowledgeCard: () => void;
   onBuildHouse: (position: number) => void;
   onSellHouse: (position: number) => void;
   onBuildHotel: (position: number) => void;
@@ -71,6 +73,7 @@ export function Board({
   onPayJailFine,
   onUseGoojfCard,
   onRollForJail,
+  onAcknowledgeCard,
   onBuildHouse,
   onSellHouse,
   onBuildHotel,
@@ -120,7 +123,12 @@ export function Board({
         const displayPos = displayPositions[p.id] ?? p.position;
         return displayPos === position;
       })
-      .map((p) => ({ id: p.id, token: p.token, name: p.name }));
+      .map((p) => ({
+        id: p.id,
+        token: p.token,
+        name: p.name,
+        isInJail: p.isInJail,
+      }));
   };
 
   const getOwnerInfo = (position: number) => {
@@ -182,6 +190,19 @@ export function Board({
     state?.phase === "RAISE_CASH" &&
     animationsSettled &&
     state?.pendingDebt != null;
+  const pendingCardText = state?.pendingCard
+    ? ((state.pendingCard.deck === "chance"
+        ? CHANCE_CARDS
+        : COMMUNITY_CHEST_CARDS
+      ).find((c) => c.id === state.pendingCard?.cardId)?.text ?? null)
+    : null;
+  const showCardReveal =
+    state?.phase === "CARD_DRAWN" &&
+    animationsSettled &&
+    !!state.pendingCard &&
+    !!pendingCardText;
+  const cardDrawer =
+    showCardReveal && activePlayerId ? state.players[activePlayerId] : null;
   const debtPlayer = showRaiseCash
     ? state.players[state.pendingDebt?.playerId ?? ""]
     : null;
@@ -202,7 +223,8 @@ export function Board({
       ? getPlayerColor(movingPlayer.id, state.turnOrder)
       : null;
 
-  const centerBusy = showPropertyCard || showAuction || showRaiseCash;
+  const centerBusy =
+    showPropertyCard || showAuction || showRaiseCash || showCardReveal;
 
   return (
     <FeltSurface
@@ -326,6 +348,26 @@ export function Board({
                   }
                 />
               </div>
+            ) : showCardReveal &&
+              state?.pendingCard &&
+              pendingCardText &&
+              cardDrawer ? (
+              <div
+                className={cn(BOARD_OVERLAY_PANEL_CLASS, "animate-card-deal")}
+              >
+                <CardRevealOverlay
+                  key={`${state.pendingCard.deck}-${state.pendingCard.cardId}`}
+                  deck={state.pendingCard.deck}
+                  cardText={pendingCardText}
+                  drawerName={cardDrawer.name}
+                  drawerToken={cardDrawer.token}
+                  drawerColorHex={
+                    getPlayerColor(cardDrawer.id, state.turnOrder).hex
+                  }
+                  canAcknowledge={isMyTurn}
+                  onAcknowledge={onAcknowledgeCard}
+                />
+              </div>
             ) : showPropertyCard && currentPlayer ? (
               <div
                 className={cn(BOARD_OVERLAY_PANEL_CLASS, "animate-card-deal")}
@@ -390,16 +432,6 @@ export function Board({
                 onPayJailFine={onPayJailFine}
                 onUseGoojfCard={onUseGoojfCard}
                 onRollForJail={onRollForJail}
-                pendingCardText={
-                  state?.pendingCard
-                    ? ((state.pendingCard.deck === "chance"
-                        ? CHANCE_CARDS
-                        : COMMUNITY_CHEST_CARDS
-                      ).find((c) => c.id === state.pendingCard?.cardId)?.text ??
-                      null)
-                    : null
-                }
-                pendingCardDeck={state?.pendingCard?.deck ?? null}
                 goojfCards={currentPlayer?.goojfCards ?? 0}
                 cash={currentPlayer?.cash ?? 0}
                 loading={false}
@@ -409,6 +441,7 @@ export function Board({
                 }
                 rollKey={rollAnimationKey}
                 onDiceAnimationComplete={completeDiceAnimation}
+                hideDice={state?.phase === "CARD_DRAWN"}
               />
             )}
           </div>

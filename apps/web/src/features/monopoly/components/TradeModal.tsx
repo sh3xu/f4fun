@@ -2,11 +2,14 @@
 
 import type { GameState, TradeOffer } from "@f4fun/monopoly-engine";
 import { useMemo, useState } from "react";
+import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
+import { CashAmountSlider } from "@/components/ui/CashAmountSlider";
 import { GameCard } from "@/components/ui/GameCard";
 import { cn } from "@/lib/cn";
+import { getPlayerColor } from "@/lib/player-colors";
 import { TradeOfferSummary } from "./IncomingTradeOfferCard";
-import { getTileLabelAt } from "./tile-labels";
+import { PropertySwatch } from "./PropertySwatch";
 
 const emptyOffer = (): TradeOffer => ({
   cash: 0,
@@ -62,6 +65,10 @@ export function TradeModal({
     (state.phase === "PRE_ROLL" ||
       state.phase === "END_TURN" ||
       state.phase === "JAIL_DECISION");
+  const meColor = getPlayerColor(myPlayerId, state.turnOrder);
+  const partnerColor = toPlayerId
+    ? getPlayerColor(toPlayerId, state.turnOrder)
+    : null;
 
   function togglePosition(
     side: "offer" | "request",
@@ -118,33 +125,56 @@ export function TradeModal({
           </p>
         ) : (
           <div className="space-y-3 text-sm">
-            <label className="block">
+            <div>
               <span className="text-white/50">Partner</span>
-              <select
-                value={toPlayerId}
-                onChange={(e) => setToPlayerId(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-2 py-1.5 text-white"
-              >
-                {partners.map((id) => (
-                  <option key={id} value={id}>
-                    {state.players[id]?.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {partners.map((id) => {
+                  const p = state.players[id];
+                  if (!p) return null;
+                  const color = getPlayerColor(id, state.turnOrder);
+                  const selected = id === toPlayerId;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setToPlayerId(id)}
+                      className={cn(
+                        "flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors",
+                        selected
+                          ? "border-[#4fc3f7]/50 bg-[#4fc3f7]/15 text-white"
+                          : "border-white/10 bg-black/25 text-white/70 hover:border-white/25",
+                      )}
+                    >
+                      <Avatar
+                        avatarId={p.token}
+                        size="xs"
+                        backgroundColor={color.hex}
+                      />
+                      <span className="truncate">{p.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <p className="mb-1 font-semibold text-[#4fc3f7]">You offer</p>
-                <input
-                  type="number"
+                <p className="mb-1 flex items-center gap-1.5 font-semibold text-[#4fc3f7]">
+                  <Avatar
+                    avatarId={me.token}
+                    size="xs"
+                    backgroundColor={meColor.hex}
+                  />
+                  You offer
+                </p>
+                <CashAmountSlider
+                  id="trade-offer-cash"
+                  label="Cash"
                   min={0}
-                  value={offer.cash}
-                  onChange={(e) =>
-                    setOffer((o) => ({ ...o, cash: Number(e.target.value) }))
-                  }
-                  className="mb-2 w-full rounded border border-white/15 bg-black/30 px-2 py-1 text-white"
-                  placeholder="Cash"
+                  max={me.cash}
+                  value={Math.min(offer.cash, me.cash)}
+                  onChange={(cash) => setOffer((o) => ({ ...o, cash }))}
+                  className="mb-2"
                 />
                 <div className="max-h-32 space-y-1 overflow-y-auto">
                   {me.ownedPositions.map((pos) => (
@@ -159,23 +189,31 @@ export function TradeModal({
                           togglePosition("offer", pos, e.target.checked)
                         }
                       />
-                      {getTileLabelAt(pos)}
+                      <PropertySwatch position={pos} />
                     </label>
                   ))}
                 </div>
               </div>
 
               <div>
-                <p className="mb-1 font-semibold text-amber-200">You request</p>
-                <input
-                  type="number"
+                <p className="mb-1 flex items-center gap-1.5 font-semibold text-amber-200">
+                  {partner && partnerColor && (
+                    <Avatar
+                      avatarId={partner.token}
+                      size="xs"
+                      backgroundColor={partnerColor.hex}
+                    />
+                  )}
+                  You request
+                </p>
+                <CashAmountSlider
+                  id="trade-request-cash"
+                  label="Cash"
                   min={0}
-                  value={request.cash}
-                  onChange={(e) =>
-                    setRequest((r) => ({ ...r, cash: Number(e.target.value) }))
-                  }
-                  className="mb-2 w-full rounded border border-white/15 bg-black/30 px-2 py-1 text-white"
-                  placeholder="Cash"
+                  max={partner?.cash ?? 0}
+                  value={Math.min(request.cash, partner?.cash ?? 0)}
+                  onChange={(cash) => setRequest((r) => ({ ...r, cash }))}
+                  className="mb-2"
                 />
                 <div className="max-h-32 space-y-1 overflow-y-auto">
                   {partner?.ownedPositions.map((pos) => (
@@ -190,7 +228,7 @@ export function TradeModal({
                           togglePosition("request", pos, e.target.checked)
                         }
                       />
-                      {getTileLabelAt(pos)}
+                      <PropertySwatch position={pos} />
                     </label>
                   ))}
                 </div>

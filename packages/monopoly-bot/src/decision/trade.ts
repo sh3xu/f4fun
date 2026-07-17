@@ -13,6 +13,11 @@ import {
   valuePropertyAt,
 } from "../valuation/propertyValue.js";
 import { wouldCompleteOpponentMonopoly } from "./buy.js";
+import {
+  partnerTradeConditionKey,
+  rejectedDealLockKey,
+  tradeDealFingerprint,
+} from "./tradeFingerprint.js";
 
 const MAX_TRADE_PROPOSALS = 8;
 
@@ -47,7 +52,7 @@ function selectOfferPositions(
 }
 
 export function generateTradeProposals(ctx: StrategyContext): GameAction[] {
-  const { state, actorId, rng } = ctx;
+  const { state, actorId, rng, rejectedTradeLocks } = ctx;
   const player = state.players[actorId];
   if (!player || player.isBankrupt) return [];
 
@@ -70,7 +75,7 @@ export function generateTradeProposals(ctx: StrategyContext): GameAction[] {
 
       const needValue = valuePositionForBuyer(state, actorId, position);
       const offerCash = Math.min(
-        Math.floor(needValue * 0.15),
+        Math.floor(needValue * 0.25),
         Math.max(0, player.cash - 200),
       );
 
@@ -83,6 +88,21 @@ export function generateTradeProposals(ctx: StrategyContext): GameAction[] {
         ...emptyOffer(),
         positions: [position],
       };
+
+      const fingerprint = tradeDealFingerprint(
+        actorId,
+        opponentId,
+        offer,
+        request,
+      );
+      const partnerCondition = partnerTradeConditionKey(state, opponentId);
+      if (
+        rejectedTradeLocks?.has(
+          rejectedDealLockKey(fingerprint, partnerCondition),
+        )
+      ) {
+        continue;
+      }
 
       const tradeId = `bot-${actorId}-${Date.now()}-${proposals.length}`;
       const action: GameAction = {
@@ -152,9 +172,9 @@ export function scoreTradeResponse(ctx: StrategyContext): {
 
       options.push({
         action,
-        score: delta,
+        score: delta >= 0 ? Math.max(delta, 50) : delta,
         reasoning:
-          delta > 0
+          delta >= 0
             ? "Accept trade — improves position"
             : "Reject trade — unfavorable exchange",
       });
@@ -171,9 +191,27 @@ export function scoreTradeProposals(
   const { state, actorId, rng } = ctx;
   const options: { action: GameAction; score: number; reasoning: string }[] =
     [];
+  const phase = state.phase;
+  const tradeWindow =
+    phase === "END_TURN" || phase === "JAIL_DECISION" || phase === "PRE_ROLL";
 
   for (const action of proposals) {
     if (action.type !== "PROPOSE_TRADE") continue;
+    const fingerprint = tradeDealFingerprint(
+      actorId,
+      action.toPlayerId,
+      action.offer,
+      action.request,
+    );
+    const partnerCondition = partnerTradeConditionKey(state, action.toPlayerId);
+    if (
+      ctx.rejectedTradeLocks?.has(
+        rejectedDealLockKey(fingerprint, partnerCondition),
+      )
+    ) {
+      continue;
+    }
+
     const before = playerNetScore(state, actorId);
     const proposed = simulateAction(state, action, rng, actorId);
     if (proposed.error) continue;
@@ -186,14 +224,48 @@ export function scoreTradeProposals(
     if (accepted.error) continue;
     const after = playerNetScore(accepted.state, actorId);
     const delta = after - before;
-    if (delta <= 50) continue;
 
     const pos = action.request.positions[0];
     const tile = pos !== undefined ? TILE_BY_POSITION.get(pos) : null;
+    const completesMonopoly =
+      tile?.type === "property" &&
+      (() => {
+        const groupPositions = POSITIONS_BY_COLOR.get(tile.colorGroup) ?? [];
+        return (
+          groupPositions.length > 0 &&
+          groupPositions.every(
+            (p) => accepted.state.ownership[p]?.ownerId === actorId,
+          )
+        );
+      })();
+
+    if (!completesMonopoly && delta <= 50) continue;
+    // NOTE: Monopoly completions are worth proposing even when cash offered
+    // makes the immediate net score flat — buildings unlock after.
+    if (completesMonopoly && delta < -100) continue;
+
+    // NOTE: END_TURN/JAIL must beat END_TURN(600) / ROLL(500) or trades never fire.
+    let score: number;
+    if (
+      completesMonopoly &&
+      (phase === "END_TURN" || phase === "JAIL_DECISION")
+    ) {
+      score = Math.min(650 + Math.floor(delta / 10), 900);
+    } else if (completesMonopoly && phase === "PRE_ROLL") {
+      // Prefer rolling unless the monopoly completion is exceptionally valuable.
+      score = delta > 400 ? 520 : Math.min(delta + 80, 450);
+    } else if (tradeWindow && phase !== "PRE_ROLL") {
+      score = Math.min(delta + 120, 640);
+    } else {
+      score = Math.min(delta + 50, 400);
+    }
+
     options.push({
       action,
-      score: Math.min(delta + 50, 180),
-      reasoning: `Propose trade for ${tile?.name ?? "property"} — completes monopoly`,
+      score,
+      reasoning: completesMonopoly
+        ? `Propose trade for ${tile?.name ?? "property"} — completes monopoly`
+        : `Propose trade for ${tile?.name ?? "property"} — improves position`,
     });
   }
 

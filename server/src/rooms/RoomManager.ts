@@ -210,6 +210,36 @@ const BOT_TOKENS = [
   "memo_8",
 ] as const;
 
+const BOT_NAMES = [
+  "D@arkMet0",
+  "Nyx_7",
+  "Bl1tzKing",
+  "V0idFox",
+  "R@zorByte",
+  "Kryp70",
+  "Shad0wAce",
+  "Neon_Ph4ntom",
+  "Gl1tchOrb",
+  "Hex@flare",
+  "Z3nithX",
+  "Cyb3rWulf",
+  "M1dniteOps",
+  "Qu@ntumJinx",
+  "P1xelReaper",
+  "Aether_99",
+] as const;
+
+function pickBotName(usedNames: Set<string>): string {
+  const available = BOT_NAMES.filter((n) => !usedNames.has(n));
+  if (available.length > 0) {
+    const name = available[Math.floor(Math.random() * available.length)];
+    if (name !== undefined) return name;
+  }
+  let suffix = 1;
+  while (usedNames.has(`AI_Bot${suffix}`)) suffix += 1;
+  return `AI_Bot${suffix}`;
+}
+
 export async function addBotPlayer(roomId: string): Promise<Room> {
   const doc = await RoomModel.findOne({ roomId });
   if (!doc) throw new Error("Room not found");
@@ -217,16 +247,16 @@ export async function addBotPlayer(roomId: string): Promise<Room> {
   if (doc.players.length >= MAX_ROOM_PLAYERS) throw new Error("Room is full");
 
   const usedTokens = new Set(doc.players.map((p) => p.token));
+  const usedNames = new Set(doc.players.map((p) => p.name));
   const token =
     BOT_TOKENS.find((t) => !usedTokens.has(t)) ??
     BOT_TOKENS[doc.players.length % BOT_TOKENS.length];
-  const botCount = doc.players.filter((p) => p.isBot).length + 1;
   const playerId = generateId();
   const playerSecret = generatePlayerSecret();
 
   const botPlayer: IRoomPlayer = {
     playerId,
-    name: `AI Player ${botCount}`,
+    name: pickBotName(usedNames),
     token,
     playerSecret,
     isHost: false,

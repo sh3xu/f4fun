@@ -6,6 +6,7 @@ import { diceSum } from "../dice.js";
 import { applyAction, createInitialState } from "../index.js";
 import { resolveLanding } from "../resolveLanding.js";
 import type { GameState } from "../types.js";
+import { CARD_REVEAL_PAUSE_MS } from "../types.js";
 
 const fixedRng = () => 0;
 
@@ -18,6 +19,13 @@ function getCard(deck: "chance" | "community_chest", id: string): Card {
 function seededRng(values: number[]): () => number {
   let i = 0;
   return () => values[i++ % values.length];
+}
+
+/** Skip the multiplayer card-reveal pause in unit tests. */
+function allowImmediateCardAck(state: GameState) {
+  if (state.pendingCard) {
+    state.pendingCard.drawnAt = new Date(0).toISOString();
+  }
 }
 
 describe("drawCardId", () => {
@@ -210,6 +218,7 @@ describe("GOOJF via full ROLL_DICE → ACKNOWLEDGE_CARD flow", () => {
       cardId: "ch_goojf",
     });
 
+    allowImmediateCardAck(state);
     const ackResult = applyAction(state, { type: "ACKNOWLEDGE_CARD" });
     expect(ackResult.error).toBeUndefined();
     expect(state.players.p1.goojfCards).toBe(1);
@@ -241,11 +250,32 @@ describe("GOOJF via full ROLL_DICE → ACKNOWLEDGE_CARD flow", () => {
       cardId: "cc_goojf",
     });
 
+    allowImmediateCardAck(state);
     const ackResult = applyAction(state, { type: "ACKNOWLEDGE_CARD" });
     expect(ackResult.error).toBeUndefined();
     expect(state.players.p1.goojfCards).toBe(1);
     expect(state.players.p1.goojfCardSources).toEqual(["community_chest"]);
     expect(state.pendingCard).toBeNull();
+  });
+
+  it("rejects acknowledge during the card reveal pause", () => {
+    const state = setupState();
+    state.chanceDeck.drawPile = [
+      "ch_goojf",
+      ...state.chanceDeck.drawPile.filter((id) => id !== "ch_goojf"),
+    ];
+    state.players.p1.position = 5;
+    applyAction(state, { type: "ROLL_DICE" }, seededRng([0.1, 0.0]));
+    expect(state.phase).toBe("CARD_DRAWN");
+    expect(state.pendingCard?.drawnAt).toBeTruthy();
+
+    const blocked = applyAction(state, { type: "ACKNOWLEDGE_CARD" });
+    expect(blocked.error).toBe("Card reveal in progress");
+
+    allowImmediateCardAck(state);
+    const allowed = applyAction(state, { type: "ACKNOWLEDGE_CARD" });
+    expect(allowed.error).toBeUndefined();
+    expect(CARD_REVEAL_PAUSE_MS).toBeGreaterThan(0);
   });
 
   it("returns ch_goojf to chance discard when spent from jail", () => {
@@ -319,6 +349,7 @@ describe("GOOJF via full ROLL_DICE → ACKNOWLEDGE_CARD flow", () => {
     applyAction(state, { type: "ROLL_DICE" }, rng);
     expect(state.phase).toBe("CARD_DRAWN");
 
+    allowImmediateCardAck(state);
     applyAction(state, { type: "ACKNOWLEDGE_CARD" });
     expect(state.phase).toBe("END_TURN");
   });
