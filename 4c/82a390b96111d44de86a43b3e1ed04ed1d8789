@@ -1,0 +1,193 @@
+server/src/games/monopoly/executeGameIntent.ts
+  s_7ed00ff5d8e926::t_f4eadb0ff83b02 1-196
+server/src/games/monopoly/DeadlineTimers.ts
+  s_7ed00ff5d8e926::t_8cc033160cf343 1,13
+  s_7ed00ff5d8e926::t_8eddc075264c89 80-82
+  s_7ed00ff5d8e926::t_bb259d2f4bbc13 177-193,195
+  s_7ed00ff5d8e926::t_97023f863aa850 145-152,163-165
+packages/shared-types/src/game-events.ts
+  s_7ed00ff5d8e926::t_8bb223fa923e29 269-273
+  s_7ed00ff5d8e926::t_cebba31b5fa1bf 362
+packages/monopoly-bot/tsconfig.test.json
+  s_7ed00ff5d8e926::t_33b88c948f55e9 1-12
+apps/web/src/features/monopoly/components/PlayerHUD.tsx
+  s_7ed00ff5d8e926::t_3b4d1d0dfb6e63 73-77
+  s_7ed00ff5d8e926::t_b2027469c2d224 18
+  s_7ed00ff5d8e926::t_3e5c61310dff09 29
+server/package.json
+  s_7ed00ff5d8e926::t_b200df67aa10ce 13
+packages/monopoly-bot/src/valuation/cashBuffer.ts
+  s_7ed00ff5d8e926::t_3728158ee677a8 1
+  s_7ed00ff5d8e926::t_63cd3c90ad4f06 2-40,42-56
+  s_7ed00ff5d8e926::t_b7b76418c60118 41
+apps/web/src/features/room/components/LobbyPage.tsx
+  s_7ed00ff5d8e926::t_583f9c98bf4b3e 314-324
+  s_7ed00ff5d8e926::t_4c47485b1985b0 189-194,202-208
+  s_7ed00ff5d8e926::t_126eddf496e061 195-201
+  s_7ed00ff5d8e926::t_148867030f98bf 4,10,56,209,299,325
+packages/monopoly-bot/src/decision/auction.ts
+  s_7ed00ff5d8e926::t_f2f8d149565c1a 1-60
+packages/monopoly-bot/src/simulate/seededRng.ts
+  s_7ed00ff5d8e926::t_670a81013219b7 1-13
+packages/monopoly-bot/src/decision/build.ts
+  s_7ed00ff5d8e926::t_d0662ddcdeaa92 2
+  s_7ed00ff5d8e926::t_1d816fa863000c 1,3-86
+packages/monopoly-bot/src/decision/trade.ts
+  s_7ed00ff5d8e926::t_bd245d3aa60420 153,159
+  s_7ed00ff5d8e926::t_2827379118500a 1-152,154-158,160-184
+  s_7ed00ff5d8e926::t_4b51194203967c 185
+packages/monopoly-bot/src/valuation/monopolyPremium.ts
+  s_7ed00ff5d8e926::t_dda99d006d3d89 1-23
+packages/monopoly-bot/src/decision/buy.ts
+  s_7ed00ff5d8e926::t_f39422287df793 1-89
+packages/monopoly-engine/src/evaluateBoardState.ts
+  s_7ed00ff5d8e926::t_a681f24b69d269 1-15,17-22,24-29,31,42-45,47-106,108,111-126
+  s_7ed00ff5d8e926::t_27f2848a4bb8c2 16,23,30,32-41,46
+  s_7ed00ff5d8e926::t_12575b1f5addd5 107,109-110
+packages/monopoly-bot/package.json
+  s_7ed00ff5d8e926::t_b6c3a2f134ef66 1-25
+server/tsconfig.json
+  s_7ed00ff5d8e926::t_ad43d8d04e9286 10
+packages/monopoly-bot/src/strategy/expertStrategy.ts
+  s_7ed00ff5d8e926::t_77e105d785061a 50,55-56,62
+  s_7ed00ff5d8e926::t_e7631adf511ff9 21,28
+  s_7ed00ff5d8e926::t_c9f62030db96f3 48-49,51-54,57-61
+  s_7ed00ff5d8e926::t_6b176453e63e27 42-47,63-65
+  s_7ed00ff5d8e926::t_dd8a1e742c5357 1-20,22-27,29-41,66-91
+  s_7ed00ff5d8e926::t_6455d13f3b4003 92-97
+packages/monopoly-bot/src/decision/orchestrator.ts
+  s_7ed00ff5d8e926::t_3aaeebfe8b4dca 33-41
+  s_7ed00ff5d8e926::t_c5b8b6201ad07f 42-48
+  s_7ed00ff5d8e926::t_e66b3b9b78c9e9 1-23,32,49-61,70-88,90
+  s_7ed00ff5d8e926::t_7b69218ab3ada6 25-29
+  s_7ed00ff5d8e926::t_08e049d065ed4c 24,30-31
+  s_7ed00ff5d8e926::t_684f28904ef04e 62-69
+  s_7ed00ff5d8e926::t_b6a3f0a4354fb9 89,91-97
+server/src/games/monopoly/bot-runtime/BotScheduler.ts
+  s_7ed00ff5d8e926::t_f3891914044cba 1-5,8-173
+  s_7ed00ff5d8e926::t_908140c220bfce 6
+  s_7ed00ff5d8e926::t_dcf0bd8a93fcc1 7
+packages/monopoly-bot/src/index.ts
+  s_7ed00ff5d8e926::t_5a07541757ff3f 1-6
+  s_7ed00ff5d8e926::t_d56db065cff113 7-18
+packages/monopoly-bot/src/simulate/runHeadlessGame.ts
+  s_7ed00ff5d8e926::t_86f9ac797658e9 24-45
+  s_7ed00ff5d8e926::t_217946192d9f2a 22
+  s_7ed00ff5d8e926::t_aaed42a436c113 96-111
+  s_7ed00ff5d8e926::t_d89af861f5c23c 49-55
+  s_7ed00ff5d8e926::t_49ff89031f9155 95
+  s_7ed00ff5d8e926::t_bf255e53d3ed1e 46-48
+  s_7ed00ff5d8e926::t_73799d5c9b31e4 120,128-129,131-134
+  s_7ed00ff5d8e926::t_4496d30ed4fe75 121-125
+  s_7ed00ff5d8e926::t_8f29640e02260e 1-2,4,6-21,23,56-64,67-68,71-94,112-119,135-147,151-153,155-156,159
+  s_7ed00ff5d8e926::t_803775747daeaa 126-127
+  s_7ed00ff5d8e926::t_4f9c1bc7c11df5 130
+  s_7ed00ff5d8e926::t_d2cd3452e4848a 65-66,69-70
+  s_7ed00ff5d8e926::t_afa70c7ef9f8c2 148-150,154
+  s_7ed00ff5d8e926::t_ee3d2b6f3fb3d6 3,5,157-158,160
+packages/monopoly-bot/tsconfig.json
+  s_7ed00ff5d8e926::t_be62cbdcc9d8a5 8-9
+  s_7ed00ff5d8e926::t_a5760ccbef08fe 1-7,10
+packages/monopoly-bot/src/__tests__/debug-sim.ts
+  s_7ed00ff5d8e926::t_83402c3833a5cb 3-9,11
+  s_7ed00ff5d8e926::t_8fb560df54c5f9 1-2,10,12-22
+  s_7ed00ff5d8e926::t_c1d90ccfee80eb 23
+server/src/db/schemas/RoomSchema.ts
+  s_7ed00ff5d8e926::t_a1cf0136be6e8e 12
+  s_7ed00ff5d8e926::t_0fa2f154cef864 35
+packages/shared-types/src/room-events.ts
+  s_7ed00ff5d8e926::t_149cfc14b33dfc 39-42
+  s_7ed00ff5d8e926::t_ff9643dc4082c1 78
+  s_7ed00ff5d8e926::t_c4a4e724ea007d 29-32
+  s_7ed00ff5d8e926::t_4baedad5583ef7 9
+packages/monopoly-engine/src/legalActions.ts
+  s_7ed00ff5d8e926::t_d4bafab8015607 196-198
+  s_7ed00ff5d8e926::t_6bb706e008ade9 1-7,9-19,21-81,83-87,89-195,199-207
+  s_7ed00ff5d8e926::t_c081391dcfa988 8
+  s_7ed00ff5d8e926::t_089953d4b93d11 20
+  s_7ed00ff5d8e926::t_8fa9ff5cc8f35d 82
+  s_7ed00ff5d8e926::t_926b0c7b48b141 88
+packages/monopoly-bot/src/decision/jail.ts
+  s_7ed00ff5d8e926::t_5999272e7f6e3a 1-60
+  s_7ed00ff5d8e926::t_c2b3798e6537e7 61-63
+packages/monopoly-bot/src/valuation/propertyValue.ts
+  s_7ed00ff5d8e926::t_9664a5b8ebd4c5 1-84
+  s_7ed00ff5d8e926::t_199141a99bda58 85
+server/src/socket/room-handlers.ts
+  s_7ed00ff5d8e926::t_f594d94293c5e5 18
+  s_7ed00ff5d8e926::t_c749a3acc36039 42,51
+  s_7ed00ff5d8e926::t_53e6b5712277af 117
+  s_7ed00ff5d8e926::t_71eba7d4a0d2b5 7
+  s_7ed00ff5d8e926::t_e08368c316b6b1 175-218
+apps/web/src/features/monopoly/components/GameActivityFeed.tsx
+  s_7ed00ff5d8e926::t_d3baab6f815534 1-37
+  s_7ed00ff5d8e926::t_228df885593c24 38-42
+packages/monopoly-engine/src/simulateAction.ts
+  s_7ed00ff5d8e926::t_a0e5f04fce2b4f 1-17
+  s_7ed00ff5d8e926::t_1e33e556a7efaf 18-23
+packages/monopoly-engine/src/__tests__/query-helpers.test.ts
+  s_7ed00ff5d8e926::t_4f06a4eeeddd19 1-101
+server/src/rooms/RoomManager.ts
+  s_7ed00ff5d8e926::t_a2ce6ae58f3449 51
+  s_7ed00ff5d8e926::t_a4c2827ae8b36b 252
+  s_7ed00ff5d8e926::t_48c245d03121fb 11
+  s_7ed00ff5d8e926::t_12699b7fdcdf86 97
+  s_7ed00ff5d8e926::t_6ea836aec44bfa 193-238
+apps/web/src/features/monopoly/components/GamePage.tsx
+  s_7ed00ff5d8e926::t_110f53f20573e2 693-694,702-703
+  s_7ed00ff5d8e926::t_98670b09ceb36c 287-299
+  s_7ed00ff5d8e926::t_7b02e494c3716f 5,17,41,51,300,303,322,704
+packages/monopoly-engine/src/index.ts
+  s_7ed00ff5d8e926::t_20062ebe3a4f30 95,117,125
+  s_7ed00ff5d8e926::t_d7a0555f7c652d 126,128,132,136
+packages/monopoly-engine/src/applyAction.ts
+  s_7ed00ff5d8e926::t_5da4ea918e4552 1-502
+packages/monopoly-bot/src/strategy/baselineStrategy.ts
+  s_7ed00ff5d8e926::t_0e99076ae9990e 1-42,54-69
+  s_7ed00ff5d8e926::t_0592f7742aea4d 43-53
+  s_7ed00ff5d8e926::t_e89dd0e140b2ec 70-77
+packages/monopoly-bot/src/strategy/types.ts
+  s_7ed00ff5d8e926::t_c8ea9194d99129 1-29
+packages/monopoly-bot/src/__tests__/expert-vs-baseline.test.ts
+  s_7ed00ff5d8e926::t_acb3272139b13b 10-14,16
+  s_7ed00ff5d8e926::t_0bbc87ac233420 1-9,15,17-34
+apps/web/src/components/ui/PlayerBadge.tsx
+  s_7ed00ff5d8e926::t_91400fffe24c90 9
+  s_7ed00ff5d8e926::t_8539c1725bc6b7 18
+  s_7ed00ff5d8e926::t_ca9b2ae3920a68 46-50
+server/src/games/monopoly/handlers.ts
+  s_7ed00ff5d8e926::t_6fbdb3467ee8c5 35-37,56,79-85,87-90
+  s_7ed00ff5d8e926::t_b07da9ccf52b56 1,92,295-299
+packages/monopoly-bot/src/__tests__/legality.test.ts
+  s_7ed00ff5d8e926::t_97211d059e4d08 1,4-6,8,11-12,14-18,21,25,29,31,34,37-40
+  s_7ed00ff5d8e926::t_3207b523d5f299 2-3,7,9-10,13,19-20,22-24,26-28,30,32-33,35-36
+  s_7ed00ff5d8e926::t_42b7884c03c964 41-45
+packages/monopoly-bot/src/decision/liquidate.ts
+  s_7ed00ff5d8e926::t_a6f525d3e9ef27 1,4-81
+  s_7ed00ff5d8e926::t_fccf103566066f 2-3
+packages/monopoly-bot/src/__tests__/simulation.test.ts
+  s_7ed00ff5d8e926::t_c3e414c5660360 2,17-28,30-32,34-35
+  s_7ed00ff5d8e926::t_c52a8cdff3fe57 1,3-16,29,33,36
+apps/web/src/features/room/store/roomStore.ts
+  s_7ed00ff5d8e926::t_15cc1df8d38aa5 9
+packages/monopoly-engine/src/cloneState.ts
+  s_7ed00ff5d8e926::t_647b982c85ea83 1-6
+package.json
+  s_7ed00ff5d8e926::t_236bca14248bc2 12-13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "4c82a390b96111d44de86a43b3e1ed04ed1d8789",
+  "prompts": {},
+  "sessions": {
+    "s_7ed00ff5d8e926": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "c110103c-270c-4c59-ae10-dd9b8f12d76e",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
