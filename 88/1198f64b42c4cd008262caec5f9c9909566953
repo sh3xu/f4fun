@@ -1,0 +1,26 @@
+.husky/pre-push
+  s_53f89b22aa9735::t_ebe3478a6af556 1
+package.json
+  h_54cccc4af8e4fc 14-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "881198f64b42c4cd008262caec5f9c9909566953",
+  "prompts": {},
+  "humans": {
+    "h_54cccc4af8e4fc": {
+      "author": "sh3xu <s43khu@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_53f89b22aa9735": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "bd37dbf6-93ed-4ae9-b4db-73b77a899958",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
