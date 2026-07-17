@@ -11,8 +11,9 @@
     "format": "biome check --write .",
     "typecheck": "pnpm --filter @f4fun/shared-types typecheck && pnpm --filter @f4fun/monopoly-engine typecheck && pnpm --filter @f4fun/server typecheck && pnpm --filter @f4fun/web typecheck",
     "test": "pnpm --filter @f4fun/shared-types --filter @f4fun/monopoly-engine build && pnpm -r test",
-    "prepare": "husky",
-    "prepush": "pnpm lint && pnpm format && pnpm typecheck && pnpm test && pnpm build"
+    "precommit": "lint-staged",
+    "prepush": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "prepare": "husky"
   },
   "lint-staged": {
     "*": "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true"
