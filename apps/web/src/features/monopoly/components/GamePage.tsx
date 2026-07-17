@@ -576,12 +576,12 @@ export function GamePage() {
       )}
     >
       <Toaster
-        position="top-center"
+        position="bottom-left"
         richColors
         toastOptions={{
           classNames: {
             toast:
-              "material-cardstock !border-[var(--material-cardstock-edge)] !bg-[var(--material-cardstock-bg)] !text-gray-100",
+              "material-cardstock !w-auto !max-w-[18rem] !border-[var(--material-cardstock-edge)] !bg-[var(--material-cardstock-bg)] !text-gray-100 !text-sm",
           },
         }}
       />
@@ -690,8 +690,6 @@ export function GamePage() {
           The ledger
         </p>
 
-        <GameActivityFeed entries={activityEntries} className="w-full" />
-
         <div className="grid min-h-0 w-full flex-1 grid-cols-2 gap-2.5 overflow-y-auto overflow-x-hidden lg:flex lg:flex-col lg:overflow-y-auto">
           {state.turnOrder.map((playerId) => (
             <div key={playerId} className="w-full lg:min-w-0">
@@ -720,6 +718,11 @@ export function GamePage() {
             </div>
           ))}
         </div>
+
+        <GameActivityFeed
+          entries={activityEntries}
+          className="mt-1 w-full shrink-0"
+        />
       </RailFrame>
     </div>
   );

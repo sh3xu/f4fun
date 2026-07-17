@@ -172,15 +172,16 @@ export function afterGameStateCommit(
   io: Server,
   roomId: string,
   state: GameState,
-  _events: readonly GameEvent[] = [],
+  events: readonly GameEvent[] = [],
 ): void {
-  void afterGameStateCommitAsync(io, roomId, state);
+  void afterGameStateCommitAsync(io, roomId, state, events);
 }
 
 async function afterGameStateCommitAsync(
   io: Server,
   roomId: string,
   state: GameState,
+  events: readonly GameEvent[],
 ): Promise<void> {
   const actorId = resolveActorId(state);
   const botTurn = actorId ? await isBotActor(roomId, actorId) : false;
@@ -192,7 +193,7 @@ async function afterGameStateCommitAsync(
   }
 
   syncTradeTimers(io, roomId, state);
-  scheduleBotActions(io, roomId, state);
+  scheduleBotActions(io, roomId, state, events);
 }
 
 async function onTurnTimeout(

@@ -1,5 +1,5 @@
 import { BotPlayer, expertStrategy, resolveActorId } from "@f4fun/monopoly-bot";
-import type { GameAction, GameState } from "@f4fun/monopoly-engine";
+import type { GameAction, GameEvent, GameState } from "@f4fun/monopoly-engine";
 import { getLegalActions, timeoutActionForState } from "@f4fun/monopoly-engine";
 import type { Server } from "socket.io";
 import { getBotPlayerIds } from "../../../rooms/RoomManager.js";
@@ -16,6 +16,13 @@ interface BotTimerEntry {
 
 const botTimers = new Map<string, BotTimerEntry>();
 const botPlayers = new Map<string, BotPlayer>();
+
+/** Mirrors client DiceRoller TUMBLE_MS. */
+const DICE_ANIMATION_MS = 800;
+/** Mirrors client PieceMover MAX_MOVE_MS cap for token hops. */
+const MOVE_ANIMATION_MS = 3200;
+/** Extra settle time after animations before the bot acts. */
+const ANIMATION_SETTLE_MS = 400;
 
 function botTimerKey(roomId: string, actorId: string): string {
   return `${roomId}:${actorId}`;
@@ -66,7 +73,32 @@ function intentOptionsFor(action: GameAction): ExecuteIntentOptions {
 }
 
 function thinkingDelayMs(): number {
-  return 600 + Math.floor(Math.random() * 1200);
+  return 900 + Math.floor(Math.random() * 1100);
+}
+
+/**
+ * NOTE: Server cannot observe client animation completion — approximate wait so
+ * bots do not act through in-flight dice/token animations.
+ */
+function animationWaitMs(events: readonly GameEvent[]): number {
+  let wait = 0;
+  const hasDice = events.some((e) => e.type === "DICE_ROLLED");
+  const sentOrReleased = events.some(
+    (e) => e.type === "SENT_TO_JAIL" || e.type === "RELEASED_FROM_JAIL",
+  );
+  const cardApplied = events.some((e) => e.type === "CARD_APPLIED");
+
+  if (hasDice) {
+    wait += DICE_ANIMATION_MS + MOVE_ANIMATION_MS;
+  } else if (sentOrReleased) {
+    wait += MOVE_ANIMATION_MS;
+  } else if (cardApplied) {
+    // NOTE: Money/effect cards are short; movement cards may hop — use mid wait.
+    wait += 1600;
+  }
+
+  if (wait > 0) wait += ANIMATION_SETTLE_MS;
+  return wait;
 }
 
 function getBotPlayer(playerId: string): BotPlayer {
@@ -90,6 +122,7 @@ export function scheduleBotActions(
   io: Server,
   roomId: string,
   state: GameState,
+  events: readonly GameEvent[] = [],
 ): void {
   if (state.phase === "GAME_OVER" || state.winnerId) {
     clearAllBotTimers(roomId);
@@ -110,9 +143,10 @@ export function scheduleBotActions(
 
     clearBotTimer(roomId, actorId);
 
+    const delay = thinkingDelayMs() + animationWaitMs(events);
     const timer = setTimeout(() => {
       void runBotTurn(io, roomId, actorId);
-    }, thinkingDelayMs());
+    }, delay);
 
     botTimers.set(key, { timer, stateKey: nextKey });
   })();
