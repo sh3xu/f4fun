@@ -186,6 +186,49 @@ describe("monopoly-bot regressions", () => {
     expect(nextTurn.action.type).toBe("PROPOSE_TRADE");
   });
 
+  it("keeps rejection locks through doubles reroll PRE_ROLL in the same turn", () => {
+    const state = createState();
+    state.phase = "END_TURN";
+    state.activePlayerIndex = 0;
+    state.doublesCount = 0;
+    state.ownership[1] = { ownerId: "p1", isMortgaged: false };
+    state.ownership[6] = { ownerId: "p1", isMortgaged: false };
+    state.ownership[3] = { ownerId: "p2", isMortgaged: false };
+    state.players.p1.ownedPositions = [1, 6];
+    state.players.p2.ownedPositions = [3];
+
+    const proposer = new BotPlayer(expertStrategy);
+    const rng = () => 0.5;
+
+    const first = proposer.decide(state, "p1", [{ type: "END_TURN" }], rng);
+    expect(first.action.type).toBe("PROPOSE_TRADE");
+    if (first.action.type !== "PROPOSE_TRADE") return;
+
+    const proposed = applyAction(state, first.action, rng, "p1");
+    Object.assign(state, proposed.state);
+    const pending = state.pendingTrades[0];
+    expect(pending).toBeDefined();
+    if (!pending) return;
+
+    const fingerprint = pendingTradeFingerprint(pending);
+    const partnerCondition = partnerTradeConditionKey(
+      state,
+      pending.toPlayerId,
+    );
+    proposer.rememberRejectedTrade(fingerprint, partnerCondition);
+
+    state.pendingTrades = [];
+    state.phase = "PRE_ROLL";
+    state.doublesCount = 1;
+
+    for (let i = 0; i < 6; i++) {
+      const next = proposer.decide(state, "p1", [{ type: "ROLL_DICE" }], rng);
+      expect(next.action.type).not.toBe("PROPOSE_TRADE");
+    }
+
+    expect(proposer.hasRejectedTrade(fingerprint, partnerCondition)).toBe(true);
+  });
+
   it("detects two-property color groups when blocking monopoly gifts", () => {
     const state = createState();
     state.ownership[1] = { ownerId: "p2", isMortgaged: false };

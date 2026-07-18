@@ -17,10 +17,9 @@ export function rememberRejectedDealForProposer(
   fingerprint: string,
   partnerCondition: string,
 ): void {
-  getBotPlayer(fromPlayerId).rememberRejectedTrade(
-    fingerprint,
-    partnerCondition,
-  );
+  const bot = botPlayers.get(fromPlayerId);
+  if (!bot) return;
+  bot.rememberRejectedTrade(fingerprint, partnerCondition);
 }
 
 export function clearBotPlayersForTests(): void {

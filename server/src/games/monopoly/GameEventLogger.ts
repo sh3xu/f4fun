@@ -55,6 +55,7 @@ export async function logGameAction(
 export async function getGameEventLog(
   gameId: string,
   fromSequence = 0,
+  limit?: number,
 ): Promise<
   Array<{
     sequence: number;
@@ -64,6 +65,20 @@ export async function getGameEventLog(
     timestamp: Date;
   }>
 > {
+  if (limit !== undefined && limit > 0 && fromSequence === 0) {
+    const docs = await GameEventModel.find({ gameId })
+      .sort({ sequence: -1 })
+      .limit(limit)
+      .lean();
+    return docs.reverse().map((doc) => ({
+      sequence: doc.sequence,
+      turn: doc.turn,
+      action: doc.action,
+      events: doc.events as GameEvent[],
+      timestamp: doc.timestamp,
+    }));
+  }
+
   const docs = await GameEventModel.find({
     gameId,
     sequence: { $gte: fromSequence },

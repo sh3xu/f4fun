@@ -18,7 +18,12 @@ export function HouseMarker({
   title = "House",
 }: BuildingMarkerProps) {
   return (
-    <span title={title} className="inline-flex shrink-0 leading-none">
+    <span
+      role="img"
+      aria-label={title}
+      title={title}
+      className="inline-flex shrink-0 leading-none"
+    >
       <House
         aria-hidden
         className={cn(
@@ -39,7 +44,12 @@ export function HotelMarker({
   title = "Hotel",
 }: BuildingMarkerProps) {
   return (
-    <span title={title} className="inline-flex shrink-0 leading-none">
+    <span
+      role="img"
+      aria-label={title}
+      title={title}
+      className="inline-flex shrink-0 leading-none"
+    >
       <Hotel
         aria-hidden
         className={cn(

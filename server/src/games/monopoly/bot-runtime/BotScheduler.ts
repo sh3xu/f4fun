@@ -1,8 +1,4 @@
-import {
-  partnerTradeConditionKey,
-  pendingTradeFingerprint,
-  resolveActorId,
-} from "@f4fun/monopoly-bot";
+import { resolveActorId } from "@f4fun/monopoly-bot";
 import type { GameAction, GameEvent, GameState } from "@f4fun/monopoly-engine";
 import {
   CARD_REVEAL_PAUSE_MS,
@@ -17,7 +13,7 @@ import {
   emitDiceRolledEvents,
   executeGameIntent,
 } from "../executeGameIntent.js";
-import { getBotPlayer, rememberRejectedDealForProposer } from "./botMemory.js";
+import { getBotPlayer } from "./botMemory.js";
 
 interface BotTimerEntry {
   timer: ReturnType<typeof setTimeout>;
@@ -256,21 +252,6 @@ async function runBotTurn(
     decision = bot.decide(state, actorId, legal);
   } catch {
     return;
-  }
-
-  // NOTE: Stamp the proposer so they cannot re-offer the same rejected deal.
-  if (decision.action.type === "REJECT_TRADE") {
-    const rejectAction = decision.action;
-    const trade = state.pendingTrades.find(
-      (t) => t.tradeId === rejectAction.tradeId,
-    );
-    if (trade) {
-      rememberRejectedDealForProposer(
-        trade.fromPlayerId,
-        pendingTradeFingerprint(trade),
-        partnerTradeConditionKey(state, trade.toPlayerId),
-      );
-    }
   }
 
   io.to(roomId).emit("game:botReasoning", {

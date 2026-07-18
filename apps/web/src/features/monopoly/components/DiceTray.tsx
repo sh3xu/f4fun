@@ -89,12 +89,16 @@ export function DiceTray({
         )}
       </div>
 
-      {!hideDice && (
+      {(!hideDice || isDiceAnimating) && (
         <DiceRoller
           dice={dice}
           animate={isDiceAnimating}
           rollKey={rollKey}
           onComplete={onDiceAnimationComplete}
+          className={cn(
+            hideDice &&
+              "pointer-events-none invisible absolute h-0 w-0 overflow-hidden",
+          )}
         />
       )}
 

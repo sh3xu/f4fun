@@ -64,7 +64,7 @@ export function TradeOfferSummary({
       )}
     >
       <div className="mb-2 flex items-start justify-between gap-2">
-        <p className="flex min-w-0 items-center gap-1.5 font-semibold text-white">
+        <div className="flex min-w-0 items-center gap-1.5 font-semibold text-white">
           {from && (
             <Avatar
               avatarId={from.token}
@@ -73,7 +73,7 @@ export function TradeOfferSummary({
             />
           )}
           <span className="truncate">Trade from {fromName}</span>
-        </p>
+        </div>
         {showCountdown && (
           <ActionCountdown
             deadlineAt={trade.expiresAt}

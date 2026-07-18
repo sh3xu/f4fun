@@ -7,7 +7,7 @@ import {
   timeoutActionForState,
   timeoutSecsForPhase,
 } from "../turnTimeout.js";
-import { DEFAULT_GAME_CONFIG } from "../types.js";
+import { CARD_REVEAL_PAUSE_MS, DEFAULT_GAME_CONFIG } from "../types.js";
 
 describe("turnTimeout", () => {
   it("maps phases to short, long, end-turn, and auction timeouts", () => {
@@ -74,6 +74,25 @@ describe("turnTimeout", () => {
 
     state.phase = "GAME_OVER";
     expect(timeoutActionForState(state)).toBeNull();
+  });
+
+  it("CARD_DRAWN deadline is no earlier than reveal pause", () => {
+    const state = createInitialState("g1", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    state.config.shortTimeoutSecs = 2;
+    state.phase = "CARD_DRAWN";
+    state.pendingCard = {
+      deck: "chance",
+      cardId: "ch_goojf",
+      drawnAt: "2026-01-01T00:00:00.000Z",
+    };
+    const now = Date.parse("2026-01-01T00:00:00.000Z");
+    stampActionDeadline(state, now);
+    expect(state.actionDeadlineAt).toBe(
+      new Date(now + CARD_REVEAL_PAUSE_MS).toISOString(),
+    );
   });
 
   it("stamps actionDeadlineAt from phase timeout", () => {

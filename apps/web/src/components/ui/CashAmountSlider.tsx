@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { cn } from "@/lib/cn";
 
 interface CashAmountSliderProps {
@@ -26,6 +27,8 @@ export function CashAmountSlider({
   className,
   id,
 }: CashAmountSliderProps) {
+  const generatedId = useId();
+  const inputId = id ?? generatedId;
   const safeMax = Math.max(min, max);
   const clamped = Math.min(safeMax, Math.max(min, value));
 
@@ -33,7 +36,7 @@ export function CashAmountSlider({
     <div className={cn("w-full space-y-1", className)}>
       <div className="flex items-center justify-between gap-2 text-xs">
         {label ? (
-          <label htmlFor={id} className="font-medium text-white/55">
+          <label htmlFor={inputId} className="font-medium text-white/55">
             {label}
           </label>
         ) : (
@@ -44,7 +47,7 @@ export function CashAmountSlider({
         </span>
       </div>
       <input
-        id={id}
+        id={inputId}
         type="range"
         min={min}
         max={safeMax}

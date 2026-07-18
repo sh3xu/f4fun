@@ -2,7 +2,7 @@
 
 import type { GameEvent, GameState, TradeOffer } from "@f4fun/monopoly-engine";
 import { timeoutSecsForPhase } from "@f4fun/monopoly-engine";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { GameLoader } from "@/components/ui/GameLoader";
 import { RailFrame } from "@/components/ui/RailFrame";
@@ -53,10 +53,17 @@ export function GamePage() {
   const [tradeOpen, setTradeOpen] = useState(false);
   const [activityEntries, setActivityEntries] = useState<ActivityEntry[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
+  const actionErrorTimeoutRef = useRef<number | null>(null);
 
   const showError = useCallback((message: string) => {
+    if (actionErrorTimeoutRef.current !== null) {
+      window.clearTimeout(actionErrorTimeoutRef.current);
+    }
     setActionError(message);
-    window.setTimeout(() => setActionError(null), 4000);
+    actionErrorTimeoutRef.current = window.setTimeout(() => {
+      setActionError((current) => (current === message ? null : current));
+      actionErrorTimeoutRef.current = null;
+    }, 4000);
   }, []);
 
   useEffect(() => {

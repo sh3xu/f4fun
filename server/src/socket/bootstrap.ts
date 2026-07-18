@@ -23,10 +23,17 @@ import { registerRoomHandlers } from "./room-handlers.js";
 
 const DISCONNECT_GRACE_SECS = Number(process.env.DISCONNECT_GRACE_SECS ?? 60);
 
+function parseCorsOrigins(value: string | undefined): string[] {
+  return (value || "http://localhost:3000")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
 export function createSocketServer(httpServer: HttpServer): Server {
   const io = new Server(httpServer, {
     cors: {
-      origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+      origin: parseCorsOrigins(process.env.CORS_ORIGIN),
       methods: ["GET", "POST"],
       credentials: true,
     },
@@ -66,9 +73,9 @@ export function createSocketServer(httpServer: HttpServer): Server {
         await cancelGrace(data.roomId, data.playerId);
 
         if (room.gameId) {
-          await withRoomLock(data.roomId, async () => {
+          const rejoinState = await withRoomLock(data.roomId, async () => {
             const state = await loadGame(room.gameId as string);
-            if (!state) return;
+            if (!state) return null;
 
             if (state.auction === undefined) state.auction = null;
             if (state.pendingTrades === undefined) state.pendingTrades = [];
@@ -83,11 +90,15 @@ export function createSocketServer(httpServer: HttpServer): Server {
             if (backfilled) {
               await saveGame(state.gameId, state, 0);
             }
-            const eventLog = await getGameEventLog(state.gameId);
-            socket.emit("game:stateSnapshot", { state, eventLog });
-            // NOTE: Rejoin re-arms in-memory timers after server restart / cold room.
-            afterGameStateCommit(io, data.roomId, state as GameState);
+            return state as GameState;
           });
+
+          if (rejoinState) {
+            const eventLog = await getGameEventLog(rejoinState.gameId, 0, 500);
+            socket.emit("game:stateSnapshot", { state: rejoinState, eventLog });
+            // NOTE: Rejoin re-arms in-memory timers after server restart / cold room.
+            afterGameStateCommit(io, data.roomId, rejoinState);
+          }
         }
 
         socket.to(data.roomId).emit("room:playerJoined", {

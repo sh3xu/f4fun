@@ -126,32 +126,44 @@ export function TradeModal({
         ) : (
           <div className="space-y-3 text-sm">
             <div>
-              <span className="text-white/50">Partner</span>
-              <div className="mt-1 flex flex-wrap gap-1.5">
+              <span id="trade-partner-label" className="text-white/50">
+                Partner
+              </span>
+              <div
+                role="radiogroup"
+                aria-labelledby="trade-partner-label"
+                className="mt-1 flex flex-wrap gap-1.5"
+              >
                 {partners.map((id) => {
                   const p = state.players[id];
                   if (!p) return null;
                   const color = getPlayerColor(id, state.turnOrder);
                   const selected = id === toPlayerId;
                   return (
-                    <button
+                    <label
                       key={id}
-                      type="button"
-                      onClick={() => setToPlayerId(id)}
                       className={cn(
-                        "flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors",
+                        "flex cursor-pointer items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors",
                         selected
                           ? "border-[#4fc3f7]/50 bg-[#4fc3f7]/15 text-white"
                           : "border-white/10 bg-black/25 text-white/70 hover:border-white/25",
                       )}
                     >
+                      <input
+                        type="radio"
+                        name="trade-partner"
+                        value={id}
+                        checked={selected}
+                        onChange={() => setToPlayerId(id)}
+                        className="sr-only"
+                      />
                       <Avatar
                         avatarId={p.token}
                         size="xs"
                         backgroundColor={color.hex}
                       />
                       <span className="truncate">{p.name}</span>
-                    </button>
+                    </label>
                   );
                 })}
               </div>
@@ -159,14 +171,14 @@ export function TradeModal({
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <p className="mb-1 flex items-center gap-1.5 font-semibold text-[#4fc3f7]">
+                <div className="mb-1 flex items-center gap-1.5 font-semibold text-[#4fc3f7]">
                   <Avatar
                     avatarId={me.token}
                     size="xs"
                     backgroundColor={meColor.hex}
                   />
                   You offer
-                </p>
+                </div>
                 <CashAmountSlider
                   id="trade-offer-cash"
                   label="Cash"
@@ -196,7 +208,7 @@ export function TradeModal({
               </div>
 
               <div>
-                <p className="mb-1 flex items-center gap-1.5 font-semibold text-amber-200">
+                <div className="mb-1 flex items-center gap-1.5 font-semibold text-amber-200">
                   {partner && partnerColor && (
                     <Avatar
                       avatarId={partner.token}
@@ -205,7 +217,7 @@ export function TradeModal({
                     />
                   )}
                   You request
-                </p>
+                </div>
                 <CashAmountSlider
                   id="trade-request-cash"
                   label="Cash"

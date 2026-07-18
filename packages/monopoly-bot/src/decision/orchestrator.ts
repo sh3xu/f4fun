@@ -8,11 +8,7 @@ import {
 } from "@f4fun/monopoly-engine";
 import { pickBestOption } from "../strategy/expertStrategy.js";
 import type { StrategyProfile } from "../strategy/types.js";
-import {
-  partnerTradeConditionKey,
-  pendingTradeFingerprint,
-  rejectedDealLockKey,
-} from "./tradeFingerprint.js";
+import { rejectedDealLockKey } from "./tradeFingerprint.js";
 
 export interface BotDecision {
   action: GameAction;
@@ -22,8 +18,6 @@ export interface BotDecision {
 export class BotPlayer {
   /** Locks: deal fingerprint + partner condition at rejection time. */
   private readonly rejectedTradeLocks = new Set<string>();
-  /** NOTE: Clear locks once per PRE_ROLL visit so next turn can reconsider. */
-  private clearedLocksThisPreRoll = false;
 
   constructor(private readonly strategy: StrategyProfile) {}
 
@@ -53,14 +47,10 @@ export class BotPlayer {
     legalActions?: GameAction[],
     rng: RNG = Math.random,
   ): BotDecision {
-    // NOTE: New turn — allow the same deal again; scoring uses partner conditions.
-    if (state.phase === "PRE_ROLL") {
-      if (!this.clearedLocksThisPreRoll) {
-        this.rejectedTradeLocks.clear();
-        this.clearedLocksThisPreRoll = true;
-      }
-    } else {
-      this.clearedLocksThisPreRoll = false;
+    // NOTE: New turn starts at PRE_ROLL with doublesCount 0; doubles reroll also
+    // returns to PRE_ROLL but leaves doublesCount > 0 — keep rejection locks until END_TURN.
+    if (state.phase === "PRE_ROLL" && state.doublesCount === 0) {
+      this.rejectedTradeLocks.clear();
     }
 
     let actions = legalActions ?? getLegalActions(state, actorId);
@@ -124,19 +114,6 @@ export class BotPlayer {
     }
 
     if (best) {
-      if (best.action.type === "REJECT_TRADE") {
-        const rejectAction = best.action;
-        const trade = state.pendingTrades.find(
-          (t) => t.tradeId === rejectAction.tradeId,
-        );
-        if (trade) {
-          this.rememberRejectedTrade(
-            pendingTradeFingerprint(trade),
-            partnerTradeConditionKey(state, trade.fromPlayerId),
-          );
-        }
-      }
-
       return {
         action: best.action,
         reasoning: best.reasoning.slice(0, 120),
