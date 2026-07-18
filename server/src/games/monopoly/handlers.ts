@@ -1,15 +1,4 @@
-import {
-  applyAction,
-  type GameAction,
-  type GameEvent,
-  type GameState,
-  getActivePlayer,
-  getCurrentAuctionBidder,
-  pauseActionDeadline,
-  resumeActionDeadline,
-  stampActionDeadline,
-  type TradeOffer,
-} from "@f4fun/monopoly-engine";
+import type { GameAction, GameEvent, TradeOffer } from "@f4fun/monopoly-engine";
 import {
   GameAcceptTradeSchema,
   GameAcknowledgeCardSchema,
@@ -43,13 +32,9 @@ import {
   validatePayload,
 } from "../../socket/middleware.js";
 import {
-  afterGameStateCommit,
-  ensureTradeExpiries,
-  mergeGameConfig,
-} from "./DeadlineTimers.js";
-import { logGameAction } from "./GameEventLogger.js";
-import { loadGameByRoomId, saveGame } from "./GameStore.js";
-import { withRoomLock } from "./roomMutex.js";
+  emitDiceRolledEvents,
+  executeGameIntent,
+} from "./executeGameIntent.js";
 
 function assertRoomMatch(
   socketRoomId: string,
@@ -63,98 +48,12 @@ function assertRoomMatch(
   return true;
 }
 
-/** Backfill fields added after older persisted games. Returns true if mutated. */
-function normalizeState(state: GameState): boolean {
-  let changed = false;
-  if (state.auction === undefined) {
-    state.auction = null;
-    changed = true;
-  }
-  if (state.pendingTrades === undefined) {
-    state.pendingTrades = [];
-    changed = true;
-  }
-  if (state.actionDeadlineAt === undefined) {
-    state.actionDeadlineAt = null;
-    changed = true;
-  }
-  if (state.actionDeadlinePausedMs === undefined) {
-    state.actionDeadlinePausedMs = null;
-    changed = true;
-  }
-  if (state.pendingDebt === undefined) {
-    state.pendingDebt = null;
-    changed = true;
-  }
-  mergeGameConfig(state);
-  if (ensureTradeExpiries(state)) changed = true;
-  return changed;
-}
-
-function refreshActionDeadline(
-  stateBefore: GameState,
-  stateAfter: GameState,
-  events: readonly GameEvent[],
-): void {
-  const proposed = events.some((e) => e.type === "TRADE_PROPOSED");
-  const tradeResolved =
-    events.some(
-      (e) => e.type === "TRADE_COMPLETED" || e.type === "TRADE_REJECTED",
-    ) && stateAfter.pendingTrades.length === 0;
-
-  if (proposed) {
-    pauseActionDeadline(stateAfter);
-    return;
-  }
-
-  if (tradeResolved) {
-    resumeActionDeadline(stateAfter);
-    return;
-  }
-
-  const enteredAuction =
-    stateBefore.phase !== "AUCTION" && stateAfter.phase === "AUCTION";
-  if (enteredAuction) {
-    stampActionDeadline(stateAfter);
-    return;
-  }
-
-  const leftAuction =
-    stateBefore.phase === "AUCTION" && stateAfter.phase !== "AUCTION";
-  if (leftAuction && stateAfter.actionDeadlineAt) {
-    return;
-  }
-
-  const bidderBefore =
-    stateBefore.phase === "AUCTION"
-      ? getCurrentAuctionBidder(stateBefore)
-      : null;
-  const bidderAfter =
-    stateAfter.phase === "AUCTION" ? getCurrentAuctionBidder(stateAfter) : null;
-  const shouldRestamp =
-    stateAfter.phase !== stateBefore.phase ||
-    bidderBefore !== bidderAfter ||
-    (!stateBefore.actionDeadlineAt &&
-      stateBefore.actionDeadlinePausedMs == null);
-
-  if (shouldRestamp) {
-    stampActionDeadline(stateAfter);
-  } else {
-    stateAfter.actionDeadlineAt = stateBefore.actionDeadlineAt;
-    stateAfter.actionDeadlinePausedMs = stateBefore.actionDeadlinePausedMs;
-  }
-}
-
 type ActionHandlerOptions = {
   requireActiveTurn?: boolean;
   turnCountDelta?: number;
   buildAction: (data: Record<string, unknown>) => GameAction;
   actionName: string;
-  onEvents?: (
-    io: Server,
-    roomId: string,
-    events: ReturnType<typeof applyAction>["events"],
-  ) => void;
+  onEvents?: (io: Server, roomId: string, events: readonly GameEvent[]) => void;
 };
 
 function registerIntent(
@@ -177,84 +76,24 @@ function registerIntent(
     if (!assertRoomMatch(roomId, data.roomId, callback)) return;
 
     try {
-      await withRoomLock(roomId, async () => {
-        const loaded = await loadGameByRoomId(data.roomId);
-        if (!loaded) {
-          callback?.("Game not found");
-          return;
-        }
-        const backfilled = normalizeState(loaded);
-        const state = loaded;
-
-        if (options.requireActiveTurn !== false) {
-          const activePlayerId = getActivePlayer(state);
-          if (activePlayerId !== playerId) {
-            callback?.("Not your turn");
-            return;
-          }
-        }
-
-        const stateBefore = JSON.parse(JSON.stringify(state)) as GameState;
-        const action = options.buildAction(data as Record<string, unknown>);
-        const result = applyAction(state, action, Math.random, playerId);
-
-        if (result.error) {
-          // NOTE: Still persist backfilled expiry stamps if we touched legacy trades.
-          if (backfilled) {
-            await saveGame(state.gameId, state, 0);
-            afterGameStateCommit(io, roomId, state);
-          }
-          callback?.(result.error);
-          return;
-        }
-
-        refreshActionDeadline(stateBefore, result.state, result.events);
-        await saveGame(state.gameId, result.state, options.turnCountDelta ?? 0);
-        try {
-          await logGameAction(
-            state.gameId,
-            roomId,
-            playerId,
-            options.actionName,
-            stateBefore,
-            result.state,
-            result.events,
-          );
-        } catch (logErr) {
-          // NOTE: Audit log must not block gameplay after state is already persisted.
-          console.error("[GameEventLogger] Failed to log action:", logErr);
-        }
-
-        io.to(roomId).emit("game:stateUpdated", {
-          state: result.state,
-          events: result.events,
-        });
-
-        options.onEvents?.(io, roomId, result.events);
-        afterGameStateCommit(io, roomId, result.state, result.events);
-
-        callback?.(null, { events: result.events });
+      const action = options.buildAction(data as Record<string, unknown>);
+      const result = await executeGameIntent(io, roomId, playerId, action, {
+        requireActiveTurn: options.requireActiveTurn,
+        turnCountDelta: options.turnCountDelta,
+        actionName: options.actionName,
+        onEvents: options.onEvents,
       });
+
+      if (!result.ok) {
+        callback?.(result.error);
+        return;
+      }
+
+      callback?.(null, { events: result.events });
     } catch (err) {
       callback?.((err as Error).message);
     }
   });
-}
-
-function emitDiceRolledEvents(
-  server: Server,
-  roomId: string,
-  events: readonly GameEvent[],
-): void {
-  for (const event of events) {
-    if (event.type === "DICE_ROLLED") {
-      server.to(roomId).emit("game:diceRolled", {
-        playerId: event.playerId,
-        dice: event.dice,
-        newPosition: event.newPosition,
-      });
-    }
-  }
 }
 
 export function registerMonopolyHandlers(
@@ -453,3 +292,8 @@ export function registerMonopolyHandlers(
     buildAction: () => ({ type: "END_TURN" }),
   });
 }
+
+export {
+  emitDiceRolledEvents,
+  executeGameIntent,
+} from "./executeGameIntent.js";

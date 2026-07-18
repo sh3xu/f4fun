@@ -41,8 +41,13 @@ export function HomePage() {
   const [error, setError] = useState("");
 
   const handleCreate = async () => {
-    if (!name.trim()) {
+    const trimmed = name.trim();
+    if (!trimmed) {
       setError("Write your name on the seat card first.");
+      return;
+    }
+    if (!/^[A-Za-z0-9]+$/.test(trimmed)) {
+      setError("Use letters and numbers only — no spaces or symbols.");
       return;
     }
 
@@ -55,14 +60,14 @@ export function HomePage() {
       const response = await emitWithCallback<RoomCreatedPayload>(
         "room:create",
         {
-          playerName: name.trim(),
+          playerName: trimmed,
           token: selectedAvatar,
         },
       );
 
       setMyIdentity(
         response.playerId,
-        name.trim(),
+        trimmed,
         selectedAvatar,
         response.playerSecret,
       );
@@ -70,7 +75,7 @@ export function HomePage() {
 
       savePlayer({
         playerId: response.playerId,
-        name: name.trim(),
+        name: trimmed,
         token: selectedAvatar,
         playerSecret: response.playerSecret,
       });
@@ -84,8 +89,13 @@ export function HomePage() {
   };
 
   const handleJoin = async () => {
-    if (!name.trim()) {
+    const trimmed = name.trim();
+    if (!trimmed) {
       setError("Write your name on the seat card first.");
+      return;
+    }
+    if (!/^[A-Za-z0-9]+$/.test(trimmed)) {
+      setError("Use letters and numbers only — no spaces or symbols.");
       return;
     }
     if (!roomCode.trim()) {
@@ -101,13 +111,13 @@ export function HomePage() {
 
       const response = await emitWithCallback<RoomCreatedPayload>("room:join", {
         roomCode: roomCode.trim().toUpperCase(),
-        playerName: name.trim(),
+        playerName: trimmed,
         token: selectedAvatar,
       });
 
       setMyIdentity(
         response.playerId,
-        name.trim(),
+        trimmed,
         selectedAvatar,
         response.playerSecret,
       );
@@ -115,7 +125,7 @@ export function HomePage() {
 
       savePlayer({
         playerId: response.playerId,
-        name: name.trim(),
+        name: trimmed,
         token: selectedAvatar,
         playerSecret: response.playerSecret,
       });
@@ -151,13 +161,16 @@ export function HomePage() {
                 id="home-nickname"
                 value={name}
                 onChange={(e) => {
-                  setName(e.target.value);
+                  const next = e.target.value.replace(/[^A-Za-z0-9]/g, "");
+                  setName(next);
                   setError("");
                 }}
-                placeholder="Name on your seat..."
+                placeholder="Letters and numbers only"
                 maxLength={16}
                 disabled={loading}
                 autoFocus
+                autoComplete="off"
+                spellCheck={false}
                 className="h-11 w-full rounded-md border-white/15 bg-black/30 px-4 text-sm font-semibold text-slate-100 placeholder-slate-500 focus:border-[#4fc3f7]"
               />
             </div>
@@ -223,8 +236,15 @@ export function HomePage() {
               <Button
                 variant="tokenGhost"
                 onClick={() => {
-                  if (!name.trim()) {
+                  const trimmed = name.trim();
+                  if (!trimmed) {
                     setError("Write your name on the seat card first.");
+                    return;
+                  }
+                  if (!/^[A-Za-z0-9]+$/.test(trimmed)) {
+                    setError(
+                      "Use letters and numbers only — no spaces or symbols.",
+                    );
                     return;
                   }
                   setMode("join_code");

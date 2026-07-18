@@ -2,19 +2,17 @@
 
 import type { GameEvent } from "@f4fun/monopoly-engine";
 import { useEffect, useRef } from "react";
-import {
-  areAnimationsSettled,
-  shouldDeferGameEventToasts,
-} from "../lib/deferred-toasts";
+import { areAnimationsSettled } from "../lib/deferred-toasts";
 import { useGameStore } from "../store/gameStore";
 
 /**
- * Fires game-event toasts immediately, or after dice/move animations settle
- * when the batch includes DICE_ROLLED (PASSED_GO, rent, jail, etc.).
+ * Flushes deferred game events after dice/move animations settle.
+ * Call the returned function only for non-deferred batches (when
+ * applyServerUpdate returns false).
  */
 export function useDeferredGameEventToasts(
   onEvent: (event: GameEvent) => void,
-): (events: GameEvent[]) => void {
+): void {
   const onEventRef = useRef(onEvent);
   onEventRef.current = onEvent;
 
@@ -42,13 +40,4 @@ export function useDeferredGameEventToasts(
     deferredCount,
     takeDeferredToastEvents,
   ]);
-
-  return (events: GameEvent[]) => {
-    // Deferred batches are queued inside applyServerUpdate; only toast now
-    // for events that do not drive dice/token animation.
-    if (shouldDeferGameEventToasts(events)) return;
-    for (const event of events) {
-      onEventRef.current(event);
-    }
-  };
 }

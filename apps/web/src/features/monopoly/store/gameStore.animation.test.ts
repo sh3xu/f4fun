@@ -11,6 +11,14 @@ function seededRng(values: number[]): () => number {
   return () => values[index++ % values.length];
 }
 
+function ackCardNow(state: ReturnType<typeof createInitialState>) {
+  const next = structuredClone(state);
+  if (next.pendingCard) {
+    next.pendingCard.drawnAt = new Date(0).toISOString();
+  }
+  return applyAction(next, { type: "ACKNOWLEDGE_CARD" });
+}
+
 describe("gameStore animation gating", () => {
   beforeEach(() => {
     useGameStore.getState().reset();
@@ -200,9 +208,7 @@ describe("gameStore animation gating", () => {
     expect(useGameStore.getState().pendingAnimation.type).toBe("none");
 
     // NOTE: Engine mutates in place — clone so store prev positions stay at Chance.
-    const ack = applyAction(structuredClone(roll.state), {
-      type: "ACKNOWLEDGE_CARD",
-    });
+    const ack = ackCardNow(roll.state);
     expect(ack.error).toBeUndefined();
     // Illinois Avenue
     expect(ack.state.players.p1.position).toBe(24);
@@ -214,12 +220,15 @@ describe("gameStore animation gating", () => {
     expect(store.pendingAnimation.toPosition).toBe(24);
     expect(store.displayPositions.p1).toBe(7);
     expect(store.diceAnimationComplete).toBe(false);
+    expect(store.deferredToastEvents.length).toBeGreaterThan(0);
+    expect(store.takeDeferredToastEvents()).toEqual([]);
 
     useGameStore.getState().completeMoveAnimation();
     store = useGameStore.getState();
     expect(store.pendingAnimation.type).toBe("none");
     expect(store.displayPositions.p1).toBe(24);
     expect(store.diceAnimationComplete).toBe(true);
+    expect(store.takeDeferredToastEvents().length).toBeGreaterThan(0);
   });
 
   it("chains card go-to when ACK arrives mid dice-move (timeout race)", () => {
@@ -246,9 +255,7 @@ describe("gameStore animation gating", () => {
     expect(useGameStore.getState().pendingAnimation.toPosition).toBe(7);
 
     // Server auto-ACK while client still animating hop to Chance
-    const ack = applyAction(structuredClone(roll.state), {
-      type: "ACKNOWLEDGE_CARD",
-    });
+    const ack = ackCardNow(roll.state);
     expect(ack.state.players.p1.position).toBe(24);
 
     useGameStore.getState().applyServerUpdate(ack.state, ack.events);
@@ -329,9 +336,7 @@ describe("gameStore animation gating", () => {
     useGameStore.getState().completeDiceAnimation();
     useGameStore.getState().completeMoveAnimation();
 
-    const ack = applyAction(structuredClone(roll.state), {
-      type: "ACKNOWLEDGE_CARD",
-    });
+    const ack = ackCardNow(roll.state);
     expect(ack.state.players.p1.position).toBe(JAIL_POSITION);
     expect(ack.events.some((e) => e.type === "SENT_TO_JAIL")).toBe(true);
 

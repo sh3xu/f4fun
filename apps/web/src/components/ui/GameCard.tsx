@@ -10,27 +10,35 @@ export type CardStock =
 
 const CARD_STOCK: Record<
   CardStock,
-  { headerClass: string; edgeClass: string }
+  { headerClass: string; edgeClass: string; bodyClass?: string }
 > = {
   property: {
     headerClass: "",
-    edgeClass: "border-white/[0.18]",
+    edgeClass: "border-white/[0.22]",
   },
   chance: {
-    headerClass: "bg-gradient-to-b from-[#f7941d] to-[#d97d0f]",
-    edgeClass: "border-amber-400/35",
+    headerClass: "bg-gradient-to-b from-[#ffb347] to-[#f7941d]",
+    edgeClass: "border-amber-400/70",
+    bodyClass:
+      "bg-gradient-to-b from-amber-600/35 via-amber-950/50 to-[rgba(18,26,40,0.94)]",
   },
   community: {
-    headerClass: "bg-gradient-to-b from-[#00aeef] to-[#0090c8]",
-    edgeClass: "border-sky-400/35",
+    headerClass: "bg-gradient-to-b from-[#4fc3f7] to-[#00aeef]",
+    edgeClass: "border-sky-400/70",
+    bodyClass:
+      "bg-gradient-to-b from-sky-500/35 via-sky-950/50 to-[rgba(18,26,40,0.94)]",
   },
   buyPrompt: {
-    headerClass: "bg-gradient-to-b from-[#4fc3f7] to-[#2196f3]",
-    edgeClass: "border-[#4fc3f7]/40 shadow-[4px_10px_22px_rgba(0,0,0,0.5)]",
+    headerClass: "bg-gradient-to-b from-[#81d4fa] to-[#2196f3]",
+    edgeClass: "border-[#4fc3f7]/70 shadow-[4px_10px_22px_rgba(0,0,0,0.5)]",
+    bodyClass:
+      "bg-gradient-to-b from-sky-400/30 via-sky-950/40 to-[rgba(18,26,40,0.94)]",
   },
   auction: {
-    headerClass: "bg-gradient-to-b from-amber-400 to-amber-600",
-    edgeClass: "border-amber-400/40",
+    headerClass: "bg-gradient-to-b from-amber-300 to-amber-600",
+    edgeClass: "border-amber-400/70",
+    bodyClass:
+      "bg-gradient-to-b from-amber-400/30 via-amber-950/45 to-[rgba(18,26,40,0.94)]",
   },
 };
 
@@ -59,6 +67,7 @@ export function GameCard({
       className={cn(
         "material-cardstock overflow-hidden",
         stockStyle.edgeClass,
+        stockStyle.bodyClass,
         dealIn && "animate-card-deal",
         className,
       )}

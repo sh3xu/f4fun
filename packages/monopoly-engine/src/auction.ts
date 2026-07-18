@@ -60,6 +60,11 @@ function autofoldBrokeBidders(state: GameState): GameEvent[] {
     // NOTE: Autofold when cash cannot meet/exceed the current high bid.
     if (!player || player.cash < auction.highBid) {
       events.push({ type: "AUCTION_AUTOFOLDED", playerId: id });
+      auction.bidHistory.push({
+        playerId: id,
+        amount: null,
+        kind: "autofold",
+      });
       continue;
     }
     remaining.push(id);
@@ -248,6 +253,7 @@ export function startBankAuction(
     bidderOrder: bidders,
     currentBidderIndex: 0,
     minNextBid: 1,
+    bidHistory: [],
     resumePhase: captureResumePhase(state),
   };
   state.phase = "AUCTION";
@@ -305,6 +311,7 @@ export function startOwnerAuction(
     bidderOrder: bidders,
     currentBidderIndex: 0,
     minNextBid: 1,
+    bidHistory: [],
     resumePhase,
   };
   state.phase = "AUCTION";
@@ -356,6 +363,7 @@ export function placeBid(
   auction.highBid = amount;
   auction.highBidderId = playerId;
   auction.minNextBid = amount + 1;
+  auction.bidHistory.push({ playerId, amount, kind: "bid" });
 
   const events: GameEvent[] = [{ type: "AUCTION_BID", playerId, amount }];
 
@@ -381,6 +389,11 @@ export function placeBid(
 
     if (current) {
       events.push({ type: "AUCTION_AUTOFOLDED", playerId: current });
+      state.auction.bidHistory.push({
+        playerId: current,
+        amount: null,
+        kind: "autofold",
+      });
       state.auction.bidderOrder = state.auction.bidderOrder.filter(
         (id) => id !== current,
       );
@@ -416,6 +429,7 @@ export function passAuction(
 
   const events: GameEvent[] = [{ type: "AUCTION_PASSED", playerId }];
 
+  auction.bidHistory.push({ playerId, amount: null, kind: "pass" });
   auction.bidderOrder = auction.bidderOrder.filter((id) => id !== playerId);
 
   if (auction.bidderOrder.length === 0) {

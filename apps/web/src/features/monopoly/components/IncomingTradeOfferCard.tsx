@@ -1,26 +1,36 @@
 "use client";
 
 import type { GameState, PendingTrade } from "@f4fun/monopoly-engine";
+import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { GameCard } from "@/components/ui/GameCard";
 import { cn } from "@/lib/cn";
+import { getPlayerColor } from "@/lib/player-colors";
 import { ActionCountdown } from "./ActionCountdown";
-import { getTileLabelAt } from "./tile-labels";
+import { PropertySwatch } from "./PropertySwatch";
 
-function formatOfferSide(
-  cash: number,
-  positions: number[],
-  goojfCards: number,
-): string {
-  const parts: string[] = [];
-  if (cash > 0) parts.push(`$${cash}`);
-  if (positions.length > 0) {
-    parts.push(positions.map((p) => getTileLabelAt(p)).join(", "));
+function OfferSideVisual({
+  cash,
+  positions,
+  goojfCards,
+}: {
+  cash: number;
+  positions: number[];
+  goojfCards: number;
+}) {
+  if (cash <= 0 && positions.length === 0 && goojfCards <= 0) {
+    return <span className="text-white/40">Nothing</span>;
   }
-  if (goojfCards > 0) {
-    parts.push(`${goojfCards} Jail Free`);
-  }
-  return parts.length > 0 ? parts.join(" · ") : "Nothing";
+
+  return (
+    <span className="inline-flex flex-wrap items-center gap-1.5">
+      {cash > 0 && <span>${cash}</span>}
+      {positions.map((pos) => (
+        <PropertySwatch key={pos} position={pos} className="text-xs" />
+      ))}
+      {goojfCards > 0 && <span>{goojfCards} Jail Free</span>}
+    </span>
+  );
 }
 
 interface TradeOfferSummaryProps {
@@ -42,7 +52,9 @@ export function TradeOfferSummary({
   showCountdown = true,
   className,
 }: TradeOfferSummaryProps) {
-  const fromName = state.players[trade.fromPlayerId]?.name ?? "Player";
+  const from = state.players[trade.fromPlayerId];
+  const fromName = from?.name ?? "Player";
+  const fromColor = getPlayerColor(trade.fromPlayerId, state.turnOrder);
 
   return (
     <div
@@ -52,7 +64,16 @@ export function TradeOfferSummary({
       )}
     >
       <div className="mb-2 flex items-start justify-between gap-2">
-        <p className="font-semibold text-white">Trade from {fromName}</p>
+        <div className="flex min-w-0 items-center gap-1.5 font-semibold text-white">
+          {from && (
+            <Avatar
+              avatarId={from.token}
+              size="xs"
+              backgroundColor={fromColor.hex}
+            />
+          )}
+          <span className="truncate">Trade from {fromName}</span>
+        </div>
         {showCountdown && (
           <ActionCountdown
             deadlineAt={trade.expiresAt}
@@ -63,19 +84,19 @@ export function TradeOfferSummary({
       </div>
       <p className="text-white/70">
         <span className="text-[#4fc3f7]">Offers:</span>{" "}
-        {formatOfferSide(
-          trade.offer.cash,
-          trade.offer.positions,
-          trade.offer.goojfCards,
-        )}
+        <OfferSideVisual
+          cash={trade.offer.cash}
+          positions={trade.offer.positions}
+          goojfCards={trade.offer.goojfCards}
+        />
       </p>
       <p className="mt-1 text-white/70">
         <span className="text-amber-200">Asks:</span>{" "}
-        {formatOfferSide(
-          trade.request.cash,
-          trade.request.positions,
-          trade.request.goojfCards,
-        )}
+        <OfferSideVisual
+          cash={trade.request.cash}
+          positions={trade.request.positions}
+          goojfCards={trade.request.goojfCards}
+        />
       </p>
       <div className="mt-3 flex gap-2">
         <Button
@@ -121,7 +142,7 @@ export function IncomingTradeOfferCard({
   if (incoming.length === 0) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-3 z-40 flex justify-center px-3 sm:top-4 sm:justify-end sm:pr-4 lg:right-[16.5rem] xl:right-[19.5rem]">
+    <div className="pointer-events-none fixed inset-x-0 top-3 z-40 flex justify-center px-3 sm:top-4 sm:justify-end sm:pr-4 lg:right-[13.5rem] xl:right-[15.5rem]">
       <GameCard
         stock="buyPrompt"
         className="pointer-events-auto w-full max-w-sm space-y-2 p-3 animate-card-deal"

@@ -1,23 +1,31 @@
 import { z } from "zod";
 
+/** Human nicknames: letters and digits only (bots may use special chars). */
+export const HumanPlayerNameSchema = z
+  .string()
+  .min(1)
+  .max(16)
+  .regex(/^[A-Za-z0-9]+$/, "Name may only contain letters and numbers");
+
 export const PlayerInfoSchema = z.object({
   id: z.string(),
   name: z.string().min(1).max(24),
   token: z.string(),
   isHost: z.boolean(),
   isConnected: z.boolean(),
+  isBot: z.boolean().default(false),
 });
 
 export type PlayerInfo = z.infer<typeof PlayerInfoSchema>;
 
 export const RoomCreateSchema = z.object({
-  playerName: z.string().min(1).max(24),
+  playerName: HumanPlayerNameSchema,
   token: z.string().min(1),
 });
 
 export const RoomJoinSchema = z.object({
   roomCode: z.string().length(6),
-  playerName: z.string().min(1).max(24),
+  playerName: HumanPlayerNameSchema,
   token: z.string().min(1),
 });
 
@@ -25,10 +33,18 @@ export const RoomStartGameSchema = z.object({
   roomCode: z.string().length(6),
 });
 
+export const RoomAddBotPlayerSchema = z.object({
+  roomCode: z.string().length(6),
+});
+
 export const RoomSyncSchema = z.object({
   roomCode: z.string().length(6),
   playerId: z.string().optional(),
   playerSecret: z.string().min(1).optional(),
+});
+
+export const RoomAddBotPlayerResponseSchema = z.object({
+  players: z.array(PlayerInfoSchema),
 });
 
 export const RoomCreatedSchema = z.object({
@@ -66,7 +82,11 @@ export const RoomErrorSchema = z.object({
 export type RoomCreatePayload = z.infer<typeof RoomCreateSchema>;
 export type RoomJoinPayload = z.infer<typeof RoomJoinSchema>;
 export type RoomStartGamePayload = z.infer<typeof RoomStartGameSchema>;
+export type RoomAddBotPlayerPayload = z.infer<typeof RoomAddBotPlayerSchema>;
 export type RoomSyncPayload = z.infer<typeof RoomSyncSchema>;
+export type RoomAddBotPlayerResponsePayload = z.infer<
+  typeof RoomAddBotPlayerResponseSchema
+>;
 export type RoomCreatedPayload = z.infer<typeof RoomCreatedSchema>;
 export type RoomSyncedPayload = z.infer<typeof RoomSyncedSchema>;
 export type RoomPlayerJoinedPayload = z.infer<typeof RoomPlayerJoinedSchema>;

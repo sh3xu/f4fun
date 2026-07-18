@@ -8,6 +8,7 @@ export interface RoomPlayer {
   token: string;
   isHost: boolean;
   isConnected: boolean;
+  isBot: boolean;
 }
 
 export interface Room {
@@ -18,6 +19,8 @@ export interface Room {
   players: RoomPlayer[];
   gameId: string | null;
 }
+
+const MAX_ROOM_PLAYERS = 8;
 
 function generateRoomCode(): string {
   return randomBytes(3).toString("hex").toUpperCase();
@@ -47,6 +50,7 @@ export async function createRoom(
     playerSecret,
     isHost: true,
     isConnected: true,
+    isBot: false,
     joinedAt: new Date(),
   };
 
@@ -83,7 +87,7 @@ export async function joinRoom(
     return docToRoom(doc);
   }
 
-  if (doc.players.length >= 8) throw new Error("Room is full");
+  if (doc.players.length >= MAX_ROOM_PLAYERS) throw new Error("Room is full");
 
   doc.players.push({
     playerId,
@@ -92,6 +96,7 @@ export async function joinRoom(
     playerSecret,
     isHost: false,
     isConnected: true,
+    isBot: false,
     joinedAt: new Date(),
   });
 
@@ -137,7 +142,7 @@ export async function setPlayerConnected(
 export async function allPlayersDisconnected(roomId: string): Promise<boolean> {
   const doc = await RoomModel.findOne({ roomId });
   if (!doc || doc.players.length === 0) return true;
-  return doc.players.every((p) => !p.isConnected);
+  return doc.players.filter((p) => !p.isBot).every((p) => !p.isConnected);
 }
 
 /**
@@ -147,8 +152,15 @@ export async function allPlayersDisconnected(roomId: string): Promise<boolean> {
 export async function deleteRoomIfAbandoned(roomId: string): Promise<boolean> {
   const result = await RoomModel.findOneAndDelete({
     roomId,
-    // NOTE: Fail if any seat has isConnected: true (reconnect race).
-    players: { $not: { $elemMatch: { isConnected: true } } },
+    // NOTE: Fail if any human seat reconnected since the abandonment check.
+    players: {
+      $not: {
+        $elemMatch: {
+          isBot: { $ne: true },
+          isConnected: true,
+        },
+      },
+    },
   });
   return result !== null;
 }
@@ -187,6 +199,108 @@ export async function verifyPlayerSession(
   return doc ? docToRoom(doc) : null;
 }
 
+const BOT_TOKENS = [
+  "memo_1",
+  "memo_2",
+  "memo_3",
+  "memo_4",
+  "memo_5",
+  "memo_6",
+  "memo_7",
+  "memo_8",
+] as const;
+
+const BOT_NAMES = [
+  "D@arkMet0",
+  "Nyx_7",
+  "Bl1tzKing",
+  "V0idFox",
+  "R@zorByte",
+  "Kryp70",
+  "Shad0wAce",
+  "Neon_Ph4ntom",
+  "Gl1tchOrb",
+  "Hex@flare",
+  "Z3nithX",
+  "Cyb3rWulf",
+  "M1dniteOps",
+  "Qu@ntumJinx",
+  "P1xelReaper",
+  "Aether_99",
+] as const;
+
+function pickBotName(usedNames: Set<string>): string {
+  const available = BOT_NAMES.filter((n) => !usedNames.has(n));
+  if (available.length > 0) {
+    const name = available[Math.floor(Math.random() * available.length)];
+    if (name !== undefined) return name;
+  }
+  let suffix = 1;
+  while (usedNames.has(`AI_Bot${suffix}`)) suffix += 1;
+  return `AI_Bot${suffix}`;
+}
+
+const ADD_BOT_MAX_ATTEMPTS = 5;
+
+export async function addBotPlayer(roomId: string): Promise<Room> {
+  for (let attempt = 0; attempt < ADD_BOT_MAX_ATTEMPTS; attempt++) {
+    const doc = await RoomModel.findOne({ roomId });
+    if (!doc) throw new Error("Room not found");
+    if (doc.status !== "lobby") throw new Error("Game already started");
+    if (doc.players.length >= MAX_ROOM_PLAYERS) throw new Error("Room is full");
+
+    const usedTokens = new Set(doc.players.map((p) => p.token));
+    const usedNames = new Set(doc.players.map((p) => p.name));
+    const token =
+      BOT_TOKENS.find((t) => !usedTokens.has(t)) ??
+      BOT_TOKENS[doc.players.length % BOT_TOKENS.length];
+    const name = pickBotName(usedNames);
+    const playerId = generateId();
+    const playerSecret = generatePlayerSecret();
+
+    const botPlayer: IRoomPlayer = {
+      playerId,
+      name,
+      token,
+      playerSecret,
+      isHost: false,
+      isConnected: true,
+      isBot: true,
+      joinedAt: new Date(),
+    };
+
+    const updated = await RoomModel.findOneAndUpdate(
+      {
+        roomId,
+        status: "lobby",
+        "players.7": { $exists: false },
+        players: {
+          $not: {
+            $elemMatch: { $or: [{ token }, { name }] },
+          },
+        },
+      },
+      { $push: { players: botPlayer } },
+      { new: true },
+    );
+    if (updated) return docToRoom(updated);
+  }
+
+  const current = await RoomModel.findOne({ roomId });
+  if (!current) throw new Error("Room not found");
+  if (current.status !== "lobby") throw new Error("Game already started");
+  if (current.players.length >= MAX_ROOM_PLAYERS) {
+    throw new Error("Room is full");
+  }
+  throw new Error("Failed to add AI player");
+}
+
+export async function getBotPlayerIds(roomId: string): Promise<string[]> {
+  const doc = await RoomModel.findOne({ roomId });
+  if (!doc) return [];
+  return doc.players.filter((p) => p.isBot).map((p) => p.playerId);
+}
+
 function docToRoom(doc: Awaited<ReturnType<typeof RoomModel.findOne>>): Room {
   if (!doc) throw new Error("Null doc");
   return {
@@ -200,6 +314,7 @@ function docToRoom(doc: Awaited<ReturnType<typeof RoomModel.findOne>>): Room {
       token: p.token,
       isHost: p.isHost,
       isConnected: p.isConnected,
+      isBot: p.isBot ?? false,
     })),
     gameId: doc.gameId,
   };

@@ -2,10 +2,8 @@
 
 import type { GamePhase } from "@f4fun/monopoly-engine";
 import { JAIL_FINE } from "@f4fun/monopoly-engine";
-import { CardFlip } from "@/components/animation/CardFlip";
 import { DiceRoller } from "@/components/animation/DiceRoller";
 import { Button } from "@/components/ui/Button";
-import { GameCard } from "@/components/ui/GameCard";
 import { cn } from "@/lib/cn";
 
 interface DiceTrayProps {
@@ -17,8 +15,6 @@ interface DiceTrayProps {
   onPayJailFine?: () => void;
   onUseGoojfCard?: () => void;
   onRollForJail?: () => void;
-  pendingCardText?: string | null;
-  pendingCardDeck?: "chance" | "community_chest" | null;
   goojfCards?: number;
   cash?: number;
   loading: boolean;
@@ -26,6 +22,8 @@ interface DiceTrayProps {
   awaitingRoll?: boolean;
   rollKey?: number;
   onDiceAnimationComplete?: () => void;
+  /** Hide dice while a shared card reveal is showing in the center. */
+  hideDice?: boolean;
 }
 
 const phaseMessages: Record<GamePhase, string> = {
@@ -54,8 +52,6 @@ export function DiceTray({
   onPayJailFine,
   onUseGoojfCard,
   onRollForJail,
-  pendingCardText = null,
-  pendingCardDeck = null,
   goojfCards = 0,
   cash = 0,
   loading,
@@ -63,6 +59,7 @@ export function DiceTray({
   awaitingRoll = false,
   rollKey = 0,
   onDiceAnimationComplete,
+  hideDice = false,
 }: DiceTrayProps) {
   const isDoubles = dice && dice[0] === dice[1];
   const phaseHint = isDiceAnimating
@@ -72,8 +69,6 @@ export function DiceTray({
       : phaseMessages[phase];
   const canPayFine = cash >= JAIL_FINE;
   const canUseCard = goojfCards > 0;
-  const cardStock =
-    pendingCardDeck === "community_chest" ? "community" : "chance";
 
   return (
     <div className="flex w-full select-none flex-col items-center gap-[clamp(0.45rem,1.6cqmin,0.85rem)] bg-transparent transition-all">
@@ -94,16 +89,20 @@ export function DiceTray({
         )}
       </div>
 
-      {!(isMyTurn && phase === "CARD_DRAWN") && (
+      {(!hideDice || isDiceAnimating) && (
         <DiceRoller
           dice={dice}
           animate={isDiceAnimating}
           rollKey={rollKey}
           onComplete={onDiceAnimationComplete}
+          className={cn(
+            hideDice &&
+              "pointer-events-none invisible absolute h-0 w-0 overflow-hidden",
+          )}
         />
       )}
 
-      {dice && !isDiceAnimating && isDoubles && phase !== "CARD_DRAWN" && (
+      {dice && !isDiceAnimating && isDoubles && !hideDice && (
         <div className="inline-flex items-center gap-1 rounded-md border border-yellow-500/25 bg-yellow-500/10 px-2 py-0.5 text-[length:var(--board-text-xs)] font-bold text-yellow-400">
           Doubles!
         </div>
@@ -154,22 +153,6 @@ export function DiceTray({
           >
             Use Jail Free Card
           </Button>
-        </div>
-      )}
-
-      {isMyTurn && phase === "CARD_DRAWN" && pendingCardText && (
-        <div className="w-full max-w-[15rem]">
-          <CardFlip flipKey={pendingCardText}>
-            <GameCard
-              stock={cardStock}
-              header={cardStock === "chance" ? "Chance" : "Community Chest"}
-              className="text-left"
-            >
-              <p className="p-3 text-center text-[length:var(--board-text-sm)] leading-snug text-gray-200">
-                {pendingCardText}
-              </p>
-            </GameCard>
-          </CardFlip>
         </div>
       )}
 

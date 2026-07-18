@@ -113,7 +113,11 @@ export function resolveLanding(
     const cardId = drawCardId(deck, effectiveRng);
 
     if (cardId !== null) {
-      state.pendingCard = { deck: deckKey, cardId };
+      state.pendingCard = {
+        deck: deckKey,
+        cardId,
+        drawnAt: new Date().toISOString(),
+      };
       state.phase = "CARD_DRAWN";
       events.push({ type: "CARD_DRAWN", playerId, deck: deckKey, cardId });
       return events;

@@ -1,12 +1,13 @@
 "use client";
 
 import type {
+  RoomAddBotPlayerResponsePayload,
   RoomGameStartedPayload,
   RoomPlayerJoinedPayload,
   RoomPlayerLeftPayload,
   RoomSyncedPayload,
 } from "@f4fun/shared-types";
-import { Copy, Users } from "lucide-react";
+import { Bot, Copy, Users } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
@@ -52,6 +53,7 @@ export function LobbyPage() {
   } = useRoomStore();
 
   const [loading, setLoading] = useState(false);
+  const [addingBot, setAddingBot] = useState(false);
   const [syncing, setSyncing] = useState(true);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
@@ -59,6 +61,7 @@ export function LobbyPage() {
   const activeRoomCode = roomCode || codeFromUrl;
   const isHost = players.find((p) => p.id === myPlayerId)?.isHost ?? false;
   const canStart = players.length >= 2 && players.every((p) => p.isConnected);
+  const lobbyActionPending = addingBot || loading;
 
   useEffect(() => {
     let cancelled = false;
@@ -184,8 +187,29 @@ export function LobbyPage() {
     router,
   ]);
 
+  const handleAddBot = async () => {
+    if (!activeRoomCode || lobbyActionPending) return;
+
+    setAddingBot(true);
+    setError("");
+
+    try {
+      const response = await emitWithCallback<RoomAddBotPlayerResponsePayload>(
+        "room:addBotPlayer",
+        { roomCode: activeRoomCode },
+      );
+      if (response?.players) {
+        setRoom(roomId || "", activeRoomCode, response.players);
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setAddingBot(false);
+    }
+  };
+
   const handleStart = async () => {
-    if (!activeRoomCode) return;
+    if (!activeRoomCode || lobbyActionPending) return;
 
     setLoading(true);
     setError("");
@@ -273,6 +297,7 @@ export function LobbyPage() {
                         myToken,
                       )}
                       isHost={player.isHost}
+                      isBot={player.isBot}
                       isOnline={player.isConnected}
                     />
                   </div>
@@ -287,11 +312,23 @@ export function LobbyPage() {
             </div>
           )}
 
+          {isHost && players.length < 8 && (
+            <Button
+              variant="tokenGhost"
+              onClick={handleAddBot}
+              disabled={lobbyActionPending}
+              className="h-11 w-full gap-2 font-bold"
+            >
+              <Bot className="h-4 w-4" />
+              {addingBot ? "Adding AI..." : "Add AI Player"}
+            </Button>
+          )}
+
           {isHost && (
             <Button
               variant="token"
               onClick={handleStart}
-              disabled={!canStart || loading}
+              disabled={!canStart || lobbyActionPending}
               size="lg"
               className="h-12 w-full font-extrabold"
             >

@@ -7,6 +7,7 @@ import type {
   GameState,
   PlayerId,
 } from "./types.js";
+import { CARD_REVEAL_PAUSE_MS } from "./types.js";
 
 export function timeoutSecsForPhase(
   phase: GamePhase,
@@ -97,8 +98,21 @@ export function stampActionDeadline(
   if (state.phase !== "AUCTION") {
     state.actionDeadlinePausedMs = null;
   }
-  state.actionDeadlineAt =
-    secs == null ? null : new Date(nowMs + secs * 1000).toISOString();
+  if (secs == null) {
+    state.actionDeadlineAt = null;
+    return;
+  }
+
+  let deadlineMs = nowMs + secs * 1000;
+  // NOTE: Auto-ack must not fire before the card reveal pause ends.
+  if (state.phase === "CARD_DRAWN" && state.pendingCard?.drawnAt) {
+    const drawnMs = Date.parse(state.pendingCard.drawnAt);
+    if (Number.isFinite(drawnMs)) {
+      deadlineMs = Math.max(deadlineMs, drawnMs + CARD_REVEAL_PAUSE_MS);
+    }
+  }
+
+  state.actionDeadlineAt = new Date(deadlineMs).toISOString();
 }
 
 /** Freeze remaining turn time while a trade offer is pending or auction runs. */

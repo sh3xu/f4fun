@@ -1,3 +1,4 @@
+import { resolveActorId } from "@f4fun/monopoly-bot";
 import {
   applyAction,
   DEFAULT_GAME_CONFIG,
@@ -9,6 +10,7 @@ import {
   timeoutActionForState,
 } from "@f4fun/monopoly-engine";
 import type { Server } from "socket.io";
+import { isBotActor, scheduleBotActions } from "./bot-runtime/BotScheduler.js";
 import { logGameAction } from "./GameEventLogger.js";
 import { loadGameByRoomId, saveGame } from "./GameStore.js";
 import { withRoomLock } from "./roomMutex.js";
@@ -28,6 +30,7 @@ interface TradeTimerEntry {
 
 const turnTimers = new Map<string, TurnTimerEntry>();
 const tradeTimers = new Map<string, TradeTimerEntry>();
+const commitVersions = new Map<string, number>();
 
 function tradeTimerKey(roomId: string, tradeId: string): string {
   return `${roomId}:${tradeId}`;
@@ -75,6 +78,10 @@ export function clearRoomTradeTimers(roomId: string): void {
 export function clearAllRoomTimers(roomId: string): void {
   clearTurnTimer(roomId);
   clearRoomTradeTimers(roomId);
+  commitVersions.delete(roomId);
+  void import("./bot-runtime/BotScheduler.js").then((m) =>
+    m.clearAllBotTimers(roomId),
+  );
 }
 
 export function scheduleTurnTimer(
@@ -137,6 +144,14 @@ export function syncTradeTimers(
   roomId: string,
   state: GameState,
 ): void {
+  void syncTradeTimersAsync(io, roomId, state);
+}
+
+async function syncTradeTimersAsync(
+  io: Server,
+  roomId: string,
+  state: GameState,
+): Promise<void> {
   const pendingIds = new Set(state.pendingTrades.map((t) => t.tradeId));
 
   for (const [key, entry] of tradeTimers) {
@@ -147,6 +162,9 @@ export function syncTradeTimers(
   }
 
   for (const trade of state.pendingTrades) {
+    if (await isBotActor(roomId, trade.toPlayerId)) {
+      continue;
+    }
     scheduleTradeExpiry(io, roomId, trade);
   }
 }
@@ -156,10 +174,34 @@ export function afterGameStateCommit(
   io: Server,
   roomId: string,
   state: GameState,
-  _events: readonly GameEvent[] = [],
+  events: readonly GameEvent[] = [],
 ): void {
-  scheduleTurnTimer(io, roomId, state);
+  const version = (commitVersions.get(roomId) ?? 0) + 1;
+  commitVersions.set(roomId, version);
+  void afterGameStateCommitAsync(io, roomId, state, events, version);
+}
+
+async function afterGameStateCommitAsync(
+  io: Server,
+  roomId: string,
+  state: GameState,
+  events: readonly GameEvent[],
+  version: number,
+): Promise<void> {
+  const actorId = resolveActorId(state);
+  const botTurn = actorId ? await isBotActor(roomId, actorId) : false;
+  if (commitVersions.get(roomId) !== version) {
+    return;
+  }
+
+  if (!botTurn) {
+    scheduleTurnTimer(io, roomId, state);
+  } else {
+    clearTurnTimer(roomId);
+  }
+
   syncTradeTimers(io, roomId, state);
+  scheduleBotActions(io, roomId, state, events);
 }
 
 async function onTurnTimeout(

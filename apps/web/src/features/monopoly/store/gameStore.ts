@@ -38,6 +38,8 @@ interface PendingAnimation {
 interface GameStore {
   state: GameState | null;
   displayPositions: Record<string, number>;
+  /** Cash shown in HUD — held back during move anim so rent ticks after land. */
+  displayCash: Record<string, number>;
   pendingAnimation: PendingAnimation;
   diceAnimationComplete: boolean;
   rollAnimationKey: number;
@@ -46,7 +48,8 @@ interface GameStore {
   deferredToastEvents: GameEvent[];
 
   setFromSnapshot: (state: GameState) => void;
-  applyServerUpdate: (state: GameState, events: GameEvent[]) => void;
+  /** Returns true when events were queued until animations settle. */
+  applyServerUpdate: (state: GameState, events: GameEvent[]) => boolean;
   startDiceRoll: () => void;
   completeDiceAnimation: () => void;
   setDisplayPosition: (playerId: string, position: number) => void;
@@ -64,8 +67,19 @@ function positionsFromState(state: GameState): Record<string, number> {
   return positions;
 }
 
+function cashFromState(state: GameState): Record<string, number> {
+  const cash: Record<string, number> = {};
+  for (const player of Object.values(state.players)) {
+    cash[player.id] = player.cash;
+  }
+  return cash;
+}
+
 function normalizeGameState(state: GameState): GameState {
   if (state.auction === undefined) state.auction = null;
+  if (state.auction && !state.auction.bidHistory) {
+    state.auction.bidHistory = [];
+  }
   if (!state.pendingTrades) state.pendingTrades = [];
   if (state.pendingDebt === undefined) state.pendingDebt = null;
   if (state.actionDeadlineAt === undefined) state.actionDeadlineAt = null;
@@ -206,6 +220,7 @@ function isAnimatingPlayer(
 export const useGameStore = create<GameStore>((set, get) => ({
   state: null,
   displayPositions: {},
+  displayCash: {},
   pendingAnimation: { type: "none" },
   diceAnimationComplete: true,
   rollAnimationKey: 0,
@@ -221,6 +236,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({
       state: normalized,
       displayPositions: positionsFromState(normalized),
+      displayCash: cashFromState(normalized),
       lastEvents: [],
       deferredToastEvents: sameGame ? get().deferredToastEvents : [],
       pendingAnimation: { type: "none" },
@@ -242,12 +258,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
       set({
         state,
         displayPositions: positionsFromState(state),
+        displayCash: cashFromState(state),
         lastEvents: events,
         deferredToastEvents: shouldDeferGameEventToasts(events)
           ? [...get().deferredToastEvents, ...events]
           : get().deferredToastEvents,
       });
-      return;
+      return shouldDeferGameEventToasts(events);
     }
 
     const diceEvent = events.find(
@@ -323,9 +340,28 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
     }
 
+    // NOTE: Hold HUD cash at pre-land values while the token is still hopping.
+    // Dice / card-move paths always set pendingAnimation, so holdCash === animationActive.
+    const animationActive = pendingAnimation.type !== "none";
+    const holdCash = animationActive;
+    const displayCash = holdCash
+      ? { ...get().displayCash }
+      : cashFromState(state);
+    if (holdCash) {
+      for (const player of Object.values(prev.players)) {
+        if (displayCash[player.id] === undefined) {
+          displayCash[player.id] = player.cash;
+        }
+      }
+    }
+
+    // NOTE: Queue log/toasts until dice or card-move animation finishes.
+    const deferEvents = shouldDeferGameEventToasts(events) || animationActive;
+
     set({
       state,
       displayPositions,
+      displayCash,
       lastEvents: events,
       pendingAnimation,
       diceAnimationComplete:
@@ -333,11 +369,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
       rollAnimationKey: diceEvent
         ? get().rollAnimationKey + 1
         : get().rollAnimationKey,
-      // NOTE: Queue toastable roll consequences until dice + token animation finish.
-      deferredToastEvents: shouldDeferGameEventToasts(events)
+      deferredToastEvents: deferEvents
         ? [...get().deferredToastEvents, ...events]
         : get().deferredToastEvents,
     });
+    return deferEvents;
   },
 
   completeDiceAnimation: () => {
@@ -360,7 +396,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return;
     }
 
-    set({ pendingAnimation: { type: "none" }, diceAnimationComplete: true });
+    const state = get().state;
+    set({
+      pendingAnimation: { type: "none" },
+      diceAnimationComplete: true,
+      displayCash: state ? cashFromState(state) : get().displayCash,
+    });
   },
 
   setDisplayPosition: (playerId, position) => {
@@ -372,6 +413,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   completeMoveAnimation: () => {
     const pending = get().pendingAnimation;
     const displayPositions = { ...get().displayPositions };
+    const state = get().state;
 
     if (pending.playerId !== undefined && pending.toPosition !== undefined) {
       displayPositions[pending.playerId] = pending.toPosition;
@@ -401,6 +443,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     set({
       displayPositions,
+      displayCash: state ? cashFromState(state) : get().displayCash,
       pendingAnimation: { type: "none" },
       diceAnimationComplete: true,
     });
@@ -423,6 +466,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({
       state: null,
       displayPositions: {},
+      displayCash: {},
       pendingAnimation: { type: "none" },
       diceAnimationComplete: true,
       rollAnimationKey: 0,
