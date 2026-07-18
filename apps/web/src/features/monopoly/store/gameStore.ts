@@ -341,8 +341,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
 
     // NOTE: Hold HUD cash at pre-land values while the token is still hopping.
+    // Dice / card-move paths always set pendingAnimation, so holdCash === animationActive.
     const animationActive = pendingAnimation.type !== "none";
-    const holdCash = Boolean(diceEvent) || startedCardMove || animationActive;
+    const holdCash = animationActive;
     const displayCash = holdCash
       ? { ...get().displayCash }
       : cashFromState(state);
@@ -355,8 +356,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
 
     // NOTE: Queue log/toasts until dice or card-move animation finishes.
-    const deferEvents =
-      shouldDeferGameEventToasts(events) || startedCardMove || animationActive;
+    const deferEvents = shouldDeferGameEventToasts(events) || animationActive;
 
     set({
       state,

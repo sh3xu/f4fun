@@ -79,12 +79,16 @@ export async function getGameEventLog(
     }));
   }
 
-  const docs = await GameEventModel.find({
+  const query = GameEventModel.find({
     gameId,
     sequence: { $gte: fromSequence },
-  })
-    .sort({ sequence: 1 })
-    .lean();
+  }).sort({ sequence: 1 });
+
+  if (limit !== undefined && limit > 0) {
+    query.limit(limit);
+  }
+
+  const docs = await query.lean();
 
   return docs.map((doc) => ({
     sequence: doc.sequence,

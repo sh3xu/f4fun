@@ -73,9 +73,12 @@ export function createSocketServer(httpServer: HttpServer): Server {
         await cancelGrace(data.roomId, data.playerId);
 
         if (room.gameId) {
-          const rejoinState = await withRoomLock(data.roomId, async () => {
+          // NOTE: Snapshot emit + timer arm must stay inside the room lock so a
+          // concurrent action cannot deliver newer events first, then get
+          // overwritten by this older snapshot / stale afterGameStateCommit.
+          await withRoomLock(data.roomId, async () => {
             const state = await loadGame(room.gameId as string);
-            if (!state) return null;
+            if (!state) return;
 
             if (state.auction === undefined) state.auction = null;
             if (state.pendingTrades === undefined) state.pendingTrades = [];
@@ -90,15 +93,12 @@ export function createSocketServer(httpServer: HttpServer): Server {
             if (backfilled) {
               await saveGame(state.gameId, state, 0);
             }
-            return state as GameState;
-          });
-
-          if (rejoinState) {
+            const rejoinState = state as GameState;
             const eventLog = await getGameEventLog(rejoinState.gameId, 0, 500);
             socket.emit("game:stateSnapshot", { state: rejoinState, eventLog });
             // NOTE: Rejoin re-arms in-memory timers after server restart / cold room.
             afterGameStateCommit(io, data.roomId, rejoinState);
-          }
+          });
         }
 
         socket.to(data.roomId).emit("room:playerJoined", {
