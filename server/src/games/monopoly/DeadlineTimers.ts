@@ -230,9 +230,8 @@ async function onTurnTimeout(
 
       const stateBefore = JSON.parse(JSON.stringify(state)) as GameState;
       // NOTE: timeoutActionForState is pure; heal stuck RAISE_CASH before applying.
-      if (healStuckRaiseCash(state)) {
-        stampActionDeadline(state);
-      }
+      // Deadline is stamped once after the timeout action succeeds.
+      healStuckRaiseCash(state);
 
       const timed = timeoutActionForState(state);
       if (!timed) return;

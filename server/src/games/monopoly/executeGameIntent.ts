@@ -59,16 +59,17 @@ export function normalizeState(state: GameState): boolean {
     state.pendingDebt = null;
     changed = true;
   }
+  if (state.auction && !Array.isArray(state.auction.bidHistory)) {
+    state.auction.bidHistory = [];
+    changed = true;
+  }
+  // NOTE: Merge config before heal/stamp so older games get default timeout fields.
+  mergeGameConfig(state);
   // NOTE: Issue #42 — heal RAISE_CASH left with cleared pendingDebt.
   if (healStuckRaiseCash(state)) {
     stampActionDeadline(state);
     changed = true;
   }
-  if (state.auction && !Array.isArray(state.auction.bidHistory)) {
-    state.auction.bidHistory = [];
-    changed = true;
-  }
-  mergeGameConfig(state);
   if (ensureTradeExpiries(state)) changed = true;
   return changed;
 }
