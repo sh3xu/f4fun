@@ -37,7 +37,7 @@ const SLIDE_MAX_MS = 1400;
 const SLIDE_PER_TILE_MS = 90;
 /** Extra settle time after animations before the bot acts. */
 const ANIMATION_SETTLE_MS = 400;
-/** Conservative bound for forward movement cards (Chance 7 -> Reading Railroad). */
+/** Conservative bound for forward card slides (Chance 7 -> Reading Railroad). */
 const MAX_FORWARD_CARD_MOVE_HOPS = 38;
 /** Longest shortest-path slide into jail used by the client. */
 const MAX_JAIL_SLIDE_HOPS = 20;
@@ -123,12 +123,12 @@ function cardAnimationMs(
 
   switch (card.effect.kind) {
     case "go_back_spaces":
-      return hopAnimationMs(card.effect.spaces);
+      return slideAnimationMs(card.effect.spaces);
     case "go_to_jail":
       return slideAnimationMs(MAX_JAIL_SLIDE_HOPS);
     case "move_to":
     case "move_to_nearest":
-      return hopAnimationMs(MAX_FORWARD_CARD_MOVE_HOPS);
+      return slideAnimationMs(MAX_FORWARD_CARD_MOVE_HOPS);
     default:
       return 0;
   }

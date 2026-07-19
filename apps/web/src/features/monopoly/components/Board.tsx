@@ -2,8 +2,6 @@
 
 import {
   BOARD_TILES,
-  CHANCE_CARDS,
-  COMMUNITY_CHEST_CARDS,
   POST_LAND_CARD_PAUSE_MS,
   TILE_BY_POSITION,
 } from "@f4fun/monopoly-engine";
@@ -30,6 +28,7 @@ import { CardRevealOverlay } from "./CardRevealOverlay";
 import { DiceTray } from "./DiceTray";
 import { PropertyPanel } from "./PropertyPanel";
 import { RaiseCashBanner } from "./RaiseCashBanner";
+import { getCardDisplayText } from "./tile-labels";
 
 interface BoardProps {
   onRoll: () => void;
@@ -203,10 +202,7 @@ export function Board({
     animationsSettled &&
     state?.pendingDebt != null;
   const pendingCardText = state?.pendingCard
-    ? ((state.pendingCard.deck === "chance"
-        ? CHANCE_CARDS
-        : COMMUNITY_CHEST_CARDS
-      ).find((c) => c.id === state.pendingCard?.cardId)?.text ?? null)
+    ? getCardDisplayText(state.pendingCard.deck, state.pendingCard.cardId)
     : null;
   const cardPending =
     state?.phase === "CARD_DRAWN" && !!state.pendingCard && !!pendingCardText;

@@ -8,7 +8,8 @@ import { CashAmountSlider } from "@/components/ui/CashAmountSlider";
 import { GameCard } from "@/components/ui/GameCard";
 import { cn } from "@/lib/cn";
 import { getPlayerColor } from "@/lib/player-colors";
-import { TradeOfferSummary } from "./IncomingTradeOfferCard";
+import { ActionCountdown } from "./ActionCountdown";
+import { OfferSideVisual, TradeOfferSummary } from "./IncomingTradeOfferCard";
 import { PropertySwatch } from "./PropertySwatch";
 
 const emptyOffer = (): TradeOffer => ({
@@ -57,6 +58,10 @@ export function TradeModal({
   const incoming = state.pendingTrades.filter(
     (t) => t.toPlayerId === myPlayerId,
   );
+  const outgoing = state.pendingTrades.find(
+    (t) => t.fromPlayerId === myPlayerId,
+  );
+  const outgoingPartner = outgoing ? state.players[outgoing.toPlayerId] : null;
   const activePlayerId = state.turnOrder[state.activePlayerIndex];
   const isMyTurn = activePlayerId === myPlayerId;
   // NOTE: Debtor may trade during RAISE_CASH even if they are not the active player.
@@ -119,13 +124,60 @@ export function TradeModal({
           </div>
         )}
 
+        {outgoing && (
+          <div className="mb-4 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-sm font-semibold text-white/80">
+                Waiting for response
+              </h3>
+              <ActionCountdown
+                deadlineAt={outgoing.expiresAt}
+                className="text-xs"
+                urgentThresholdSecs={10}
+              />
+            </div>
+            <div className="rounded-lg border border-[#4fc3f7]/25 bg-[#4fc3f7]/10 p-3 text-sm">
+              <p className="mb-2 text-white/80">
+                Waiting for{" "}
+                <span className="font-semibold text-white">
+                  {outgoingPartner?.name ?? "partner"}
+                </span>{" "}
+                to accept or decline your offer.
+              </p>
+              <p className="text-white/70">
+                <span className="text-[#4fc3f7]">You offer:</span>{" "}
+                <OfferSideVisual
+                  cash={outgoing.offer.cash}
+                  positions={outgoing.offer.positions}
+                  goojfCards={outgoing.offer.goojfCards}
+                />
+              </p>
+              <p className="mt-1 text-white/70">
+                <span className="text-amber-200">You ask:</span>{" "}
+                <OfferSideVisual
+                  cash={outgoing.request.cash}
+                  positions={outgoing.request.positions}
+                  goojfCards={outgoing.request.goojfCards}
+                />
+              </p>
+              <Button
+                variant="tokenGhost"
+                size="sm"
+                disabled={loading}
+                onClick={() => onReject(outgoing.tradeId)}
+                className="mt-3"
+              >
+                Cancel offer
+              </Button>
+            </div>
+          </div>
+        )}
+
         {partners.length === 0 || !me ? (
           <p className="text-sm text-white/50">No partners available.</p>
-        ) : !canPropose ? (
+        ) : outgoing || incoming.length > 0 ? null : !canPropose ? (
           <p className="text-sm text-white/50">
-            {state.pendingTrades.length > 0
-              ? "A trade offer is already pending."
-              : "You can only propose a trade on your turn (before or after rolling)."}
+            You can only propose a trade on your turn (before or after rolling).
           </p>
         ) : (
           <div className="space-y-3 text-sm">

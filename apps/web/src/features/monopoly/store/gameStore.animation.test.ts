@@ -218,6 +218,8 @@ describe("gameStore animation gating", () => {
     expect(store.pendingAnimation.type).toBe("move");
     expect(store.pendingAnimation.fromPosition).toBe(7);
     expect(store.pendingAnimation.toPosition).toBe(24);
+    expect(store.pendingAnimation.moveMode).toBe("slide");
+    expect(store.pendingAnimation.moveDirection).toBe("forward");
     expect(store.displayPositions.p1).toBe(7);
     expect(store.diceAnimationComplete).toBe(false);
     expect(store.deferredToastEvents.length).toBeGreaterThan(0);
@@ -263,6 +265,8 @@ describe("gameStore animation gating", () => {
     expect(store.pendingAnimation.type).toBe("dice");
     expect(store.pendingAnimation.toPosition).toBe(7);
     expect(store.pendingAnimation.nextMove?.toPosition).toBe(24);
+    expect(store.pendingAnimation.nextMove?.moveMode).toBe("slide");
+    expect(store.pendingAnimation.nextMove?.moveDirection).toBe("forward");
     // Must not snap to Chance as final while state is already at Illinois
     expect(store.displayPositions.p1).not.toBe(24);
 
@@ -272,12 +276,48 @@ describe("gameStore animation gating", () => {
     expect(store.pendingAnimation.type).toBe("move");
     expect(store.pendingAnimation.fromPosition).toBe(7);
     expect(store.pendingAnimation.toPosition).toBe(24);
+    expect(store.pendingAnimation.moveMode).toBe("slide");
     expect(store.displayPositions.p1).toBe(7);
 
     useGameStore.getState().completeMoveAnimation();
     store = useGameStore.getState();
     expect(store.pendingAnimation.type).toBe("none");
     expect(store.displayPositions.p1).toBe(24);
+  });
+
+  it("slides backward on Chance go-back after acknowledge", () => {
+    const initial = createInitialState("test", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    // Position 5 + roll 2 → Chance (7)
+    initial.players.p1.position = 5;
+    initial.chanceDeck.drawPile = [
+      "ch_go_back_3",
+      ...initial.chanceDeck.drawPile.filter((id) => id !== "ch_go_back_3"),
+    ];
+    useGameStore.getState().setFromSnapshot(structuredClone(initial));
+
+    const roll = applyAction(
+      structuredClone(initial),
+      { type: "ROLL_DICE" },
+      seededRng([0.0, 0.16]),
+    );
+    useGameStore.getState().applyServerUpdate(roll.state, roll.events);
+    useGameStore.getState().completeDiceAnimation();
+    useGameStore.getState().completeMoveAnimation();
+
+    const ack = ackCardNow(roll.state);
+    expect(ack.error).toBeUndefined();
+    expect(ack.state.players.p1.position).toBe(4);
+
+    useGameStore.getState().applyServerUpdate(ack.state, ack.events);
+    const store = useGameStore.getState();
+    expect(store.pendingAnimation.type).toBe("move");
+    expect(store.pendingAnimation.fromPosition).toBe(7);
+    expect(store.pendingAnimation.toPosition).toBe(4);
+    expect(store.pendingAnimation.moveMode).toBe("slide");
+    expect(store.pendingAnimation.moveDirection).toBe("backward");
   });
 
   it("slides backward to jail after landing on Go To Jail", () => {
