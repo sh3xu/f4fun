@@ -282,7 +282,13 @@ export type GameEvent =
       fromPlayerId: PlayerId;
       toPlayerId: PlayerId;
     }
-  | { type: "TRADE_REJECTED"; tradeId: string }
+  | {
+      type: "TRADE_REJECTED";
+      tradeId: string;
+      fromPlayerId: PlayerId;
+      toPlayerId: PlayerId;
+      rejectedByPlayerId: PlayerId;
+    }
   | { type: "TRADE_COMPLETED"; initiatorId: PlayerId; partnerId: PlayerId }
   | {
       type: "AUCTION_STARTED";

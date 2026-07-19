@@ -215,6 +215,14 @@ export function rejectTrade(
 
   state.pendingTrades.splice(index, 1);
   return {
-    events: [{ type: "TRADE_REJECTED", tradeId }],
+    events: [
+      {
+        type: "TRADE_REJECTED",
+        tradeId,
+        fromPlayerId: trade.fromPlayerId,
+        toPlayerId: trade.toPlayerId,
+        rejectedByPlayerId: actorId,
+      },
+    ],
   };
 }

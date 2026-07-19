@@ -142,6 +142,14 @@ describe("trade", () => {
       "p2",
     );
     expect(result.events.some((e) => e.type === "TRADE_REJECTED")).toBe(true);
+    const rejected = result.events.find((e) => e.type === "TRADE_REJECTED");
+    expect(rejected).toMatchObject({
+      type: "TRADE_REJECTED",
+      tradeId: "t3",
+      fromPlayerId: "p1",
+      toPlayerId: "p2",
+      rejectedByPlayerId: "p2",
+    });
     expect(state.pendingTrades).toHaveLength(0);
   });
 

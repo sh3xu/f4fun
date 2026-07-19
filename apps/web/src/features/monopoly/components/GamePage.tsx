@@ -53,7 +53,11 @@ export function GamePage() {
   const [tradeOpen, setTradeOpen] = useState(false);
   const [activityEntries, setActivityEntries] = useState<ActivityEntry[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [tradeOutcome, setTradeOutcome] = useState<string | null>(null);
   const actionErrorTimeoutRef = useRef<number | null>(null);
+  const tradeOutcomeTimeoutRef = useRef<number | null>(null);
+  const myPlayerIdRef = useRef(myPlayerId);
+  myPlayerIdRef.current = myPlayerId;
 
   const showError = useCallback((message: string) => {
     if (actionErrorTimeoutRef.current !== null) {
@@ -63,6 +67,17 @@ export function GamePage() {
     actionErrorTimeoutRef.current = window.setTimeout(() => {
       setActionError((current) => (current === message ? null : current));
       actionErrorTimeoutRef.current = null;
+    }, 4000);
+  }, []);
+
+  const showTradeOutcome = useCallback((message: string) => {
+    if (tradeOutcomeTimeoutRef.current !== null) {
+      window.clearTimeout(tradeOutcomeTimeoutRef.current);
+    }
+    setTradeOutcome(message);
+    tradeOutcomeTimeoutRef.current = window.setTimeout(() => {
+      setTradeOutcome((current) => (current === message ? null : current));
+      tradeOutcomeTimeoutRef.current = null;
     }, 4000);
   }, []);
 
@@ -122,10 +137,42 @@ export function GamePage() {
 
   const appendActivityFromEvents = useCallback(
     (nextState: GameState, events: GameEvent[]) => {
+      const me = myPlayerIdRef.current;
       const fresh: ActivityEntry[] = [];
       for (const event of events) {
         if (event.type === "GAME_WON") {
           setWinnerId(event.winnerId);
+        }
+        if (
+          me &&
+          event.type === "TRADE_COMPLETED" &&
+          (event.initiatorId === me || event.partnerId === me)
+        ) {
+          const otherId =
+            event.initiatorId === me ? event.partnerId : event.initiatorId;
+          const otherName = nextState.players[otherId]?.name ?? "Player";
+          setTradeOpen(false);
+          showTradeOutcome(`Trade with ${otherName} was accepted`);
+        }
+        if (
+          me &&
+          event.type === "TRADE_REJECTED" &&
+          (event.fromPlayerId === me || event.toPlayerId === me)
+        ) {
+          const cancelledByMe = event.rejectedByPlayerId === me;
+          const otherId =
+            event.fromPlayerId === me ? event.toPlayerId : event.fromPlayerId;
+          const otherName = nextState.players[otherId]?.name ?? "Player";
+          setTradeOpen(false);
+          if (cancelledByMe && event.fromPlayerId === me) {
+            showTradeOutcome(`Trade offer to ${otherName} was cancelled`);
+          } else if (cancelledByMe) {
+            showTradeOutcome(`You declined ${otherName}'s trade`);
+          } else if (event.rejectedByPlayerId === event.fromPlayerId) {
+            showTradeOutcome(`${otherName} cancelled their trade offer`);
+          } else {
+            showTradeOutcome(`${otherName} declined your trade`);
+          }
         }
         const formatted = formatGameEvent(nextState, event);
         if (!formatted) continue;
@@ -139,7 +186,7 @@ export function GamePage() {
       if (fresh.length === 0) return;
       setActivityEntries((prev) => [...fresh, ...prev].slice(0, ACTIVITY_CAP));
     },
-    [],
+    [showTradeOutcome],
   );
 
   useDeferredGameEventToasts((event) => {
@@ -383,9 +430,10 @@ export function GamePage() {
 
   const handleRejectTrade = async (tradeId: string) => {
     if (!roomId) return;
-    await runAction(() =>
-      emitWithCallback("game:rejectTrade", { roomId, tradeId }),
-    );
+    await runAction(async () => {
+      await emitWithCallback("game:rejectTrade", { roomId, tradeId });
+      setTradeOpen(false);
+    });
   };
 
   if (initializing || !state) {
@@ -422,6 +470,17 @@ export function GamePage() {
       {actionError && (
         <div className="fixed bottom-3 left-3 z-50 max-w-xs rounded-md border border-rose-400/30 bg-rose-950/90 px-3 py-2 text-xs text-rose-100">
           {actionError}
+        </div>
+      )}
+
+      {tradeOutcome && (
+        <div
+          className={cn(
+            "fixed left-3 z-50 max-w-xs rounded-md border border-[#4fc3f7]/35 bg-[#0b1a24]/95 px-3 py-2 text-xs text-[#b3e5fc]",
+            actionError ? "bottom-14" : "bottom-3",
+          )}
+        >
+          {tradeOutcome}
         </div>
       )}
 

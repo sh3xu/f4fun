@@ -154,10 +154,11 @@ function cardMoveStyle(
     };
   }
   const card = lookupCard(deckForCardId(cardId), cardId);
+  // NOTE: Card relocation uses slide (not dice hop) for clearer go-to / go-back motion.
   if (card?.effect.kind === "go_back_spaces") {
-    return { moveMode: "hop", moveDirection: "backward" };
+    return { moveMode: "slide", moveDirection: "backward" };
   }
-  return { moveMode: "hop", moveDirection: "forward" };
+  return { moveMode: "slide", moveDirection: "forward" };
 }
 
 /**

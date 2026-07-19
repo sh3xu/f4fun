@@ -33,6 +33,8 @@ function OfferSideVisual({
   );
 }
 
+export { OfferSideVisual };
+
 interface TradeOfferSummaryProps {
   trade: PendingTrade;
   state: GameState;

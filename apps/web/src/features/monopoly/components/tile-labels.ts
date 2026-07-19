@@ -1,7 +1,11 @@
 /**
  * Engine keeps classic street names; UI shows these labels.
  */
-import { TILE_BY_POSITION } from "@f4fun/monopoly-engine";
+import {
+  CHANCE_CARDS,
+  COMMUNITY_CHEST_CARDS,
+  TILE_BY_POSITION,
+} from "@f4fun/monopoly-engine";
 
 const SHORT_NAMES: Record<string, string> = {
   // Brown — Brazil
@@ -53,6 +57,11 @@ const SHORT_NAMES: Record<string, string> = {
   GO: "GO",
 };
 
+/** Longest-first so compound names (e.g. St. Charles Place) replace cleanly. */
+const ENGINE_NAMES_BY_LENGTH = Object.keys(SHORT_NAMES).sort(
+  (a, b) => b.length - a.length,
+);
+
 export function getTileLabel(name: string): string {
   return SHORT_NAMES[name] ?? name;
 }
@@ -60,4 +69,24 @@ export function getTileLabel(name: string): string {
 export function getTileLabelAt(position: number): string {
   const tile = TILE_BY_POSITION.get(position);
   return tile ? getTileLabel(tile.name) : `Tile ${position}`;
+}
+
+/** Rewrites classic place names in Chance/CC copy to match board UI labels. */
+export function localizeCardText(text: string): string {
+  let result = text;
+  for (const name of ENGINE_NAMES_BY_LENGTH) {
+    if (result.includes(name)) {
+      result = result.split(name).join(SHORT_NAMES[name]);
+    }
+  }
+  return result;
+}
+
+export function getCardDisplayText(
+  deck: "chance" | "community_chest",
+  cardId: string,
+): string | null {
+  const cards = deck === "chance" ? CHANCE_CARDS : COMMUNITY_CHEST_CARDS;
+  const text = cards.find((c) => c.id === cardId)?.text;
+  return text === undefined ? null : localizeCardText(text);
 }

@@ -1,11 +1,9 @@
 import {
-  CHANCE_CARDS,
-  COMMUNITY_CHEST_CARDS,
   type GameEvent,
   type GameState,
   TILE_BY_POSITION,
 } from "@f4fun/monopoly-engine";
-import { getTileLabel } from "../components/tile-labels";
+import { getCardDisplayText, getTileLabel } from "../components/tile-labels";
 
 function playerName(state: GameState, playerId: string): string {
   return state.players[playerId]?.name ?? "Player";
@@ -17,8 +15,7 @@ function tileName(position: number): string {
 }
 
 function cardText(deck: "chance" | "community_chest", cardId: string): string {
-  const cards = deck === "chance" ? CHANCE_CARDS : COMMUNITY_CHEST_CARDS;
-  return cards.find((c) => c.id === cardId)?.text ?? "a card";
+  return getCardDisplayText(deck, cardId) ?? "a card";
 }
 
 /** Formats a game event for the table log. Returns null to skip noisy/system events. */
@@ -151,12 +148,22 @@ export function formatGameEvent(
         message: `proposed a trade to ${playerName(state, event.toPlayerId)}`,
       };
 
-    case "TRADE_REJECTED":
+    case "TRADE_REJECTED": {
+      const fromName = playerName(state, event.fromPlayerId);
+      const toName = playerName(state, event.toPlayerId);
+      if (event.rejectedByPlayerId === event.fromPlayerId) {
+        return {
+          playerId: event.fromPlayerId,
+          playerName: fromName,
+          message: `cancelled a trade with ${toName}`,
+        };
+      }
       return {
-        playerId: "",
-        playerName: "Trade",
-        message: "was declined",
+        playerId: event.toPlayerId,
+        playerName: toName,
+        message: `declined a trade from ${fromName}`,
       };
+    }
 
     case "TRADE_COMPLETED":
       return {
