@@ -9,6 +9,7 @@ import {
   type GameState,
   getActivePlayer,
   getCurrentAuctionBidder,
+  healStuckRaiseCash,
   pauseActionDeadline,
   resumeActionDeadline,
   stampActionDeadline,
@@ -56,6 +57,10 @@ export function normalizeState(state: GameState): boolean {
   }
   if (state.pendingDebt === undefined) {
     state.pendingDebt = null;
+    changed = true;
+  }
+  // NOTE: Issue #42 — heal RAISE_CASH left with cleared pendingDebt.
+  if (healStuckRaiseCash(state)) {
     changed = true;
   }
   if (state.auction && !Array.isArray(state.auction.bidHistory)) {

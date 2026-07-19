@@ -6,7 +6,13 @@ import {
   COMMUNITY_CHEST_CARDS,
   TILE_BY_POSITION,
 } from "@f4fun/monopoly-engine";
-import { type CSSProperties, useCallback, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { PieceMover } from "@/components/animation/PieceMover";
 import { FeltSurface } from "@/components/ui/FeltSurface";
 import { cn } from "@/lib/cn";
@@ -98,6 +104,17 @@ export function Board({
   const tileRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
   const [viewedPosition, setViewedPosition] = useState<number | null>(null);
+  const prevPhaseRef = useRef(state?.phase);
+
+  // NOTE: Issue #42 — after debt is cleared the manage panel was still open and
+  // hid DiceTray, so Roll Dice / End Turn never appeared.
+  useEffect(() => {
+    const prev = prevPhaseRef.current;
+    prevPhaseRef.current = state?.phase;
+    if (prev === "RAISE_CASH" && state?.phase && state.phase !== "RAISE_CASH") {
+      setViewedPosition(null);
+    }
+  }, [state?.phase]);
 
   const movingPlayerId =
     pendingAnimation.type === "move" ? pendingAnimation.playerId : undefined;
@@ -179,17 +196,22 @@ export function Board({
     !!currentPlayer;
   const showAuction =
     state?.phase === "AUCTION" && !!state.auction && animationsSettled;
+  const isDebtor =
+    myPlayerId != null && state?.pendingDebt?.playerId === myPlayerId;
   const canManageProperties =
-    isMyTurn &&
     state?.pendingTrades.length === 0 &&
-    (state?.phase === "PRE_ROLL" ||
-      state?.phase === "END_TURN" ||
-      state?.phase === "JAIL_DECISION" ||
-      state?.phase === "RAISE_CASH");
+    (state?.phase === "RAISE_CASH"
+      ? isDebtor
+      : isMyTurn &&
+        (state?.phase === "PRE_ROLL" ||
+          state?.phase === "END_TURN" ||
+          state?.phase === "JAIL_DECISION"));
   const showRaiseCash =
     state?.phase === "RAISE_CASH" &&
     animationsSettled &&
-    state?.pendingDebt != null;
+    state?.pendingDebt != null &&
+    // NOTE: Prefer property manage UI so the debtor can actually raise cash.
+    viewedPosition === null;
   const pendingCardText = state?.pendingCard
     ? ((state.pendingCard.deck === "chance"
         ? CHANCE_CARDS
@@ -342,10 +364,7 @@ export function Board({
                   amountNeeded={amountNeeded}
                   deadlineAt={state.actionDeadlineAt}
                   deadlinePausedMs={state.actionDeadlinePausedMs}
-                  isDebtor={
-                    myPlayerId != null &&
-                    state.pendingDebt?.playerId === myPlayerId
-                  }
+                  isDebtor={isDebtor}
                 />
               </div>
             ) : showCardReveal &&

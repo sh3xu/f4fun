@@ -98,4 +98,56 @@ describe("debt and raise-cash", () => {
       ),
     ).toBe(true);
   });
+
+  // Regression: issue #42 — force-settle covered debt but left RAISE_CASH with
+  // null pendingDebt, so roll/end-turn UI never appeared and the timer no-oped.
+  it("exits raise-cash after force-settle covers debt with assets", () => {
+    const state = createInitialState("test", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    state.phase = "RAISE_CASH";
+    state.players.p1.cash = -50;
+    state.players.p1.ownedPositions = [1];
+    state.ownership[1] = { ownerId: "p1", isMortgaged: false };
+    state.pendingDebt = { playerId: "p1", creditorId: "p2" };
+    state.lastDice = [2, 3];
+    state.allowDoublesReroll = true;
+
+    const result = applyAction(
+      state,
+      { type: "FORCE_SETTLE_DEBT" },
+      Math.random,
+      "p1",
+    );
+    expect(result.error).toBeUndefined();
+    expect(result.events.some((e) => e.type === "DEBT_RESOLVED")).toBe(true);
+    expect(state.pendingDebt).toBeNull();
+    expect(state.players.p1.cash).toBeGreaterThanOrEqual(0);
+    expect(state.phase).toBe("END_TURN");
+  });
+
+  it("returns to PRE_ROLL after force-settle when doubles allow reroll", () => {
+    const state = createInitialState("test", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    state.phase = "RAISE_CASH";
+    state.players.p1.cash = -20;
+    state.players.p1.ownedPositions = [1];
+    state.ownership[1] = { ownerId: "p1", isMortgaged: false };
+    state.pendingDebt = { playerId: "p1", creditorId: "p2" };
+    state.lastDice = [4, 4];
+    state.allowDoublesReroll = true;
+
+    const result = applyAction(
+      state,
+      { type: "FORCE_SETTLE_DEBT" },
+      Math.random,
+      "p1",
+    );
+    expect(result.error).toBeUndefined();
+    expect(state.pendingDebt).toBeNull();
+    expect(state.phase).toBe("PRE_ROLL");
+  });
 });

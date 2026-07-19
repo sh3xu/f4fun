@@ -7,9 +7,9 @@ import {
   getActivePlayer,
   getCurrentAuctionBidder,
   getLegalActions,
+  healStuckRaiseCash,
   type PlayerConfig,
   type PlayerId,
-  phaseAfterDiceAction,
   type RNG,
   releaseCardRevealPause,
   timeoutActionForState,
@@ -54,13 +54,8 @@ function forceSimulationWinner(state: GameState): PlayerId | null {
   return bestId;
 }
 
-/** NOTE: Engine can leave RAISE_CASH with cleared pendingDebt after jail-move debt resolution. */
 function normalizeStuckState(state: GameState): void {
-  if (state.phase === "RAISE_CASH" && !state.pendingDebt) {
-    const activeId = getActivePlayer(state);
-    const player = activeId ? state.players[activeId] : null;
-    state.phase = player?.isBankrupt ? "END_TURN" : phaseAfterDiceAction(state);
-  }
+  healStuckRaiseCash(state);
 }
 
 export function resolveActorId(state: GameState): PlayerId | null {

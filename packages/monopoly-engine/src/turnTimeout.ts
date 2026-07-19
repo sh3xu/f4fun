@@ -1,4 +1,5 @@
 import { getCurrentAuctionBidder } from "./auction.js";
+import { phaseAfterDiceAction } from "./phase.js";
 import { getActivePlayer } from "./turn.js";
 import type {
   GameAction,
@@ -8,6 +9,16 @@ import type {
   PlayerId,
 } from "./types.js";
 import { CARD_REVEAL_PAUSE_MS } from "./types.js";
+
+/** Heal RAISE_CASH left with no pendingDebt (e.g. pre-fix force-settle). */
+export function healStuckRaiseCash(state: GameState): boolean {
+  if (state.phase !== "RAISE_CASH" || state.pendingDebt) return false;
+
+  const activeId = getActivePlayer(state);
+  const player = activeId ? state.players[activeId] : null;
+  state.phase = player?.isBankrupt ? "END_TURN" : phaseAfterDiceAction(state);
+  return true;
+}
 
 export function timeoutSecsForPhase(
   phase: GamePhase,
@@ -46,6 +57,11 @@ export function timeoutActionForState(state: GameState): TimeoutAction | null {
   // NOTE: Parent phase timer is paused during auction; auction has its own deadline.
   if (state.actionDeadlinePausedMs != null && state.phase !== "AUCTION") {
     return null;
+  }
+
+  // NOTE: Issue #42 — force-settle used to clear pendingDebt without leaving RAISE_CASH.
+  if (healStuckRaiseCash(state)) {
+    return timeoutActionForState(state);
   }
 
   switch (state.phase) {

@@ -107,9 +107,12 @@ export function forceSettleDebt(
     events.push({ type: "DEBT_RESOLVED", playerId });
     if (pendingJailMove) {
       completePendingJailMove(state, playerId, pendingJailMove, rng, events);
+      // NOTE: Jail move may re-enter RAISE_CASH for a new debt; leave that alone.
+      if (state.phase === "RAISE_CASH" || state.winnerId !== null) {
+        return events;
+      }
     }
     if (state.winnerId !== null) return events;
-    if (state.phase === "RAISE_CASH") return events;
     state.phase = player.isBankrupt ? "END_TURN" : phaseAfterDiceAction(state);
     return events;
   }

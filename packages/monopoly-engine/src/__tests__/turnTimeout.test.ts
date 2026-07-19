@@ -72,6 +72,17 @@ describe("turnTimeout", () => {
       actorId: "p1",
     });
 
+    // Issue #42: stuck RAISE_CASH with no debt should heal then auto-end-turn
+    state.phase = "RAISE_CASH";
+    state.pendingDebt = null;
+    state.lastDice = [1, 2];
+    state.allowDoublesReroll = true;
+    expect(timeoutActionForState(state)).toEqual({
+      action: { type: "END_TURN" },
+      actorId: "p1",
+    });
+    expect(state.phase).toBe("END_TURN");
+
     state.phase = "GAME_OVER";
     expect(timeoutActionForState(state)).toBeNull();
   });

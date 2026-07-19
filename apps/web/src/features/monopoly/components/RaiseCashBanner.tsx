@@ -27,7 +27,7 @@ export function RaiseCashBanner({
       {seconds != null && (
         <p className="mt-1 text-xs text-rose-200/90">
           {isDebtor
-            ? `Sell assets, trade, or auction — ${seconds}s remaining`
+            ? `Click a property to mortgage or sell — ${seconds}s remaining`
             : `${seconds}s remaining`}
         </p>
       )}
