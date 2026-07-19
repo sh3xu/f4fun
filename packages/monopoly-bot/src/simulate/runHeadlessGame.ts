@@ -10,6 +10,7 @@ import {
   healStuckRaiseCash,
   type PlayerConfig,
   type PlayerId,
+  phaseAfterDiceAction,
   type RNG,
   releaseCardRevealPause,
   timeoutActionForState,
