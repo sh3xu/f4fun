@@ -47,7 +47,7 @@ export interface TimeoutAction {
   actorId: PlayerId;
 }
 
-/** Safe auto-action when the phase deadline expires. Never spends money. */
+/** Safe auto-action when the phase deadline expires. Never spends money. Pure — does not mutate. */
 export function timeoutActionForState(state: GameState): TimeoutAction | null {
   // NOTE: Turn clock is frozen while a trade offer awaits a response.
   if (state.pendingTrades.length > 0) {
@@ -59,9 +59,18 @@ export function timeoutActionForState(state: GameState): TimeoutAction | null {
     return null;
   }
 
-  // NOTE: Issue #42 — force-settle used to clear pendingDebt without leaving RAISE_CASH.
-  if (healStuckRaiseCash(state)) {
-    return timeoutActionForState(state);
+  // NOTE: Issue #42 — stuck RAISE_CASH with no debt; suggest post-heal action without mutating.
+  if (state.phase === "RAISE_CASH" && !state.pendingDebt) {
+    const actorId = getActivePlayer(state);
+    if (!actorId) return null;
+    const player = state.players[actorId];
+    const healedPhase = player?.isBankrupt
+      ? "END_TURN"
+      : phaseAfterDiceAction(state);
+    if (healedPhase === "PRE_ROLL") {
+      return { action: { type: "ROLL_DICE" }, actorId };
+    }
+    return { action: { type: "END_TURN" }, actorId };
   }
 
   switch (state.phase) {

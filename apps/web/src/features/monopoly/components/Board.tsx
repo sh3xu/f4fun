@@ -105,16 +105,27 @@ export function Board({
 
   const [viewedPosition, setViewedPosition] = useState<number | null>(null);
   const prevPhaseRef = useRef(state?.phase);
+  // NOTE: pendingDebt is cleared in the same update that leaves RAISE_CASH.
+  const prevDebtPlayerRef = useRef(state?.pendingDebt?.playerId ?? null);
 
-  // NOTE: Issue #42 — after debt is cleared the manage panel was still open and
-  // hid DiceTray, so Roll Dice / End Turn never appeared.
+  // NOTE: Issue #42 — debtor's manage panel hid DiceTray after debt cleared.
+  // Only reset for the debtor so other players' view panels stay open.
   useEffect(() => {
-    const prev = prevPhaseRef.current;
+    const prevPhase = prevPhaseRef.current;
+    const prevDebtPlayerId = prevDebtPlayerRef.current;
     prevPhaseRef.current = state?.phase;
-    if (prev === "RAISE_CASH" && state?.phase && state.phase !== "RAISE_CASH") {
+    prevDebtPlayerRef.current = state?.pendingDebt?.playerId ?? null;
+
+    if (
+      prevPhase === "RAISE_CASH" &&
+      state?.phase &&
+      state.phase !== "RAISE_CASH" &&
+      myPlayerId != null &&
+      prevDebtPlayerId === myPlayerId
+    ) {
       setViewedPosition(null);
     }
-  }, [state?.phase]);
+  }, [state?.phase, state?.pendingDebt?.playerId, myPlayerId]);
 
   const movingPlayerId =
     pendingAnimation.type === "move" ? pendingAnimation.playerId : undefined;

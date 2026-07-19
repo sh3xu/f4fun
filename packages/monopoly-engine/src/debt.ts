@@ -62,9 +62,10 @@ export function tryResolveRaiseCash(
   state.pendingDebt = null;
   events.push({ type: "DEBT_RESOLVED", playerId });
 
+  // NOTE: resolveLanding may leave BUY_OR_DECLINE / CARD_DRAWN / RAISE_CASH / etc.
   if (pendingJailMove) {
     completePendingJailMove(state, playerId, pendingJailMove, rng, events);
-    if (state.phase === "RAISE_CASH" || state.winnerId !== null) return true;
+    return true;
   }
 
   if (player.isBankrupt) {
@@ -105,12 +106,10 @@ export function forceSettleDebt(
 
   if (player.cash >= 0) {
     events.push({ type: "DEBT_RESOLVED", playerId });
+    // NOTE: resolveLanding may leave BUY_OR_DECLINE / CARD_DRAWN / RAISE_CASH / etc.
     if (pendingJailMove) {
       completePendingJailMove(state, playerId, pendingJailMove, rng, events);
-      // NOTE: Jail move may re-enter RAISE_CASH for a new debt; leave that alone.
-      if (state.phase === "RAISE_CASH" || state.winnerId !== null) {
-        return events;
-      }
+      return events;
     }
     if (state.winnerId !== null) return events;
     state.phase = player.isBankrupt ? "END_TURN" : phaseAfterDiceAction(state);

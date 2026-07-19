@@ -61,6 +61,7 @@ export function normalizeState(state: GameState): boolean {
   }
   // NOTE: Issue #42 — heal RAISE_CASH left with cleared pendingDebt.
   if (healStuckRaiseCash(state)) {
+    stampActionDeadline(state);
     changed = true;
   }
   if (state.auction && !Array.isArray(state.auction.bidHistory)) {

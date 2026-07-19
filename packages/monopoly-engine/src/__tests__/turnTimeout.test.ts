@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createInitialState } from "../index.js";
 import {
+  healStuckRaiseCash,
   pauseActionDeadline,
   resumeActionDeadline,
   stampActionDeadline,
@@ -72,7 +73,7 @@ describe("turnTimeout", () => {
       actorId: "p1",
     });
 
-    // Issue #42: stuck RAISE_CASH with no debt should heal then auto-end-turn
+    // Issue #42: stuck RAISE_CASH with no debt — suggest end-turn without mutating
     state.phase = "RAISE_CASH";
     state.pendingDebt = null;
     state.lastDice = [1, 2];
@@ -81,10 +82,29 @@ describe("turnTimeout", () => {
       action: { type: "END_TURN" },
       actorId: "p1",
     });
+    expect(state.phase).toBe("RAISE_CASH");
+
+    expect(healStuckRaiseCash(state)).toBe(true);
     expect(state.phase).toBe("END_TURN");
 
     state.phase = "GAME_OVER";
     expect(timeoutActionForState(state)).toBeNull();
+  });
+
+  it("suggests ROLL_DICE for stuck RAISE_CASH when doubles allow reroll", () => {
+    const state = createInitialState("g1", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    state.phase = "RAISE_CASH";
+    state.pendingDebt = null;
+    state.lastDice = [3, 3];
+    state.allowDoublesReroll = true;
+    expect(timeoutActionForState(state)).toEqual({
+      action: { type: "ROLL_DICE" },
+      actorId: "p1",
+    });
+    expect(state.phase).toBe("RAISE_CASH");
   });
 
   it("CARD_DRAWN deadline is no earlier than reveal pause", () => {

@@ -150,4 +150,34 @@ describe("debt and raise-cash", () => {
     expect(state.pendingDebt).toBeNull();
     expect(state.phase).toBe("PRE_ROLL");
   });
+
+  it("preserves BUY_OR_DECLINE after pending jail move lands on unowned property", () => {
+    const state = createInitialState("test", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    state.phase = "RAISE_CASH";
+    state.players.p1.cash = -20;
+    state.players.p1.position = 10;
+    state.players.p1.isInJail = false;
+    state.players.p1.ownedPositions = [1];
+    state.ownership[1] = { ownerId: "p1", isMortgaged: false };
+    // 1+2 from jail (10) → States Avenue (13), unowned
+    state.pendingDebt = {
+      playerId: "p1",
+      creditorId: null,
+      pendingJailMove: { dice: [1, 2], spaces: 3 },
+    };
+
+    const result = applyAction(
+      state,
+      { type: "FORCE_SETTLE_DEBT" },
+      Math.random,
+      "p1",
+    );
+    expect(result.error).toBeUndefined();
+    expect(result.events.some((e) => e.type === "DEBT_RESOLVED")).toBe(true);
+    expect(state.players.p1.position).toBe(13);
+    expect(state.phase).toBe("BUY_OR_DECLINE");
+  });
 });

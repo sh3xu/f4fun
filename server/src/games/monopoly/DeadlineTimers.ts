@@ -4,6 +4,7 @@ import {
   DEFAULT_GAME_CONFIG,
   type GameEvent,
   type GameState,
+  healStuckRaiseCash,
   type PendingTrade,
   resumeActionDeadline,
   stampActionDeadline,
@@ -227,10 +228,15 @@ async function onTurnTimeout(
         return;
       }
 
+      const stateBefore = JSON.parse(JSON.stringify(state)) as GameState;
+      // NOTE: timeoutActionForState is pure; heal stuck RAISE_CASH before applying.
+      if (healStuckRaiseCash(state)) {
+        stampActionDeadline(state);
+      }
+
       const timed = timeoutActionForState(state);
       if (!timed) return;
 
-      const stateBefore = JSON.parse(JSON.stringify(state)) as GameState;
       const result = applyAction(
         state,
         timed.action,
