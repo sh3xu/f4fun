@@ -1,4 +1,5 @@
 import { getCurrentAuctionBidder } from "./auction.js";
+import { phaseAfterDiceAction } from "./phase.js";
 import { getActivePlayer } from "./turn.js";
 import type {
   GameAction,
@@ -8,6 +9,16 @@ import type {
   PlayerId,
 } from "./types.js";
 import { CARD_REVEAL_PAUSE_MS } from "./types.js";
+
+/** Heal RAISE_CASH left with no pendingDebt (e.g. pre-fix force-settle). */
+export function healStuckRaiseCash(state: GameState): boolean {
+  if (state.phase !== "RAISE_CASH" || state.pendingDebt) return false;
+
+  const activeId = getActivePlayer(state);
+  const player = activeId ? state.players[activeId] : null;
+  state.phase = player?.isBankrupt ? "END_TURN" : phaseAfterDiceAction(state);
+  return true;
+}
 
 export function timeoutSecsForPhase(
   phase: GamePhase,
@@ -36,7 +47,7 @@ export interface TimeoutAction {
   actorId: PlayerId;
 }
 
-/** Safe auto-action when the phase deadline expires. Never spends money. */
+/** Safe auto-action when the phase deadline expires. Never spends money. Pure — does not mutate. */
 export function timeoutActionForState(state: GameState): TimeoutAction | null {
   // NOTE: Turn clock is frozen while a trade offer awaits a response.
   if (state.pendingTrades.length > 0) {
@@ -46,6 +57,20 @@ export function timeoutActionForState(state: GameState): TimeoutAction | null {
   // NOTE: Parent phase timer is paused during auction; auction has its own deadline.
   if (state.actionDeadlinePausedMs != null && state.phase !== "AUCTION") {
     return null;
+  }
+
+  // NOTE: Issue #42 — stuck RAISE_CASH with no debt; suggest post-heal action without mutating.
+  if (state.phase === "RAISE_CASH" && !state.pendingDebt) {
+    const actorId = getActivePlayer(state);
+    if (!actorId) return null;
+    const player = state.players[actorId];
+    const healedPhase = player?.isBankrupt
+      ? "END_TURN"
+      : phaseAfterDiceAction(state);
+    if (healedPhase === "PRE_ROLL") {
+      return { action: { type: "ROLL_DICE" }, actorId };
+    }
+    return { action: { type: "END_TURN" }, actorId };
   }
 
   switch (state.phase) {

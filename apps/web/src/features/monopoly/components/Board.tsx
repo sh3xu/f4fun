@@ -105,6 +105,28 @@ export function Board({
   const tileRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
   const [viewedPosition, setViewedPosition] = useState<number | null>(null);
+  const prevPhaseRef = useRef(state?.phase);
+  // NOTE: pendingDebt is cleared in the same update that leaves RAISE_CASH.
+  const prevDebtPlayerRef = useRef(state?.pendingDebt?.playerId ?? null);
+
+  // NOTE: Issue #42 — debtor's manage panel hid DiceTray after debt cleared.
+  // Only reset for the debtor so other players' view panels stay open.
+  useEffect(() => {
+    const prevPhase = prevPhaseRef.current;
+    const prevDebtPlayerId = prevDebtPlayerRef.current;
+    prevPhaseRef.current = state?.phase;
+    prevDebtPlayerRef.current = state?.pendingDebt?.playerId ?? null;
+
+    if (
+      prevPhase === "RAISE_CASH" &&
+      state?.phase &&
+      state.phase !== "RAISE_CASH" &&
+      myPlayerId != null &&
+      prevDebtPlayerId === myPlayerId
+    ) {
+      setViewedPosition(null);
+    }
+  }, [state?.phase, state?.pendingDebt?.playerId, myPlayerId]);
   // NOTE: Delay Chance/CC overlay until land animations settle + a shared beat.
   const [cardRevealReady, setCardRevealReady] = useState(false);
 
@@ -201,7 +223,9 @@ export function Board({
   const showRaiseCash =
     state?.phase === "RAISE_CASH" &&
     animationsSettled &&
-    state?.pendingDebt != null;
+    state?.pendingDebt != null &&
+    // NOTE: Prefer property manage UI so the debtor can actually raise cash.
+    viewedPosition === null;
   const pendingCardText = state?.pendingCard
     ? ((state.pendingCard.deck === "chance"
         ? CHANCE_CARDS
