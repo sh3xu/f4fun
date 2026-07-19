@@ -474,7 +474,12 @@ export function GamePage() {
       )}
 
       {tradeOutcome && (
-        <div className="fixed bottom-3 left-3 z-50 max-w-xs rounded-md border border-[#4fc3f7]/35 bg-[#0b1a24]/95 px-3 py-2 text-xs text-[#b3e5fc]">
+        <div
+          className={cn(
+            "fixed left-3 z-50 max-w-xs rounded-md border border-[#4fc3f7]/35 bg-[#0b1a24]/95 px-3 py-2 text-xs text-[#b3e5fc]",
+            actionError ? "bottom-14" : "bottom-3",
+          )}
+        >
           {tradeOutcome}
         </div>
       )}

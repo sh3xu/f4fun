@@ -177,7 +177,9 @@ export function TradeModal({
           <p className="text-sm text-white/50">No partners available.</p>
         ) : outgoing || incoming.length > 0 ? null : !canPropose ? (
           <p className="text-sm text-white/50">
-            You can only propose a trade on your turn (before or after rolling).
+            {state.pendingTrades.length > 0
+              ? "A trade offer is already pending."
+              : "You can only propose a trade on your turn (before or after rolling)."}
           </p>
         ) : (
           <div className="space-y-3 text-sm">

@@ -88,5 +88,5 @@ export function getCardDisplayText(
 ): string | null {
   const cards = deck === "chance" ? CHANCE_CARDS : COMMUNITY_CHEST_CARDS;
   const text = cards.find((c) => c.id === cardId)?.text;
-  return text ? localizeCardText(text) : null;
+  return text === undefined ? null : localizeCardText(text);
 }
