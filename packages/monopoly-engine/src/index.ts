@@ -142,6 +142,7 @@ export {
 } from "./trade.js";
 export { advanceTurn, getActivePlayer } from "./turn.js";
 export {
+  healStuckRaiseCash,
   pauseActionDeadline,
   resumeActionDeadline,
   stampActionDeadline,

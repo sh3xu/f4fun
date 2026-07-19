@@ -9,6 +9,7 @@ import {
   type GameState,
   getActivePlayer,
   getCurrentAuctionBidder,
+  healStuckRaiseCash,
   pauseActionDeadline,
   resumeActionDeadline,
   stampActionDeadline,
@@ -62,7 +63,13 @@ export function normalizeState(state: GameState): boolean {
     state.auction.bidHistory = [];
     changed = true;
   }
+  // NOTE: Merge config before heal/stamp so older games get default timeout fields.
   mergeGameConfig(state);
+  // NOTE: Issue #42 — heal RAISE_CASH left with cleared pendingDebt.
+  if (healStuckRaiseCash(state)) {
+    stampActionDeadline(state);
+    changed = true;
+  }
   if (ensureTradeExpiries(state)) changed = true;
   return changed;
 }
