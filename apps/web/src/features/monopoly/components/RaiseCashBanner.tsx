@@ -24,12 +24,13 @@ export function RaiseCashBanner({
         {isDebtor ? "You must raise cash" : "Player raising cash"}
       </p>
       <p className="mt-1 text-lg font-bold text-white">Need ${amountNeeded}</p>
-      {seconds != null && (
+      {isDebtor && (
         <p className="mt-1 text-xs text-rose-200/90">
-          {isDebtor
-            ? `Sell assets, trade, or auction — ${seconds}s remaining`
-            : `${seconds}s remaining`}
+          Tap your properties to mortgage, sell, or auction
         </p>
+      )}
+      {seconds != null && (
+        <p className="mt-1 text-xs text-rose-200/90">{seconds}s remaining</p>
       )}
     </div>
   );
