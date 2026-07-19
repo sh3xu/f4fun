@@ -263,10 +263,10 @@ export function BoardTile({
     "relative h-full w-full overflow-visible select-none",
     "transition-all duration-200",
     isCorner && "material-medallion",
+    isOwned && "z-[1]",
     isClickable &&
       "cursor-pointer appearance-none border-0 bg-transparent p-0 text-left hover:z-20 hover:brightness-110 hover:ring-2 hover:ring-[var(--material-focus-glow)]",
     !isClickable && "hover:z-20 hover:brightness-105",
-    isMortgaged && "opacity-50 saturate-[0.55]",
   );
 
   const cardClassName = cn(
@@ -326,7 +326,12 @@ export function BoardTile({
       )}
 
       <div className={cardClassName}>
-        <div className="absolute inset-0 z-0 flex items-center justify-center overflow-hidden rounded-md">
+        <div
+          className={cn(
+            "absolute inset-0 z-0 flex items-center justify-center overflow-hidden rounded-md",
+            isMortgaged && "opacity-50 saturate-[0.55]",
+          )}
+        >
           {PROPERTY_IMAGES[tile.position] && (
             <>
               <PropertyCoverImage
@@ -348,7 +353,11 @@ export function BoardTile({
           )}
         </div>
         <div
-          className={cn("absolute inset-0 z-[1] rounded-md", MATERIAL_TILE)}
+          className={cn(
+            "absolute inset-0 z-[1] rounded-md",
+            MATERIAL_TILE,
+            isMortgaged && "opacity-50",
+          )}
         />
 
         {isJail ? (
@@ -387,7 +396,12 @@ export function BoardTile({
           </div>
         ) : (
           <>
-            <div className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 overflow-hidden p-0.5">
+            <div
+              className={cn(
+                "relative z-10 flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 overflow-hidden p-0.5",
+                isMortgaged && "opacity-50 saturate-[0.55]",
+              )}
+            >
               {!isMortgaged && (houses > 0 || hotels > 0) && ownerColor && (
                 <div
                   className={cn(
@@ -444,10 +458,12 @@ export function BoardTile({
             {(colorStyle || (!isCorner && displayPrice)) && (
               <div
                 className={cn(
-                  "relative z-20 flex shrink-0 items-center justify-center material-tile-band",
+                  // NOTE: Color ribbon stays full-opacity above faded mortgaged body.
+                  "relative z-30 flex shrink-0 items-center justify-center material-tile-band",
                   colorStyle
                     ? cn(colorStyle.bg, colorStyle.text, colorStyle.border)
                     : "border-white/10 bg-white/10 text-white/80",
+                  isMortgaged && "ring-1 ring-inset ring-black/35",
                   side === "bottom" && "h-[22%] min-h-[14px] w-full border-t",
                   side === "top" && "h-[22%] min-h-[14px] w-full border-b",
                   side === "left" && "h-full w-[22%] min-w-[14px] border-r",

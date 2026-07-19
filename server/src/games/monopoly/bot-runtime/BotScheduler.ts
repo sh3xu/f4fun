@@ -4,6 +4,7 @@ import {
   CARD_REVEAL_PAUSE_MS,
   getLegalActions,
   lookupCard,
+  POST_LAND_CARD_PAUSE_MS,
   timeoutActionForState,
 } from "@f4fun/monopoly-engine";
 import type { Server } from "socket.io";
@@ -207,8 +208,11 @@ export function scheduleBotActions(
 
     clearBotTimer(roomId, actorId);
 
-    // NOTE: CARD_DRAWN — wait out land animation, then hold the card on-screen.
-    const revealPause = state.phase === "CARD_DRAWN" ? CARD_REVEAL_PAUSE_MS : 0;
+    // NOTE: CARD_DRAWN — wait out land animation, post-land beat, then hold card on-screen.
+    const revealPause =
+      state.phase === "CARD_DRAWN"
+        ? POST_LAND_CARD_PAUSE_MS + CARD_REVEAL_PAUSE_MS
+        : 0;
     const delay = thinkingDelayMs() + animationWaitMs(events) + revealPause;
     const timer = setTimeout(() => {
       void runBotTurn(io, roomId, actorId);
