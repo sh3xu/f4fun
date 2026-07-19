@@ -64,6 +64,12 @@ export interface PendingCard {
   drawnAt?: string;
 }
 
+/**
+ * Beat after dice/token land animations before Chance/CC card mounts on clients.
+ * Keeps the board readable for a moment so every client sees the land first.
+ */
+export const POST_LAND_CARD_PAUSE_MS = 750;
+
 /** Pause so all clients can read Chance / Community Chest before acknowledge. */
 export const CARD_REVEAL_PAUSE_MS = 3000;
 

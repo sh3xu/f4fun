@@ -22,8 +22,6 @@ interface DiceTrayProps {
   awaitingRoll?: boolean;
   rollKey?: number;
   onDiceAnimationComplete?: () => void;
-  /** Hide dice while a shared card reveal is showing in the center. */
-  hideDice?: boolean;
 }
 
 const phaseMessages: Record<GamePhase, string> = {
@@ -59,7 +57,6 @@ export function DiceTray({
   awaitingRoll = false,
   rollKey = 0,
   onDiceAnimationComplete,
-  hideDice = false,
 }: DiceTrayProps) {
   const isDoubles = dice && dice[0] === dice[1];
   const phaseHint = isDiceAnimating
@@ -89,20 +86,14 @@ export function DiceTray({
         )}
       </div>
 
-      {(!hideDice || isDiceAnimating) && (
-        <DiceRoller
-          dice={dice}
-          animate={isDiceAnimating}
-          rollKey={rollKey}
-          onComplete={onDiceAnimationComplete}
-          className={cn(
-            hideDice &&
-              "pointer-events-none invisible absolute h-0 w-0 overflow-hidden",
-          )}
-        />
-      )}
+      <DiceRoller
+        dice={dice}
+        animate={isDiceAnimating}
+        rollKey={rollKey}
+        onComplete={onDiceAnimationComplete}
+      />
 
-      {dice && !isDiceAnimating && isDoubles && !hideDice && (
+      {dice && !isDiceAnimating && isDoubles && (
         <div className="inline-flex items-center gap-1 rounded-md border border-yellow-500/25 bg-yellow-500/10 px-2 py-0.5 text-[length:var(--board-text-xs)] font-bold text-yellow-400">
           Doubles!
         </div>
