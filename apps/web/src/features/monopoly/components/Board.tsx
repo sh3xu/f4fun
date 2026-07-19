@@ -196,16 +196,16 @@ export function Board({
     !!currentPlayer;
   const showAuction =
     state?.phase === "AUCTION" && !!state.auction && animationsSettled;
+  // NOTE: During RAISE_CASH only the debtor may manage assets (may differ from activePlayer).
   const isDebtor =
     myPlayerId != null && state?.pendingDebt?.playerId === myPlayerId;
   const canManageProperties =
     state?.pendingTrades.length === 0 &&
-    (state?.phase === "RAISE_CASH"
-      ? isDebtor
-      : isMyTurn &&
+    ((state?.phase === "RAISE_CASH" && isDebtor) ||
+      (isMyTurn &&
         (state?.phase === "PRE_ROLL" ||
           state?.phase === "END_TURN" ||
-          state?.phase === "JAIL_DECISION"));
+          state?.phase === "JAIL_DECISION")));
   const showRaiseCash =
     state?.phase === "RAISE_CASH" &&
     animationsSettled &&
@@ -353,20 +353,6 @@ export function Board({
                   onPass={onPassAuction}
                 />
               </div>
-            ) : showRaiseCash ? (
-              <div
-                className={cn(
-                  BOARD_OVERLAY_PANEL_CLASS,
-                  "animate-in fade-in zoom-in-95 duration-300",
-                )}
-              >
-                <RaiseCashBanner
-                  amountNeeded={amountNeeded}
-                  deadlineAt={state.actionDeadlineAt}
-                  deadlinePausedMs={state.actionDeadlinePausedMs}
-                  isDebtor={isDebtor}
-                />
-              </div>
             ) : showCardReveal &&
               state?.pendingCard &&
               pendingCardText &&
@@ -440,6 +426,20 @@ export function Board({
                     hotels={viewedOwnerInfo.hotels}
                   />
                 )}
+              </div>
+            ) : showRaiseCash ? (
+              <div
+                className={cn(
+                  BOARD_OVERLAY_PANEL_CLASS,
+                  "animate-in fade-in zoom-in-95 duration-300",
+                )}
+              >
+                <RaiseCashBanner
+                  amountNeeded={amountNeeded}
+                  deadlineAt={state.actionDeadlineAt}
+                  deadlinePausedMs={state.actionDeadlinePausedMs}
+                  isDebtor={isDebtor}
+                />
               </div>
             ) : (
               <DiceTray

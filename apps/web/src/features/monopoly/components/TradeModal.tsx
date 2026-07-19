@@ -59,12 +59,16 @@ export function TradeModal({
   );
   const activePlayerId = state.turnOrder[state.activePlayerIndex];
   const isMyTurn = activePlayerId === myPlayerId;
+  // NOTE: Debtor may trade during RAISE_CASH even if they are not the active player.
+  const isDebtor =
+    state.phase === "RAISE_CASH" && state.pendingDebt?.playerId === myPlayerId;
   const canPropose =
-    isMyTurn &&
     state.pendingTrades.length === 0 &&
-    (state.phase === "PRE_ROLL" ||
-      state.phase === "END_TURN" ||
-      state.phase === "JAIL_DECISION");
+    ((isMyTurn &&
+      (state.phase === "PRE_ROLL" ||
+        state.phase === "END_TURN" ||
+        state.phase === "JAIL_DECISION")) ||
+      isDebtor);
   const meColor = getPlayerColor(myPlayerId, state.turnOrder);
   const partnerColor = toPlayerId
     ? getPlayerColor(toPlayerId, state.turnOrder)
