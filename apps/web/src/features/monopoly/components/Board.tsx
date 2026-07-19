@@ -4,9 +4,16 @@ import {
   BOARD_TILES,
   CHANCE_CARDS,
   COMMUNITY_CHEST_CARDS,
+  POST_LAND_CARD_PAUSE_MS,
   TILE_BY_POSITION,
 } from "@f4fun/monopoly-engine";
-import { type CSSProperties, useCallback, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { PieceMover } from "@/components/animation/PieceMover";
 import { FeltSurface } from "@/components/ui/FeltSurface";
 import { cn } from "@/lib/cn";
@@ -98,6 +105,8 @@ export function Board({
   const tileRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
   const [viewedPosition, setViewedPosition] = useState<number | null>(null);
+  // NOTE: Delay Chance/CC overlay until land animations settle + a shared beat.
+  const [cardRevealReady, setCardRevealReady] = useState(false);
 
   const movingPlayerId =
     pendingAnimation.type === "move" ? pendingAnimation.playerId : undefined;
@@ -199,11 +208,21 @@ export function Board({
         : COMMUNITY_CHEST_CARDS
       ).find((c) => c.id === state.pendingCard?.cardId)?.text ?? null)
     : null;
-  const showCardReveal =
-    state?.phase === "CARD_DRAWN" &&
-    animationsSettled &&
-    !!state.pendingCard &&
-    !!pendingCardText;
+  const cardPending =
+    state?.phase === "CARD_DRAWN" && !!state.pendingCard && !!pendingCardText;
+
+  useEffect(() => {
+    if (!cardPending || !animationsSettled) {
+      setCardRevealReady(false);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setCardRevealReady(true);
+    }, POST_LAND_CARD_PAUSE_MS);
+    return () => window.clearTimeout(timer);
+  }, [cardPending, animationsSettled]);
+
+  const showCardReveal = cardPending && animationsSettled && cardRevealReady;
   const cardDrawer =
     showCardReveal && activePlayerId ? state.players[activePlayerId] : null;
   const debtPlayer = showRaiseCash
@@ -441,7 +460,6 @@ export function Board({
                 }
                 rollKey={rollAnimationKey}
                 onDiceAnimationComplete={completeDiceAnimation}
-                hideDice={state?.phase === "CARD_DRAWN"}
               />
             )}
           </div>
