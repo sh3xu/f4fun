@@ -1,0 +1,23 @@
+server/src/games/monopoly/executeGameIntent.ts
+  s_c8079caf33e0b7::t_3b11d2f12bb956 252-260,280-286
+server/src/games/monopoly/DeadlineTimers.ts
+  s_c8079caf33e0b7::t_c2157d471829df 324
+  s_c8079caf33e0b7::t_64092442bb4ec4 351-357
+  s_c8079caf33e0b7::t_ed759367ca570a 358
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "48cc720309be57a2924b8a6ecedc8749540d62fe",
+  "prompts": {},
+  "sessions": {
+    "s_c8079caf33e0b7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "de8bd5e2-11be-459f-9ae4-20a448accc72",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
