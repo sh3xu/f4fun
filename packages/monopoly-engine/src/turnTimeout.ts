@@ -174,3 +174,19 @@ export function resumeActionDeadline(
 
   state.actionDeadlineAt = new Date(nowMs + remainingMs).toISOString();
 }
+
+/**
+ * True when the turn-phase deadline has elapsed (or paused remaining is 0).
+ * NOTE: Issue #55 — pending trades use their own expiry; turn clock stays frozen.
+ */
+export function isActionDeadlineExpired(
+  state: GameState,
+  nowMs: number = Date.now(),
+): boolean {
+  if (state.pendingTrades.length > 0) return false;
+  if (state.actionDeadlinePausedMs != null) {
+    return state.actionDeadlinePausedMs <= 0;
+  }
+  if (!state.actionDeadlineAt) return false;
+  return new Date(state.actionDeadlineAt).getTime() <= nowMs;
+}

@@ -1,6 +1,7 @@
 import {
   buildingsBlockDeedAction,
   type GameAction,
+  isActionDeadlineExpired,
   type ownsColorGroup,
   POSITIONS_BY_COLOR,
   simulateAction,
@@ -54,6 +55,10 @@ export function generateTradeProposals(ctx: StrategyContext): GameAction[] {
   const { state, actorId, rng, rejectedTradeLocks } = ctx;
   const player = state.players[actorId];
   if (!player || player.isBankrupt) return [];
+  // NOTE: Issue #55 — no new deals once the turn deadline has elapsed.
+  if (isActionDeadlineExpired(state)) {
+    return [];
+  }
 
   const proposals: GameAction[] = [];
 
@@ -99,6 +104,7 @@ export function generateTradeProposals(ctx: StrategyContext): GameAction[] {
         request,
       );
       const partnerCondition = partnerTradeConditionKey(state, opponentId);
+      // NOTE: Issue #55 — skip deals rejected for this partner's current conditions.
       if (
         rejectedTradeLocks?.has(
           rejectedDealLockKey(fingerprint, partnerCondition),

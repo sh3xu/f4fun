@@ -1,4 +1,8 @@
-import { resolveActorId } from "@f4fun/monopoly-bot";
+import {
+  partnerTradeConditionKey,
+  pendingTradeFingerprint,
+  resolveActorId,
+} from "@f4fun/monopoly-bot";
 import {
   applyAction,
   DEFAULT_GAME_CONFIG,
@@ -12,6 +16,7 @@ import {
 } from "@f4fun/monopoly-engine";
 import type { Server } from "socket.io";
 import { isBotActor, scheduleBotActions } from "./bot-runtime/BotScheduler.js";
+import { rememberRejectedDealForProposer } from "./bot-runtime/botMemory.js";
 import { logGameAction } from "./GameEventLogger.js";
 import { loadGameByRoomId, saveGame } from "./GameStore.js";
 import { withRoomLock } from "./roomMutex.js";
@@ -316,17 +321,33 @@ async function onTradeTimeout(
         return;
       }
 
+      // NOTE: Issue #55 — stamp before reject so the proposer never re-offers
+      // while the partner's conditions are unchanged this turn.
+      const fingerprint = pendingTradeFingerprint(trade);
+      const partnerCondition = partnerTradeConditionKey(
+        state,
+        trade.toPlayerId,
+      );
+      const fromPlayerId = trade.fromPlayerId;
+      const toPlayerId = trade.toPlayerId;
+
       const stateBefore = JSON.parse(JSON.stringify(state)) as GameState;
       const result = applyAction(
         state,
         { type: "REJECT_TRADE", tradeId },
         Math.random,
-        trade.toPlayerId,
+        toPlayerId,
       );
       if (result.error) {
         console.error("[TradeTimer] Auto-reject failed:", result.error);
         return;
       }
+
+      rememberRejectedDealForProposer(
+        fromPlayerId,
+        fingerprint,
+        partnerCondition,
+      );
 
       resumeActionDeadline(result.state);
       const saved = await saveGame(result.state.gameId, result.state, 0, {
@@ -338,7 +359,7 @@ async function onTradeTimeout(
         await logGameAction(
           result.state.gameId,
           roomId,
-          trade.toPlayerId,
+          toPlayerId,
           "TIMEOUT_REJECT_TRADE",
           stateBefore,
           result.state,

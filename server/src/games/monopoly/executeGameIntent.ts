@@ -10,9 +10,11 @@ import {
   getActivePlayer,
   getCurrentAuctionBidder,
   healStuckRaiseCash,
+  isActionDeadlineExpired,
   pauseActionDeadline,
   resumeActionDeadline,
   stampActionDeadline,
+  timeoutActionForState,
 } from "@f4fun/monopoly-engine";
 import type { Server } from "socket.io";
 import { rememberRejectedDealForProposer } from "./bot-runtime/botMemory.js";
@@ -35,6 +37,10 @@ export type ExecuteIntentOptions = {
   actionName: string;
   onEvents?: (io: Server, roomId: string, events: readonly GameEvent[]) => void;
 };
+
+function actionMatches(a: GameAction, b: GameAction): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
 
 /** Backfill fields added after older persisted games. Returns true if mutated. */
 export function normalizeState(state: GameState): boolean {
@@ -167,6 +173,34 @@ export async function executeGameIntent(
       }
     }
 
+    // NOTE: Issue #55 — turn timer beats late human/bot intents (except trade reply).
+    let effectiveAction = action;
+    let effectivePlayerId = playerId;
+    let effectiveActionName = options.actionName;
+    let effectiveTurnCountDelta = options.turnCountDelta ?? 0;
+    if (
+      isActionDeadlineExpired(state) &&
+      action.type !== "ACCEPT_TRADE" &&
+      action.type !== "REJECT_TRADE"
+    ) {
+      const timed = timeoutActionForState(state);
+      if (timed) {
+        if (timed.actorId === playerId && actionMatches(timed.action, action)) {
+          // Intent already matches the timeout auto-action.
+        } else {
+          effectiveAction = timed.action;
+          effectivePlayerId = timed.actorId;
+          effectiveActionName = `TIMEOUT_${timed.action.type}`;
+          effectiveTurnCountDelta = timed.action.type === "END_TURN" ? 1 : 0;
+        }
+      } else if (action.type === "PROPOSE_TRADE") {
+        return {
+          ok: false,
+          error: "Turn timer expired — cannot propose deals",
+        };
+      }
+    }
+
     const stateBefore = JSON.parse(JSON.stringify(state)) as GameState;
 
     // NOTE: Capture deal fingerprint before reject clears pendingTrades.
@@ -175,10 +209,9 @@ export async function executeGameIntent(
       key: string;
       partnerCondition: string;
     } | null = null;
-    if (action.type === "REJECT_TRADE") {
-      const trade = state.pendingTrades.find(
-        (t) => t.tradeId === action.tradeId,
-      );
+    if (effectiveAction.type === "REJECT_TRADE") {
+      const { tradeId } = effectiveAction;
+      const trade = state.pendingTrades.find((t) => t.tradeId === tradeId);
       if (trade) {
         rejectedFingerprint = {
           fromPlayerId: trade.fromPlayerId,
@@ -188,7 +221,12 @@ export async function executeGameIntent(
       }
     }
 
-    const result = applyAction(state, action, Math.random, playerId);
+    const result = applyAction(
+      state,
+      effectiveAction,
+      Math.random,
+      effectivePlayerId,
+    );
 
     if (result.error) {
       if (backfilled) {
@@ -213,7 +251,7 @@ export async function executeGameIntent(
     const saved = await saveGame(
       result.state.gameId,
       result.state,
-      options.turnCountDelta ?? 0,
+      effectiveTurnCountDelta,
     );
     if (!saved) {
       return { ok: false, error: "Game not found" };
@@ -223,8 +261,8 @@ export async function executeGameIntent(
       await logGameAction(
         result.state.gameId,
         roomId,
-        playerId,
-        options.actionName,
+        effectivePlayerId,
+        effectiveActionName,
         stateBefore,
         result.state,
         result.events,

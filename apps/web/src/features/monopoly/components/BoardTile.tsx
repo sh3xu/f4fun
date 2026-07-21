@@ -402,7 +402,7 @@ export function BoardTile({
                 isMortgaged && "opacity-50 saturate-[0.55]",
               )}
             >
-              {!isMortgaged && (houses > 0 || hotels > 0) && ownerColor && (
+              {!isMortgaged && (houses > 0 || hotels > 0) && (
                 <div
                   className={cn(
                     "absolute z-20 flex gap-px",
@@ -415,16 +415,9 @@ export function BoardTile({
                   )}
                 >
                   {hotels > 0 ? (
-                    <HotelMarker colorHex={ownerColor.hex} />
+                    <HotelMarker />
                   ) : (
-                    [1, 2, 3, 4]
-                      .slice(0, houses)
-                      .map((houseNum) => (
-                        <HouseMarker
-                          key={`house-${houseNum}`}
-                          colorHex={ownerColor.hex}
-                        />
-                      ))
+                    <HouseMarker count={houses} />
                   )}
                 </div>
               )}

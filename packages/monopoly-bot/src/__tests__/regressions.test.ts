@@ -13,6 +13,7 @@ import { scoreJailOptions } from "../decision/jail.js";
 import { BotPlayer } from "../decision/orchestrator.js";
 import { generateTradeProposals } from "../decision/trade.js";
 import {
+  partnerCashBand,
   partnerTradeConditionKey,
   pendingTradeFingerprint,
   rejectedDealLockKey,
@@ -101,7 +102,7 @@ describe("monopoly-bot regressions", () => {
     expect(tradeScore?.score).toBeGreaterThan(50);
   });
 
-  it("never re-offers the same rejected trade in a recursion loop", () => {
+  it("never re-offers a rejected trade in the same turn, but may retry next turn", () => {
     const state = createState();
     state.phase = "END_TURN";
     state.activePlayerIndex = 0;
@@ -166,25 +167,48 @@ describe("monopoly-bot regressions", () => {
     });
     expect(regenerations).toHaveLength(0);
 
-    // Partner conditions changed — same deal shape may be reconsidered.
+    // Small cash tick stays in the same band — must not unlock spam.
     state.players.p2.cash -= 50;
-    const afterPartnerChange = proposer.decide(
+    const afterSmallChange = proposer.decide(
       state,
       "p1",
       [{ type: "END_TURN" }],
       rng,
     );
-    expect(afterPartnerChange.action.type).toBe("PROPOSE_TRADE");
+    expect(afterSmallChange.action.type).not.toBe("PROPOSE_TRADE");
+    expect(afterSmallChange.action.type).toBe("END_TURN");
+
+    // Drastic drop into low band — same deal shape may be reconsidered.
+    state.players.p2.cash = 150;
+    const afterDrasticLow = proposer.decide(
+      state,
+      "p1",
+      [{ type: "END_TURN" }],
+      rng,
+    );
+    expect(afterDrasticLow.action.type).toBe("PROPOSE_TRADE");
 
     // Next turn (PRE_ROLL) clears locks — may offer again based on scoring.
-    state.players.p2.cash += 50;
+    state.players.p2.cash = 1500;
     proposer.rememberRejectedTrade(
       fingerprint,
       partnerTradeConditionKey(state, "p2"),
     );
     state.phase = "PRE_ROLL";
+    state.doublesCount = 0;
     const nextTurn = proposer.decide(state, "p1", [{ type: "END_TURN" }], rng);
     expect(nextTurn.action.type).toBe("PROPOSE_TRADE");
+  });
+
+  it("partner cash bands only change on drastic liquidity shifts", () => {
+    expect(partnerCashBand(1500)).toBe("flush");
+    expect(partnerCashBand(1450)).toBe("flush");
+    expect(partnerCashBand(800)).toBe("flush");
+    expect(partnerCashBand(799)).toBe("ok");
+    expect(partnerCashBand(300)).toBe("ok");
+    expect(partnerCashBand(299)).toBe("low");
+    expect(partnerCashBand(100)).toBe("low");
+    expect(partnerCashBand(99)).toBe("critical");
   });
 
   it("keeps rejection locks through doubles reroll PRE_ROLL in the same turn", () => {
@@ -228,6 +252,23 @@ describe("monopoly-bot regressions", () => {
     }
 
     expect(proposer.hasRejectedTrade(fingerprint, partnerCondition)).toBe(true);
+  });
+
+  it("honors an expired turn deadline over proposing a trade", () => {
+    const state = createState();
+    state.phase = "END_TURN";
+    state.activePlayerIndex = 0;
+    state.actionDeadlineAt = "2020-01-01T00:00:00.000Z";
+    state.ownership[1] = { ownerId: "p1", isMortgaged: false };
+    state.ownership[6] = { ownerId: "p1", isMortgaged: false };
+    state.ownership[3] = { ownerId: "p2", isMortgaged: false };
+    state.players.p1.ownedPositions = [1, 6];
+    state.players.p2.ownedPositions = [3];
+
+    const bot = new BotPlayer(expertStrategy);
+    const decision = bot.decide(state, "p1", [{ type: "END_TURN" }], () => 0.5);
+    expect(decision.action.type).toBe("END_TURN");
+    expect(decision.reasoning).toMatch(/Timer expired/i);
   });
 
   it("detects two-property color groups when blocking monopoly gifts", () => {
