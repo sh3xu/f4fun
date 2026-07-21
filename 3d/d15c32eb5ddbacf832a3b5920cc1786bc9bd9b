@@ -1,0 +1,22 @@
+packages/seven-wonders-engine/src/__tests__/simulation.test.ts
+  s_6b97de17f71d02::t_18f073bad4fecc 1-5,7-23,29-42,44-76,78-96,98,104-132,137-138,140,149-150,152,156-165,169-209
+  s_6b97de17f71d02::t_1701ec396bd916 6,24-28,43,77,97,99-103,166-168
+  s_6b97de17f71d02::t_0632ce3981d846 133-136,139,141-148
+  s_6b97de17f71d02::t_ff088cb041a641 151,153-155
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "3dd15c32eb5ddbacf832a3b5920cc1786bc9bd9b",
+  "prompts": {},
+  "sessions": {
+    "s_6b97de17f71d02": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "120bc4fe-edd9-41a0-9277-a2d8686f110a",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
