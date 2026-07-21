@@ -1,10 +1,12 @@
-import type { GameState } from "@f4fun/monopoly-engine";
 import { type Document, model, Schema } from "mongoose";
+
+export type StoredGameType = "monopoly" | "sevenWonders";
 
 export interface IGame extends Document {
   gameId: string;
   roomId: string;
-  state: GameState;
+  gameType: StoredGameType;
+  state: Record<string, unknown>;
   turnCount: number;
   startedAt: Date;
   finishedAt: Date | null;
@@ -16,6 +18,12 @@ const GameSchema = new Schema<IGame>(
   {
     gameId: { type: String, required: true, unique: true, index: true },
     roomId: { type: String, required: true, index: true },
+    gameType: {
+      type: String,
+      enum: ["monopoly", "sevenWonders"],
+      default: "monopoly",
+      index: true,
+    },
     state: { type: Schema.Types.Mixed, required: true },
     turnCount: { type: Number, default: 0 },
     startedAt: { type: Date, default: Date.now },

@@ -12,6 +12,7 @@ export interface StoredRoom {
   roomId: string;
   roomCode: string;
   gameId?: string;
+  gameType?: "monopoly" | "sevenWonders";
 }
 
 export function savePlayer(player: StoredPlayer): void {

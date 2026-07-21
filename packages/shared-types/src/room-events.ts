@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { GameTypeSchema } from "./game-type.js";
 
 /** Human nicknames: letters and digits only (bots may use special chars). */
 export const HumanPlayerNameSchema = z
@@ -33,6 +34,11 @@ export const RoomStartGameSchema = z.object({
   roomCode: z.string().length(6),
 });
 
+export const RoomSetGameTypeSchema = z.object({
+  roomCode: z.string().length(6),
+  gameType: GameTypeSchema,
+});
+
 export const RoomAddBotPlayerSchema = z.object({
   roomCode: z.string().length(6),
 });
@@ -53,12 +59,14 @@ export const RoomCreatedSchema = z.object({
   playerId: z.string(),
   playerSecret: z.string().min(1),
   players: z.array(PlayerInfoSchema),
+  gameType: GameTypeSchema,
 });
 
 export const RoomSyncedSchema = z.object({
   roomCode: z.string().length(6),
   roomId: z.string(),
   players: z.array(PlayerInfoSchema),
+  gameType: GameTypeSchema,
 });
 
 export const RoomPlayerJoinedSchema = z.object({
@@ -73,6 +81,11 @@ export const RoomPlayerLeftSchema = z.object({
 export const RoomGameStartedSchema = z.object({
   gameId: z.string(),
   roomCode: z.string().length(6),
+  gameType: GameTypeSchema,
+});
+
+export const RoomGameTypeUpdatedSchema = z.object({
+  gameType: GameTypeSchema,
 });
 
 export const RoomErrorSchema = z.object({
@@ -82,6 +95,7 @@ export const RoomErrorSchema = z.object({
 export type RoomCreatePayload = z.infer<typeof RoomCreateSchema>;
 export type RoomJoinPayload = z.infer<typeof RoomJoinSchema>;
 export type RoomStartGamePayload = z.infer<typeof RoomStartGameSchema>;
+export type RoomSetGameTypePayload = z.infer<typeof RoomSetGameTypeSchema>;
 export type RoomAddBotPlayerPayload = z.infer<typeof RoomAddBotPlayerSchema>;
 export type RoomSyncPayload = z.infer<typeof RoomSyncSchema>;
 export type RoomAddBotPlayerResponsePayload = z.infer<
@@ -92,4 +106,7 @@ export type RoomSyncedPayload = z.infer<typeof RoomSyncedSchema>;
 export type RoomPlayerJoinedPayload = z.infer<typeof RoomPlayerJoinedSchema>;
 export type RoomPlayerLeftPayload = z.infer<typeof RoomPlayerLeftSchema>;
 export type RoomGameStartedPayload = z.infer<typeof RoomGameStartedSchema>;
+export type RoomGameTypeUpdatedPayload = z.infer<
+  typeof RoomGameTypeUpdatedSchema
+>;
 export type RoomErrorPayload = z.infer<typeof RoomErrorSchema>;

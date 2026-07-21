@@ -1,8 +1,10 @@
 "use client";
 
 import type {
+  GameType,
   RoomAddBotPlayerResponsePayload,
   RoomGameStartedPayload,
+  RoomGameTypeUpdatedPayload,
   RoomPlayerJoinedPayload,
   RoomPlayerLeftPayload,
   RoomSyncedPayload,
@@ -44,9 +46,11 @@ export function LobbyPage() {
     myPlayerId,
     myToken,
     myPlayerSecret,
+    gameType,
     addPlayer,
     updatePlayerConnection,
     setGameId,
+    setGameType,
     setRoom,
     setMyIdentity,
     setMyPlayerId,
@@ -54,14 +58,23 @@ export function LobbyPage() {
 
   const [loading, setLoading] = useState(false);
   const [addingBot, setAddingBot] = useState(false);
+  const [settingGameType, setSettingGameType] = useState(false);
   const [syncing, setSyncing] = useState(true);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
 
   const activeRoomCode = roomCode || codeFromUrl;
   const isHost = players.find((p) => p.id === myPlayerId)?.isHost ?? false;
-  const canStart = players.length >= 2 && players.every((p) => p.isConnected);
-  const lobbyActionPending = addingBot || loading;
+  const connectedCount = players.filter((p) => p.isConnected || p.isBot).length;
+  const canStartMonopoly =
+    players.length >= 2 && players.every((p) => p.isConnected || p.isBot);
+  const canStartSevenWonders =
+    connectedCount >= 3 &&
+    connectedCount <= 7 &&
+    players.every((p) => p.isConnected || p.isBot);
+  const canStart =
+    gameType === "sevenWonders" ? canStartSevenWonders : canStartMonopoly;
+  const lobbyActionPending = addingBot || loading || settingGameType;
 
   useEffect(() => {
     let cancelled = false;
@@ -101,8 +114,17 @@ export function LobbyPage() {
 
         if (cancelled) return;
 
-        setRoom(response.roomId, response.roomCode, response.players);
-        saveRoom({ roomId: response.roomId, roomCode: response.roomCode });
+        setRoom(
+          response.roomId,
+          response.roomCode,
+          response.players,
+          response.gameType,
+        );
+        saveRoom({
+          roomId: response.roomId,
+          roomCode: response.roomCode,
+          gameType: response.gameType,
+        });
 
         if (storedPlayer) {
           const me = response.players.find(
@@ -163,12 +185,18 @@ export function LobbyPage() {
       updatePlayerConnection(data.playerId, data.isConnected);
     });
 
+    socket.on("room:gameTypeUpdated", (data: RoomGameTypeUpdatedPayload) => {
+      setGameType(data.gameType);
+    });
+
     socket.on("room:gameStarted", (data: RoomGameStartedPayload) => {
       setGameId(data.gameId);
+      setGameType(data.gameType);
       saveRoom({
         roomId: roomId || "",
         roomCode: activeRoomCode,
         gameId: data.gameId,
+        gameType: data.gameType,
       });
       router.push(`/game/${activeRoomCode}`);
     });
@@ -176,6 +204,7 @@ export function LobbyPage() {
     return () => {
       socket.off("room:playerJoined");
       socket.off("room:playerLeft");
+      socket.off("room:gameTypeUpdated");
       socket.off("room:gameStarted");
     };
   }, [
@@ -184,8 +213,33 @@ export function LobbyPage() {
     addPlayer,
     updatePlayerConnection,
     setGameId,
+    setGameType,
     router,
   ]);
+
+  const handleSetGameType = async (next: GameType) => {
+    if (!activeRoomCode || lobbyActionPending || next === gameType) return;
+
+    setSettingGameType(true);
+    setError("");
+
+    try {
+      await emitWithCallback("room:setGameType", {
+        roomCode: activeRoomCode,
+        gameType: next,
+      });
+      setGameType(next);
+      saveRoom({
+        roomId: roomId || "",
+        roomCode: activeRoomCode,
+        gameType: next,
+      });
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSettingGameType(false);
+    }
+  };
 
   const handleAddBot = async () => {
     if (!activeRoomCode || lobbyActionPending) return;
@@ -199,7 +253,7 @@ export function LobbyPage() {
         { roomCode: activeRoomCode },
       );
       if (response?.players) {
-        setRoom(roomId || "", activeRoomCode, response.players);
+        setRoom(roomId || "", activeRoomCode, response.players, gameType);
       }
     } catch (err) {
       setError((err as Error).message);
@@ -269,6 +323,49 @@ export function LobbyPage() {
             </Button>
           </div>
 
+          {isHost ? (
+            <div>
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-400">
+                Game
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  disabled={lobbyActionPending}
+                  onClick={() => handleSetGameType("monopoly")}
+                  className={cn(
+                    "rounded-md border px-3 py-2.5 text-left text-sm font-semibold transition-colors",
+                    gameType === "monopoly"
+                      ? "border-[#4fc3f7]/50 bg-[#4fc3f7]/15 text-[#4fc3f7]"
+                      : "border-white/10 bg-black/20 text-gray-300 hover:border-white/20",
+                  )}
+                >
+                  Monopoly
+                </button>
+                <button
+                  type="button"
+                  disabled={lobbyActionPending}
+                  onClick={() => handleSetGameType("sevenWonders")}
+                  className={cn(
+                    "rounded-md border px-3 py-2.5 text-left text-sm font-semibold transition-colors",
+                    gameType === "sevenWonders"
+                      ? "border-amber-400/50 bg-amber-500/15 text-amber-200"
+                      : "border-white/10 bg-black/20 text-gray-300 hover:border-white/20",
+                  )}
+                >
+                  7 Wonders
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm text-gray-400">
+              Playing{" "}
+              <span className="font-semibold text-gray-200">
+                {gameType === "sevenWonders" ? "7 Wonders" : "Monopoly"}
+              </span>
+            </p>
+          )}
+
           <div>
             <p className="mb-2.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-gray-400">
               <Users className="h-3.5 w-3.5" />
@@ -312,7 +409,7 @@ export function LobbyPage() {
             </div>
           )}
 
-          {isHost && players.length < 8 && (
+          {isHost && gameType === "monopoly" && players.length < 8 && (
             <Button
               variant="tokenGhost"
               onClick={handleAddBot}
@@ -349,9 +446,18 @@ export function LobbyPage() {
             </p>
           )}
 
-          {isHost && !canStart && players.length < 2 && (
+          {isHost &&
+            gameType === "monopoly" &&
+            !canStart &&
+            players.length < 2 && (
+              <p className="text-center text-xs text-gray-600">
+                Need at least 2 players at the table to start
+              </p>
+            )}
+
+          {isHost && gameType === "sevenWonders" && !canStart && (
             <p className="text-center text-xs text-gray-600">
-              Need at least 2 players at the table to start
+              Seven Wonders needs 3–7 connected players
             </p>
           )}
         </div>

@@ -13,6 +13,8 @@ export interface IRoomPlayer {
   joinedAt: Date;
 }
 
+export type RoomGameType = "monopoly" | "sevenWonders";
+
 export interface IRoom extends Document {
   roomId: string;
   code: string;
@@ -20,6 +22,7 @@ export interface IRoom extends Document {
   status: RoomStatus;
   players: IRoomPlayer[];
   gameId: string | null;
+  gameType: RoomGameType;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,6 +53,11 @@ const RoomSchema = new Schema<IRoom>(
     },
     players: [RoomPlayerSchema],
     gameId: { type: String, default: null },
+    gameType: {
+      type: String,
+      enum: ["monopoly", "sevenWonders"],
+      default: "monopoly",
+    },
   },
   { timestamps: true },
 );

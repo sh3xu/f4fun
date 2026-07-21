@@ -11,6 +11,7 @@ import { getGameEventLog } from "../games/monopoly/GameEventLogger.js";
 import { loadGame, saveGame } from "../games/monopoly/GameStore.js";
 import { registerMonopolyHandlers } from "../games/monopoly/handlers.js";
 import { withRoomLock } from "../games/monopoly/roomMutex.js";
+import { registerSevenWondersHandlers } from "../games/seven-wonders/handlers.js";
 import { cancelGrace, startGrace } from "../rooms/DisconnectGrace.js";
 import { destroyRoomIfAbandoned } from "../rooms/RoomCleanup.js";
 import {
@@ -49,6 +50,7 @@ export function createSocketServer(httpServer: HttpServer): Server {
 
     registerRoomHandlers(io, s);
     registerMonopolyHandlers(io, s);
+    registerSevenWondersHandlers(io, s);
 
     socket.on("game:rejoin", async (payload, callback) => {
       const data = validatePayload(GameRejoinSchema)(payload, callback);
@@ -72,7 +74,7 @@ export function createSocketServer(httpServer: HttpServer): Server {
         await setPlayerConnected(data.roomId, data.playerId, true);
         await cancelGrace(data.roomId, data.playerId);
 
-        if (room.gameId) {
+        if (room.gameId && room.gameType === "monopoly") {
           // NOTE: Snapshot emit + timer arm must stay inside the room lock so a
           // concurrent action cannot deliver newer events first, then get
           // overwritten by this older snapshot / stale afterGameStateCommit.

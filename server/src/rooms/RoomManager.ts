@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { type IRoomPlayer, RoomModel } from "../db/index.js";
-import type { RoomStatus } from "../db/schemas/RoomSchema.js";
+import type { RoomGameType, RoomStatus } from "../db/schemas/RoomSchema.js";
 
 export interface RoomPlayer {
   playerId: string;
@@ -18,6 +18,7 @@ export interface Room {
   status: RoomStatus;
   players: RoomPlayer[];
   gameId: string | null;
+  gameType: RoomGameType;
 }
 
 const MAX_ROOM_PLAYERS = 8;
@@ -61,8 +62,22 @@ export async function createRoom(
     status: "lobby",
     players: [player],
     gameId: null,
+    gameType: "monopoly",
   });
 
+  return docToRoom(doc);
+}
+
+export async function setRoomGameType(
+  roomId: string,
+  gameType: RoomGameType,
+): Promise<Room> {
+  const doc = await RoomModel.findOneAndUpdate(
+    { roomId, status: "lobby" },
+    { $set: { gameType } },
+    { new: true },
+  );
+  if (!doc) throw new Error("Room not found or game already started");
   return docToRoom(doc);
 }
 
@@ -317,5 +332,6 @@ function docToRoom(doc: Awaited<ReturnType<typeof RoomModel.findOne>>): Room {
       isBot: p.isBot ?? false,
     })),
     gameId: doc.gameId,
+    gameType: doc.gameType ?? "monopoly",
   };
 }

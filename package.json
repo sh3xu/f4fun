@@ -4,13 +4,13 @@
   "private": true,
   "packageManager": "pnpm@11.5.2",
   "scripts": {
-    "dev": "pnpm --filter @f4fun/shared-types build && pnpm --filter @f4fun/monopoly-engine build && pnpm --filter @f4fun/monopoly-bot build && concurrently -n server,web -c blue,magenta \"pnpm --filter @f4fun/server dev\" \"pnpm --filter @f4fun/web dev\"",
+    "dev": "pnpm --filter @f4fun/shared-types build && pnpm --filter @f4fun/monopoly-engine build && pnpm --filter @f4fun/seven-wonders-engine build && pnpm --filter @f4fun/monopoly-bot build && concurrently -n server,web -c blue,magenta \"pnpm --filter @f4fun/server dev\" \"pnpm --filter @f4fun/web dev\"",
     "build": "pnpm -r build",
     "start": "pnpm --filter @f4fun/server start",
     "lint": "biome check .",
     "format": "biome check --write .",
-    "typecheck": "pnpm --filter @f4fun/shared-types typecheck && pnpm --filter @f4fun/monopoly-engine typecheck && pnpm --filter @f4fun/monopoly-bot typecheck && pnpm --filter @f4fun/server typecheck && pnpm --filter @f4fun/web typecheck",
-    "test": "pnpm --filter @f4fun/shared-types --filter @f4fun/monopoly-engine --filter @f4fun/monopoly-bot build && pnpm -r test",
+    "typecheck": "pnpm --filter @f4fun/shared-types typecheck && pnpm --filter @f4fun/monopoly-engine typecheck && pnpm --filter @f4fun/seven-wonders-engine typecheck && pnpm --filter @f4fun/monopoly-bot typecheck && pnpm --filter @f4fun/server typecheck && pnpm --filter @f4fun/web typecheck",
+    "test": "pnpm --filter @f4fun/shared-types --filter @f4fun/monopoly-engine --filter @f4fun/seven-wonders-engine --filter @f4fun/monopoly-bot build && pnpm -r test",
     "precommit": "lint-staged",
     "prepush": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "prepare": "husky"
