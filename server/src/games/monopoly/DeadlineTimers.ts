@@ -321,8 +321,7 @@ async function onTradeTimeout(
         return;
       }
 
-      // NOTE: Issue #55 — stamp before reject so the proposer never re-offers
-      // while the partner's conditions are unchanged this turn.
+      // NOTE: Issue #55 — capture fingerprint before reject clears pendingTrades.
       const fingerprint = pendingTradeFingerprint(trade);
       const partnerCondition = partnerTradeConditionKey(
         state,
@@ -343,17 +342,19 @@ async function onTradeTimeout(
         return;
       }
 
-      rememberRejectedDealForProposer(
-        fromPlayerId,
-        fingerprint,
-        partnerCondition,
-      );
-
       resumeActionDeadline(result.state);
       const saved = await saveGame(result.state.gameId, result.state, 0, {
         expectedTrade: { tradeId, expiresAt: expectedExpiresAt },
       });
       if (!saved) return;
+
+      // NOTE: Only lock after persist — a failed conditional save must not
+      // suppress re-offers of a trade that is still pending.
+      rememberRejectedDealForProposer(
+        fromPlayerId,
+        fingerprint,
+        partnerCondition,
+      );
 
       try {
         await logGameAction(

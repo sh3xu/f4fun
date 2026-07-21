@@ -239,14 +239,6 @@ export async function executeGameIntent(
       return { ok: false, error: result.error };
     }
 
-    if (rejectedFingerprint) {
-      rememberRejectedDealForProposer(
-        rejectedFingerprint.fromPlayerId,
-        rejectedFingerprint.key,
-        rejectedFingerprint.partnerCondition,
-      );
-    }
-
     refreshActionDeadline(stateBefore, result.state, result.events);
     const saved = await saveGame(
       result.state.gameId,
@@ -255,6 +247,15 @@ export async function executeGameIntent(
     );
     if (!saved) {
       return { ok: false, error: "Game not found" };
+    }
+
+    // NOTE: Only lock after persist — a failed save must not suppress re-offers.
+    if (rejectedFingerprint) {
+      rememberRejectedDealForProposer(
+        rejectedFingerprint.fromPlayerId,
+        rejectedFingerprint.key,
+        rejectedFingerprint.partnerCondition,
+      );
     }
 
     try {
@@ -276,7 +277,13 @@ export async function executeGameIntent(
       events: result.events,
     });
 
-    options.onEvents?.(io, roomId, result.events);
+    // NOTE: Timeout may substitute ROLL_FOR_JAIL for a late PAY_JAIL_FINE — that
+    // path has no roll onEvents; emit dice here without double-firing roll handlers.
+    if (options.onEvents) {
+      options.onEvents(io, roomId, result.events);
+    } else {
+      emitDiceRolledEvents(io, roomId, result.events);
+    }
     afterGameStateCommit(io, roomId, result.state, result.events);
 
     return { ok: true, events: result.events, state: result.state };
