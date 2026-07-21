@@ -1,0 +1,23 @@
+apps/web/src/features/monopoly/components/PropertyActions.tsx
+  s_1463a4ac380cd8::t_ec1242617ad752 1,123-127,165-169,180-182,193-195
+packages/monopoly-engine/src/__tests__/building-mortgage.test.ts
+  s_1463a4ac380cd8::t_41179fdcdce5d7 114
+packages/monopoly-bot/src/__tests__/regressions.test.ts
+  s_1463a4ac380cd8::t_8e5c79c5194053 385-390
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "37e82692363652742c9470e6518773d93ae4cae7",
+  "prompts": {},
+  "sessions": {
+    "s_1463a4ac380cd8": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "5a1ed6e2-651f-47f6-aa09-aceb4198f015",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
