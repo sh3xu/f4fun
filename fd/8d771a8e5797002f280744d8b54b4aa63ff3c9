@@ -1,0 +1,139 @@
+packages/seven-wonders-engine/tsconfig.test.json
+  s_8f2eba8f895989::t_686124ea04fbef 1-12
+server/src/games/monopoly/GameStore.ts
+  s_6b97de17f71d02::t_d62b0bef1a5495 16
+  s_6b97de17f71d02::t_dced89d967730d 70,76-78
+  s_6b97de17f71d02::t_0b8b9203bcd513 17,27,34
+packages/seven-wonders-engine/src/types.ts
+  s_8f2eba8f895989::t_a55d67ae605d6a 1-154
+server/package.json
+  s_6b97de17f71d02::t_b048e02c1dbd55 15
+server/src/db/schemas/GameSchema.ts
+  s_6b97de17f71d02::t_ceb57f7f1ba707 3-4,8,21-26
+  s_6b97de17f71d02::t_c80e2dcf55c12e 9
+apps/web/src/features/seven-wonders/components/CardViews.tsx
+  s_6b97de17f71d02::t_6b15400854fe16 1-5,8-91,95-128
+  s_6b97de17f71d02::t_783f60a84935cb 6-7,92-94
+apps/web/src/app/game/[code]/page.tsx
+  s_6b97de17f71d02::t_783f60a84935cb 5,7
+  s_6b97de17f71d02::t_605dfead139311 1-4,6,8-9,12-35
+packages/shared-types/src/index.ts
+  s_6b97de17f71d02::t_29e193bfd709b1 2,4
+packages/seven-wonders-engine/src/military.ts
+  s_6b97de17f71d02::t_783f60a84935cb 5
+  s_8f2eba8f895989::t_be2d0e5c8c62bc 1-4,6-29
+server/src/socket/room-handlers.ts
+  s_6b97de17f71d02::t_f3890cb61639ac 7-8,10,15,23-24,35,93,137,181-220,255-259,322-323,325-347,356,365
+  s_6b97de17f71d02::t_783f60a84935cb 9,324
+  s_6b97de17f71d02::t_f6c932553d580e 6
+packages/seven-wonders-engine/src/__tests__/scoring.test.ts
+  s_8f2eba8f895989::t_567c45a288365a 1-54
+packages/seven-wonders-engine/src/scoring.ts
+  s_6b97de17f71d02::t_783f60a84935cb 9,77,236
+  s_8f2eba8f895989::t_47803cfc4e4842 1-8,10-76,78-235,237-250
+server/src/rooms/RoomManager.ts
+  s_6b97de17f71d02::t_cdc35ed8f9596f 335
+  s_6b97de17f71d02::t_7815d1c4a120b6 3,21
+  s_6b97de17f71d02::t_9f9db4e0b5b873 65,71-80
+  s_6b97de17f71d02::t_e7ae929a4b9a42 81-83
+apps/web/src/lib/player-storage.ts
+  s_6b97de17f71d02::t_447cad2bfaaddd 15
+packages/shared-types/src/game-type.ts
+  s_6b97de17f71d02::t_889efb616299e1 1-6
+apps/web/src/features/room/store/roomStore.ts
+  s_6b97de17f71d02::t_224a31787212f9 1,17,25-30,38,52,60-66,82-85,129
+packages/seven-wonders-engine/tsconfig.json
+  s_8f2eba8f895989::t_13689644832ac7 1-9
+packages/seven-wonders-engine/vitest.config.ts
+  s_8f2eba8f895989::t_cf45c48a22c780 1-9
+packages/seven-wonders-engine/src/config/cards.ts
+  s_6b97de17f71d02::t_783f60a84935cb 1585
+  s_8f2eba8f895989::t_c125349977e305 1-1584,1586-1587
+server/src/games/seven-wonders/handlers.ts
+  s_6b97de17f71d02::t_de6f906feb0413 117
+  s_6b97de17f71d02::t_f07f12f57c6c78 11-12,14-15
+  s_6b97de17f71d02::t_a5ce9db8869845 13
+  s_6b97de17f71d02::t_693bebc1bfdd44 1-3,5-10,16-17,19-21,23-73,75-80,83-116,118-134
+  s_6b97de17f71d02::t_4c822567912229 74,81-82
+  s_6b97de17f71d02::t_783f60a84935cb 4
+  s_6b97de17f71d02::t_217121f6dbf837 18,22
+packages/seven-wonders-engine/src/engine.ts
+  s_6b97de17f71d02::t_370898c910fd3b 224
+  s_6b97de17f71d02::t_5c06a6cf995f0d 273
+  s_6b97de17f71d02::t_783f60a84935cb 95,184,195,238,280,286
+  s_8f2eba8f895989::t_5c486375e59a63 1-94,96-183,185-194,196-223,225-237,239-272,274-279,281-285,287-346
+packages/shared-types/src/room-events.ts
+  s_6b97de17f71d02::t_bff3ff96d47ab4 2,37-41,62,69,84-88,98,109-111
+packages/seven-wonders-engine/package.json
+  s_8f2eba8f895989::t_dbe5a7d9298b07 1-22
+package.json
+  s_6b97de17f71d02::t_d845b05cd9200d 7,12-13
+server/src/socket/bootstrap.ts
+  s_6b97de17f71d02::t_9d943584922d58 14,53,77
+apps/web/src/features/room/components/LobbyPage.tsx
+  s_6b97de17f71d02::t_783f60a84935cb 449-456
+  s_6b97de17f71d02::t_bab12ad053b16f 4,7,49,53,61,68-77,117-127,188-191,194,199,207,216,220-243,256,326-368,412,457-458,460
+packages/seven-wonders-engine/src/deal.ts
+  s_6b97de17f71d02::t_783f60a84935cb 13,48
+  s_8f2eba8f895989::t_fc946f01e78316 1-12,14-47,49-62
+packages/seven-wonders-engine/src/__tests__/engine.test.ts
+  s_8f2eba8f895989::t_f67f29bfa8c676 1-167,169-175,177-256
+  s_6b97de17f71d02::t_783f60a84935cb 168,176
+packages/seven-wonders-engine/src/config/wonders.ts
+  s_8f2eba8f895989::t_3794e439b0a4a9 1-102
+apps/web/src/features/room/components/HomePage.tsx
+  s_6b97de17f71d02::t_c32ad214fef6d0 133-138,146-150
+  s_6b97de17f71d02::t_dc157cce103d04 74-79,87-91
+server/src/db/schemas/RoomSchema.ts
+  s_6b97de17f71d02::t_1d10244e5f8f98 16-17,25
+  s_6b97de17f71d02::t_e0f53bf67afa0d 56-60
+apps/web/src/features/seven-wonders/store/gameStore.ts
+  s_6b97de17f71d02::t_08ad1ac584192c 1-49
+apps/web/src/features/seven-wonders/components/GamePage.tsx
+  s_6b97de17f71d02::t_897625d4ae887d 1-15,17,19,21-66,69-124,127-194,198-260,265-378
+  s_6b97de17f71d02::t_14c72dce4c14b2 18
+  s_6b97de17f71d02::t_083bd117935aaf 67-68
+  s_6b97de17f71d02::t_783f60a84935cb 16,20,125-126,195-197,261-264
+packages/seven-wonders-engine/src/index.ts
+  s_8f2eba8f895989::t_2b586b21edc376 4-8,10-17,19-20
+  s_6b97de17f71d02::t_783f60a84935cb 1-3,9,18
+server/src/games/seven-wonders/GameStore.ts
+  s_6b97de17f71d02::t_27e9d3f98bb911 27,37,45-47
+  s_6b97de17f71d02::t_1931c8759ef106 17
+  s_6b97de17f71d02::t_689bc979526bd1 1-16,18-26,28-36,38-44,48-71
+packages/seven-wonders-engine/src/resources.ts
+  s_6b97de17f71d02::t_783f60a84935cb 29,34,94,178-181,293-294,316-322,326,336
+  s_8f2eba8f895989::t_b86fb90fe69618 1-28,30-33,35-93,95-177,182-272,274-281,283-292,295-315,323-325,327-335,337-364
+  s_6b97de17f71d02::t_d7cb5e412e1465 273,282
+apps/web/package.json
+  s_6b97de17f71d02::t_38cdfad5f45e32 14
+packages/shared-types/src/seven-wonders-events.ts
+  s_6b97de17f71d02::t_783f60a84935cb 50
+  s_6b97de17f71d02::t_1dfec34b95ef51 1-49
+apps/web/next.config.ts
+  s_6b97de17f71d02::t_b42538a9383ef1 5-9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "fd8d771a8e5797002f280744d8b54b4aa63ff3c9",
+  "prompts": {},
+  "sessions": {
+    "s_6b97de17f71d02": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "120bc4fe-edd9-41a0-9277-a2d8686f110a",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    },
+    "s_8f2eba8f895989": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "50eb8916-252b-4265-89bd-386921144178",
+        "model": "claude-4.6-opus-high-thinking"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
