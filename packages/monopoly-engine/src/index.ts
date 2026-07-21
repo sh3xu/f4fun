@@ -148,6 +148,7 @@ export {
 export { advanceTurn, getActivePlayer } from "./turn.js";
 export {
   healStuckRaiseCash,
+  isActionDeadlineExpired,
   pauseActionDeadline,
   resumeActionDeadline,
   stampActionDeadline,

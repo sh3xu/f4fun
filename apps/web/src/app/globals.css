@@ -167,11 +167,9 @@ body {
   isolation: isolate;
   border-radius: 5px;
   background-color: var(--material-cardstock-bg);
-  background-image: var(--tex-paper), var(--tex-noise);
-  background-size:
-    180px 180px,
-    96px 96px;
-  background-blend-mode: soft-light, overlay;
+  background-image: var(--tex-paper);
+  background-size: 180px 180px;
+  background-blend-mode: soft-light;
   border: 1.5px solid var(--material-cardstock-edge);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),

@@ -2,44 +2,42 @@ import { Hotel, House } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 interface BuildingMarkerProps {
-  colorHex: string;
   className?: string;
   title?: string;
 }
 
-function strokeFor(colorHex: string): string {
-  return `${colorHex}cc`;
-}
-
-/** Small house glyph tinted to the owner's token color. */
+/** Outlined black house glyph with optional count (Issue #53). */
 export function HouseMarker({
-  colorHex,
+  count = 1,
   className,
-  title = "House",
-}: BuildingMarkerProps) {
+  title,
+}: BuildingMarkerProps & { count?: number }) {
+  const label = title ?? (count === 1 ? "1 house" : `${count} houses`);
   return (
     <span
       role="img"
-      aria-label={title}
-      title={title}
-      className="inline-flex shrink-0 leading-none"
+      aria-label={label}
+      title={label}
+      className={cn(
+        "inline-flex shrink-0 items-center gap-0.5 leading-none",
+        className,
+      )}
     >
       <House
         aria-hidden
-        className={cn(
-          "h-2.5 w-2.5 stroke-[1.5]",
-          "drop-shadow-[0_1px_1px_rgba(0,0,0,0.55)]",
-          className,
-        )}
-        style={{ fill: colorHex, stroke: strokeFor(colorHex) }}
+        className="h-2.5 w-2.5 fill-none stroke-black stroke-[1.75] drop-shadow-[0_1px_1px_rgba(255,255,255,0.35)]"
       />
+      {count > 1 && (
+        <span className="text-[8px] font-bold leading-none text-black drop-shadow-[0_1px_1px_rgba(255,255,255,0.45)]">
+          ×{count}
+        </span>
+      )}
     </span>
   );
 }
 
-/** Small hotel glyph tinted to the owner's token color. */
+/** Outlined black hotel glyph (Issue #53). */
 export function HotelMarker({
-  colorHex,
   className,
   title = "Hotel",
 }: BuildingMarkerProps) {
@@ -48,16 +46,11 @@ export function HotelMarker({
       role="img"
       aria-label={title}
       title={title}
-      className="inline-flex shrink-0 leading-none"
+      className={cn("inline-flex shrink-0 leading-none", className)}
     >
       <Hotel
         aria-hidden
-        className={cn(
-          "h-3 w-3 stroke-[1.5]",
-          "drop-shadow-[0_1px_1px_rgba(0,0,0,0.55)]",
-          className,
-        )}
-        style={{ fill: colorHex, stroke: strokeFor(colorHex) }}
+        className="h-3 w-3 fill-none stroke-black stroke-[1.75] drop-shadow-[0_1px_1px_rgba(255,255,255,0.35)]"
       />
     </span>
   );

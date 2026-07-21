@@ -4,6 +4,7 @@ export {
   createBotPlayer,
 } from "./decision/orchestrator.js";
 export {
+  partnerCashBand,
   partnerTradeConditionKey,
   pendingTradeFingerprint,
   rejectedDealLockKey,

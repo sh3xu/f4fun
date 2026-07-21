@@ -153,14 +153,12 @@ export function runHeadlessGame(
         (t) => t.tradeId === rejectAction.tradeId,
       );
       if (trade) {
-        const fingerprint = pendingTradeFingerprint(trade);
-        const partnerCondition = partnerTradeConditionKey(
-          state,
-          trade.toPlayerId,
-        );
         bots
           .get(trade.fromPlayerId)
-          ?.rememberRejectedTrade(fingerprint, partnerCondition);
+          ?.rememberRejectedTrade(
+            pendingTradeFingerprint(trade),
+            partnerTradeConditionKey(state, trade.toPlayerId),
+          );
       }
     }
 

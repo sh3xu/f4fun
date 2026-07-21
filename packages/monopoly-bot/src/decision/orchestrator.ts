@@ -2,6 +2,7 @@ import {
   type GameAction,
   type GameState,
   getLegalActions,
+  isActionDeadlineExpired,
   type PlayerId,
   type RNG,
   timeoutActionForState,
@@ -16,14 +17,18 @@ export interface BotDecision {
 }
 
 export class BotPlayer {
-  /** Locks: deal fingerprint + partner condition at rejection time. */
+  /**
+   * Same-turn locks: deal fingerprint + partner condition at rejection (Issue #55).
+   * Cleared at the start of the bot's next PRE_ROLL turn so deals may be retried later.
+   */
   private readonly rejectedTradeLocks = new Set<string>();
 
   constructor(private readonly strategy: StrategyProfile) {}
 
   /**
    * Record a rejected deal for the partner's current conditions.
-   * Same deal may be re-offered next turn or if the partner's cash/deeds change.
+   * Same deal may be re-offered next turn, or mid-turn if the partner's deeds
+   * change or cash crosses a drastic liquidity band (e.g. into low).
    */
   rememberRejectedTrade(fingerprint: string, partnerCondition: string): void {
     this.rejectedTradeLocks.add(
@@ -48,9 +53,20 @@ export class BotPlayer {
     rng: RNG = Math.random,
   ): BotDecision {
     // NOTE: New turn starts at PRE_ROLL with doublesCount 0; doubles reroll also
-    // returns to PRE_ROLL but leaves doublesCount > 0 — keep rejection locks until END_TURN.
+    // returns to PRE_ROLL but leaves doublesCount > 0 — keep rejection locks until then.
     if (state.phase === "PRE_ROLL" && state.doublesCount === 0) {
       this.rejectedTradeLocks.clear();
+    }
+
+    // NOTE: Issue #55 — turn timer wins over bot intent once the deadline has elapsed.
+    if (isActionDeadlineExpired(state)) {
+      const timed = timeoutActionForState(state);
+      if (timed && timed.actorId === actorId) {
+        return {
+          action: timed.action,
+          reasoning: `Timer expired — auto ${timed.action.type}`,
+        };
+      }
     }
 
     let actions = legalActions ?? getLegalActions(state, actorId);
