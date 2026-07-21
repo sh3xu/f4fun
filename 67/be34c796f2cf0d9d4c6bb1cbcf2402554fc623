@@ -1,0 +1,73 @@
+packages/monopoly-bot/src/decision/trade.ts
+  s_1463a4ac380cd8::t_aa4f17b2d8679c 2,43-44,68-71
+packages/monopoly-bot/src/decision/liquidate.ts
+  s_1463a4ac380cd8::t_aa4f17b2d8679c 56-65,72,75
+packages/monopoly-engine/src/building.ts
+  s_1463a4ac380cd8::t_b2e99cda265509 47,64-108
+  s_d71fd4fedd90ac::t_e17bbe71724bcf 109
+packages/monopoly-engine/src/trade.ts
+  s_1463a4ac380cd8::t_fb7207ccb14b22 36-39
+  s_1463a4ac380cd8::t_77d49cf22f30a1 1
+packages/monopoly-engine/src/__tests__/building-mortgage.test.ts
+  s_1463a4ac380cd8::t_cbb117d2a52cbe 2-7,44-53,79-114
+apps/web/src/features/monopoly/components/PropertyActions.tsx
+  s_1463a4ac380cd8::t_4a728eb01fd3ab 21-23
+  s_1463a4ac380cd8::t_d4eefb82cb9f08 109-110,142,156,166,176
+apps/web/src/features/monopoly/components/Board.tsx
+  s_1463a4ac380cd8::t_ae7f004dc9e72e 5-6
+  s_1463a4ac380cd8::t_1adb0ffc746cd2 424,426-433,435-439
+  s_1463a4ac380cd8::t_403bf6777f6dcc 425,434
+packages/monopoly-engine/src/__tests__/auction.test.ts
+  s_1463a4ac380cd8::t_6f7da476376f65 141-143
+packages/monopoly-bot/src/__tests__/regressions.test.ts
+  s_1463a4ac380cd8::t_aa4f17b2d8679c 5,339-390
+packages/monopoly-engine/src/auction.ts
+  s_1463a4ac380cd8::t_894cf93d24ffb6 285-287
+  s_1463a4ac380cd8::t_78864e5db040ad 1
+packages/monopoly-engine/src/mortgage.ts
+  s_1463a4ac380cd8::t_fe76782468ae38 38-40
+  s_1463a4ac380cd8::t_8bf253068225c1 1
+apps/web/src/features/monopoly/components/TradeModal.tsx
+  s_1463a4ac380cd8::t_e4a92fd4a16b49 4
+  s_1463a4ac380cd8::t_a1438b0cafc300 251-264,266-278
+  s_1463a4ac380cd8::t_b69544398101d2 303-316,318-330
+apps/web/src/features/monopoly/components/PropertyPanel.tsx
+  s_1463a4ac380cd8::t_53267967b62647 316-317
+  s_1463a4ac380cd8::t_c108e3125efb53 35-36
+packages/monopoly-engine/src/__tests__/trade.test.ts
+  s_1463a4ac380cd8::t_7846206793e75c 207-233
+packages/monopoly-bot/src/strategy/baselineStrategy.ts
+  s_1463a4ac380cd8::t_6395a2b837cb66 52-58
+packages/monopoly-engine/src/bankSale.ts
+  s_1463a4ac380cd8::t_c4d2036ba68057 1
+  s_1463a4ac380cd8::t_42475c60c2ebc2 61-63
+packages/monopoly-engine/src/__tests__/bankSale.test.ts
+  s_1463a4ac380cd8::t_8e6074dbeb3f76 3-6,17,26,29-40
+  s_1463a4ac380cd8::t_058085cf8a8253 41
+packages/monopoly-engine/src/index.ts
+  s_1463a4ac380cd8::t_920022e60c5d2c 108-111,114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "67be34c796f2cf0d9d4c6bb1cbcf2402554fc623",
+  "prompts": {},
+  "sessions": {
+    "s_1463a4ac380cd8": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "5a1ed6e2-651f-47f6-aa09-aceb4198f015",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    },
+    "s_d71fd4fedd90ac": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1dbe6e62-aa50-416d-a0d2-1c9714c7051e",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
