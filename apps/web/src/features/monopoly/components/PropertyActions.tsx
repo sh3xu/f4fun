@@ -18,6 +18,9 @@ interface ManageActionsProps {
   isMortgaged: boolean;
   houses: number;
   hotels: number;
+  /** Issue #52 — true when monopoly color-group still has buildings. */
+  deedTransferBlocked: boolean;
+  canSellBuilding: boolean;
   onBuild: () => void;
   onSell: () => void;
   onMortgage: () => void;
@@ -103,6 +106,8 @@ export function PropertyActions(props: PropertyActionsProps) {
     isMortgaged,
     houses,
     hotels,
+    deedTransferBlocked,
+    canSellBuilding,
     onBuild,
     onSell,
     onMortgage,
@@ -111,7 +116,6 @@ export function PropertyActions(props: PropertyActionsProps) {
     onSellToBank,
     onClose,
   } = props;
-  const hasBuildings = houses > 0 || hotels > 0;
 
   return (
     <div className="flex flex-col gap-[clamp(0.25rem,0.9cqmin,0.4rem)]">
@@ -135,7 +139,7 @@ export function PropertyActions(props: PropertyActionsProps) {
             <Button
               variant="tokenGhost"
               size="sm"
-              disabled={loading || !hasBuildings}
+              disabled={loading || !canSellBuilding}
               onClick={onSell}
               className={btnClass}
               aria-label={
@@ -149,7 +153,7 @@ export function PropertyActions(props: PropertyActionsProps) {
         <Button
           variant="tokenGhost"
           size="sm"
-          disabled={loading || (!isMortgaged && hasBuildings)}
+          disabled={loading || (!isMortgaged && deedTransferBlocked)}
           onClick={isMortgaged ? onUnmortgage : onMortgage}
           className={btnClass}
           aria-label={isMortgaged ? `Unmortgage ${label}` : `Mortgage ${label}`}
@@ -159,7 +163,7 @@ export function PropertyActions(props: PropertyActionsProps) {
         <Button
           variant="tokenGhost"
           size="sm"
-          disabled={loading || hasBuildings}
+          disabled={loading || deedTransferBlocked}
           onClick={onOwnerAuction}
           className={`${btnClass} border-amber-400/30 text-amber-200`}
           aria-label={`Auction ${label}`}
@@ -169,7 +173,7 @@ export function PropertyActions(props: PropertyActionsProps) {
         <Button
           size="sm"
           variant="outline"
-          disabled={loading || hasBuildings}
+          disabled={loading || deedTransferBlocked}
           onClick={onSellToBank}
           className={`${btnClass} border-rose-400/30 text-rose-200`}
           aria-label={`Sell ${label} to bank`}

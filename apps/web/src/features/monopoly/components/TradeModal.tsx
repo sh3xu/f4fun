@@ -1,6 +1,7 @@
 "use client";
 
 import type { GameState, TradeOffer } from "@f4fun/monopoly-engine";
+import { buildingsBlockDeedAction } from "@f4fun/monopoly-engine";
 import { useMemo, useState } from "react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
@@ -247,21 +248,34 @@ export function TradeModal({
                   className="mb-2"
                 />
                 <div className="max-h-32 space-y-1 overflow-y-auto">
-                  {me.ownedPositions.map((pos) => (
-                    <label
-                      key={pos}
-                      className="flex items-center gap-2 text-xs"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={offer.positions.includes(pos)}
-                        onChange={(e) =>
-                          togglePosition("offer", pos, e.target.checked)
+                  {me.ownedPositions.map((pos) => {
+                    const blocked =
+                      buildingsBlockDeedAction(state, myPlayerId, pos) !== null;
+                    return (
+                      <label
+                        key={pos}
+                        className={cn(
+                          "flex items-center gap-2 text-xs",
+                          blocked && "opacity-40",
+                        )}
+                        title={
+                          blocked
+                            ? "Sell all houses/hotels evenly from this color group first."
+                            : undefined
                         }
-                      />
-                      <PropertySwatch position={pos} />
-                    </label>
-                  ))}
+                      >
+                        <input
+                          type="checkbox"
+                          disabled={blocked}
+                          checked={offer.positions.includes(pos)}
+                          onChange={(e) =>
+                            togglePosition("offer", pos, e.target.checked)
+                          }
+                        />
+                        <PropertySwatch position={pos} />
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -286,21 +300,34 @@ export function TradeModal({
                   className="mb-2"
                 />
                 <div className="max-h-32 space-y-1 overflow-y-auto">
-                  {partner?.ownedPositions.map((pos) => (
-                    <label
-                      key={pos}
-                      className="flex items-center gap-2 text-xs"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={request.positions.includes(pos)}
-                        onChange={(e) =>
-                          togglePosition("request", pos, e.target.checked)
+                  {partner?.ownedPositions.map((pos) => {
+                    const blocked =
+                      buildingsBlockDeedAction(state, toPlayerId, pos) !== null;
+                    return (
+                      <label
+                        key={pos}
+                        className={cn(
+                          "flex items-center gap-2 text-xs",
+                          blocked && "opacity-40",
+                        )}
+                        title={
+                          blocked
+                            ? "Sell all houses/hotels evenly from this color group first."
+                            : undefined
                         }
-                      />
-                      <PropertySwatch position={pos} />
-                    </label>
-                  ))}
+                      >
+                        <input
+                          type="checkbox"
+                          disabled={blocked}
+                          checked={request.positions.includes(pos)}
+                          onChange={(e) =>
+                            togglePosition("request", pos, e.target.checked)
+                          }
+                        />
+                        <PropertySwatch position={pos} />
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
             </div>

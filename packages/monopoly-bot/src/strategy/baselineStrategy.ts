@@ -49,6 +49,13 @@ export const baselineStrategy: StrategyProfile = {
           break;
         case "SELL_HOUSE":
         case "SELL_HOTEL":
+          // NOTE: Issue #52 — demolish buildings before mortgage / bank sale.
+          options.push({
+            action,
+            score: 120,
+            reasoning: "Sell buildings to pay debt",
+          });
+          break;
         case "MORTGAGE_PROPERTY":
         case "SELL_PROPERTY_TO_BANK":
           options.push({

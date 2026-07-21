@@ -1,4 +1,5 @@
 import {
+  buildingsBlockDeedAction,
   type GameAction,
   type ownsColorGroup,
   POSITIONS_BY_COLOR,
@@ -39,10 +40,8 @@ function selectOfferPositions(
       if (tile?.type === "property" && tile.colorGroup === blockedGroup) {
         return false;
       }
-      return (
-        (player.houses[position] ?? 0) === 0 &&
-        (player.hotels[position] ?? 0) === 0
-      );
+      // NOTE: Issue #52 — cannot trade a deed while monopoly color-group has buildings.
+      return buildingsBlockDeedAction(state, actorId, position) === null;
     })
     .sort(
       (a, b) =>
@@ -66,6 +65,10 @@ export function generateTradeProposals(ctx: StrategyContext): GameAction[] {
     for (const position of opponent.ownedPositions) {
       const tile = TILE_BY_POSITION.get(position);
       if (tile?.type !== "property") continue;
+      // NOTE: Issue #52 — skip requesting deeds blocked by color-group buildings.
+      if (buildingsBlockDeedAction(state, opponentId, position) !== null) {
+        continue;
+      }
 
       const group = tile.colorGroup;
       const owned = POSITIONS_BY_COLOR.get(group)?.filter(

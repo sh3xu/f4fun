@@ -44,7 +44,7 @@ function canBuildEvenly(
   return current === min;
 }
 
-function canSellEvenly(
+export function canSellEvenly(
   state: GameState,
   playerId: PlayerId,
   position: number,
@@ -59,6 +59,52 @@ function canSellEvenly(
   const max = Math.max(...counts);
   const current = buildingCount(state, playerId, position);
   return current === max;
+}
+
+/** Issue #52 — clear monopoly buildings before mortgage / sell / trade. */
+export const COLOR_GROUP_BUILDINGS_CLEAR_ERROR =
+  "Sell all houses/hotels evenly from this color group first.";
+
+export function tileHasOwnerBuildings(
+  state: GameState,
+  playerId: PlayerId,
+  position: number,
+): boolean {
+  return buildingCount(state, playerId, position) > 0;
+}
+
+/** True when the player owns the full color set and any tile in it has buildings. */
+export function monopolyColorGroupHasBuildings(
+  state: GameState,
+  playerId: PlayerId,
+  position: number,
+): boolean {
+  const tile = TILE_BY_POSITION.get(position);
+  if (!tile || tile.type !== "property") return false;
+  if (!ownsColorGroup(state, playerId, tile.colorGroup)) return false;
+
+  const positions = POSITIONS_BY_COLOR.get(tile.colorGroup);
+  if (!positions) return false;
+
+  return positions.some((pos) => tileHasOwnerBuildings(state, playerId, pos));
+}
+
+/**
+ * Blocks mortgage / deed transfer while buildings remain on the deed,
+ * or anywhere on an owned monopoly color group (official even-demolish rules).
+ */
+export function buildingsBlockDeedAction(
+  state: GameState,
+  playerId: PlayerId,
+  position: number,
+): string | null {
+  if (tileHasOwnerBuildings(state, playerId, position)) {
+    return COLOR_GROUP_BUILDINGS_CLEAR_ERROR;
+  }
+  if (monopolyColorGroupHasBuildings(state, playerId, position)) {
+    return COLOR_GROUP_BUILDINGS_CLEAR_ERROR;
+  }
+  return null;
 }
 
 export function buildHouse(

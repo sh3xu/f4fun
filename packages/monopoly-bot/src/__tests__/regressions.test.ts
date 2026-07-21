@@ -2,6 +2,7 @@ import {
   applyAction,
   createInitialState,
   type GameAction,
+  getLegalActions,
 } from "@f4fun/monopoly-engine";
 import { describe, expect, it } from "vitest";
 import {
@@ -334,5 +335,57 @@ describe("monopoly-bot regressions", () => {
     expect(() => bot.decide(state, "p1", [], () => 0.5)).toThrow(
       /No legal actions/,
     );
+  });
+
+  it("issue #52: never mortgages a bare monopoly deed while siblings have houses", () => {
+    const state = createState();
+    state.phase = "RAISE_CASH";
+    state.pendingDebt = { playerId: "p1", creditorId: null };
+    state.players.p1.cash = -50;
+    // Dark blue monopoly: Park Place bare, Boardwalk improved
+    state.players.p1.ownedPositions = [37, 39];
+    state.ownership[37] = { ownerId: "p1", isMortgaged: false };
+    state.ownership[39] = { ownerId: "p1", isMortgaged: false };
+    state.players.p1.houses[39] = 2;
+
+    const legal = getLegalActions(state, "p1");
+    expect(
+      legal.some((a) => a.type === "MORTGAGE_PROPERTY" && a.position === 37),
+    ).toBe(false);
+    expect(
+      legal.some((a) => a.type === "SELL_HOUSE" && a.position === 39),
+    ).toBe(true);
+
+    const bot = new BotPlayer(expertStrategy);
+    const decision = bot.decide(state, "p1", legal, () => 0.5);
+    expect(decision.action.type).toBe("SELL_HOUSE");
+    expect(
+      decision.action.type === "SELL_HOUSE" && decision.action.position,
+    ).toBe(39);
+  });
+
+  it("issue #52: trade proposals skip deeds blocked by color-group buildings", () => {
+    const state = createState();
+    state.phase = "END_TURN";
+    state.players.p1.ownedPositions = [1, 3, 6];
+    state.ownership[1] = { ownerId: "p1", isMortgaged: false };
+    state.ownership[3] = { ownerId: "p1", isMortgaged: false };
+    state.ownership[6] = { ownerId: "p1", isMortgaged: false };
+    state.players.p1.houses[3] = 1;
+    state.players.p2.ownedPositions = [8];
+    state.ownership[8] = { ownerId: "p2", isMortgaged: false };
+
+    const proposals = generateTradeProposals({
+      state,
+      actorId: "p1",
+      legalActions: [],
+      rng: () => 0.5,
+    });
+
+    for (const action of proposals) {
+      if (action.type !== "PROPOSE_TRADE") continue;
+      expect(action.offer.positions).not.toContain(1);
+      expect(action.offer.positions).not.toContain(3);
+    }
   });
 });

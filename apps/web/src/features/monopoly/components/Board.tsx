@@ -2,6 +2,8 @@
 
 import {
   BOARD_TILES,
+  buildingsBlockDeedAction,
+  canSellEvenly,
   POST_LAND_CARD_PAUSE_MS,
   TILE_BY_POSITION,
 } from "@f4fun/monopoly-engine";
@@ -419,6 +421,22 @@ export function Board({
                     isMortgaged={viewedOwnerInfo.isMortgaged ?? false}
                     houses={viewedOwnerInfo.houses ?? 0}
                     hotels={viewedOwnerInfo.hotels ?? 0}
+                    deedTransferBlocked={
+                      state != null &&
+                      myPlayerId != null &&
+                      buildingsBlockDeedAction(
+                        state,
+                        myPlayerId,
+                        viewedPosition,
+                      ) !== null
+                    }
+                    canSellBuilding={
+                      state != null &&
+                      myPlayerId != null &&
+                      ((viewedOwnerInfo.houses ?? 0) > 0 ||
+                        (viewedOwnerInfo.hotels ?? 0) > 0) &&
+                      canSellEvenly(state, myPlayerId, viewedPosition)
+                    }
                     onBuild={() => {
                       const houses = viewedOwnerInfo.houses ?? 0;
                       if (houses >= 4) onBuildHotel(viewedPosition);

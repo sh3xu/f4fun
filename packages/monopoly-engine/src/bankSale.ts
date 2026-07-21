@@ -1,3 +1,4 @@
+import { buildingsBlockDeedAction } from "./building.js";
 import { TILE_BY_POSITION } from "./config/board.js";
 import type { GameEvent, GameState, PlayerId } from "./types.js";
 
@@ -57,11 +58,9 @@ export function sellPropertyToBank(
     return { error: "You do not own this property", events: [] };
   }
 
-  if (
-    (player.houses[position] ?? 0) > 0 ||
-    (player.hotels[position] ?? 0) > 0
-  ) {
-    return { error: "Sell buildings before selling to bank", events: [] };
+  const buildingsError = buildingsBlockDeedAction(state, playerId, position);
+  if (buildingsError) {
+    return { error: buildingsError, events: [] };
   }
 
   const amount = bankSaleAmount(position, ownership.isMortgaged);
