@@ -1,0 +1,73 @@
+server/src/games/monopoly/DeadlineTimers.ts
+  s_c8079caf33e0b7::t_456201e55c83bc 324-325,327,346-347
+  s_c8079caf33e0b7::t_a36396d097669e 1-5
+  s_c8079caf33e0b7::t_c8c10f21f647b7 326,328-330
+  s_c8079caf33e0b7::t_5fe97ec5c48dd3 19
+  s_c8079caf33e0b7::t_1456f4eb69dff8 331-333
+  s_c8079caf33e0b7::t_e4c0a0924335bb 348-350
+packages/monopoly-engine/src/turnTimeout.ts
+  s_c8079caf33e0b7::t_ee49f207e89155 177-192
+packages/monopoly-bot/src/__tests__/regressions.test.ts
+  s_c8079caf33e0b7::t_38cec225f10761 105,198
+  s_c8079caf33e0b7::t_bcddeeea0f69f9 170,172,178-189,192,203-211
+  s_c8079caf33e0b7::t_406c1b35a389b8 16
+  s_c8079caf33e0b7::t_e67f41d5da886e 257-271
+  s_c8079caf33e0b7::t_82dd981b7d3597 212-213
+  s_c8079caf33e0b7::t_6b61a01817a3b7 272-273
+apps/web/src/features/monopoly/components/BuildingMarkers.tsx
+  s_c8079caf33e0b7::t_66e6e3957a9272 9,11,13-15,19-24,28,30-34,39,49,53
+packages/monopoly-bot/src/simulate/runHeadlessGame.ts
+  s_c8079caf33e0b7::t_fe906aebd59d0a 158-161
+packages/monopoly-engine/src/__tests__/turnTimeout.test.ts
+  s_c8079caf33e0b7::t_b06fcd25a8dcca 165
+  s_c8079caf33e0b7::t_a0d406bc44ba97 166-180
+  s_c8079caf33e0b7::t_22375b1cd97b1e 5
+  s_c8079caf33e0b7::t_3359075ad2ff30 181
+packages/monopoly-engine/src/index.ts
+  s_c8079caf33e0b7::t_2fcb4ae079997e 151
+packages/monopoly-bot/src/decision/tradeFingerprint.ts
+  s_c8079caf33e0b7::t_a358b11af37d6e 8-22,30,59-61
+server/src/games/monopoly/executeGameIntent.ts
+  s_c8079caf33e0b7::t_17f5825d956b6c 13,17,41-43
+  s_c8079caf33e0b7::t_4f212fd5baed82 254,264-265
+  s_c8079caf33e0b7::t_b8b62609195919 213-214
+  s_c8079caf33e0b7::t_2a91d2d3690a1a 188,194,197-200
+  s_c8079caf33e0b7::t_f409344712efe5 176-187,189-193,195-196,201-203,212,224-229
+  s_c8079caf33e0b7::t_4ab3aa7388fa0d 44
+apps/web/src/app/globals.css
+  s_c8079caf33e0b7::t_c3235eff70053d 170-172
+packages/monopoly-bot/src/decision/orchestrator.ts
+  s_c8079caf33e0b7::t_1ebc0b6dc0bbcb 20,22-23,56
+  s_c8079caf33e0b7::t_9b14556da3b80d 30-31
+  s_c8079caf33e0b7::t_562d1ef96bcc18 61-69
+  s_c8079caf33e0b7::t_82b24c1a0f2b62 21
+  s_c8079caf33e0b7::t_e1cbbd7d91b89f 5
+  s_c8079caf33e0b7::t_fa787de741221d 70-71
+packages/monopoly-bot/src/index.ts
+  s_c8079caf33e0b7::t_e6dff60c52a51c 7
+packages/monopoly-bot/src/strategy/types.ts
+  s_c8079caf33e0b7::t_946b9ba96c47b0 22
+packages/monopoly-bot/src/decision/trade.ts
+  s_c8079caf33e0b7::t_eb6c508edff609 107
+  s_c8079caf33e0b7::t_a7143d827367b3 58,60-61
+  s_c8079caf33e0b7::t_c0c880ae27dbb3 4
+  s_c8079caf33e0b7::t_0bcc0883882e8e 59
+apps/web/src/features/monopoly/components/BoardTile.tsx
+  s_c8079caf33e0b7::t_dce8e5c5a85fa4 405,418,420
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "00534653c21993a70ede858e6ce7a49abc19422f",
+  "prompts": {},
+  "sessions": {
+    "s_c8079caf33e0b7": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "de8bd5e2-11be-459f-9ae4-20a448accc72",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
