@@ -32,6 +32,8 @@ interface PropertyPanelManageProps {
   isMortgaged: boolean;
   houses: number;
   hotels: number;
+  deedTransferBlocked: boolean;
+  canSellBuilding: boolean;
   onBuild: () => void;
   onSell: () => void;
   onMortgage: () => void;
@@ -311,6 +313,8 @@ export function PropertyPanel(props: PropertyPanelProps) {
             isMortgaged={props.isMortgaged}
             houses={props.houses}
             hotels={props.hotels}
+            deedTransferBlocked={props.deedTransferBlocked}
+            canSellBuilding={props.canSellBuilding}
             onBuild={props.onBuild}
             onSell={props.onSell}
             onMortgage={props.onMortgage}

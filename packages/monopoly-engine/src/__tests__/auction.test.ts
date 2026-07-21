@@ -138,7 +138,9 @@ describe("auction", () => {
       type: "START_OWNER_AUCTION",
       position: 1,
     });
-    expect(result.error).toBe("Sell buildings before auctioning");
+    expect(result.error).toBe(
+      "Sell all houses/hotels evenly from this color group first.",
+    );
   });
 
   it("resumes paused turn timer after auction resolves", () => {

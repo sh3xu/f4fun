@@ -1,3 +1,4 @@
+import { buildingsBlockDeedAction } from "./building.js";
 import { TILE_BY_POSITION } from "./config/board.js";
 import type { GameEvent, GameState, PlayerId } from "./types.js";
 
@@ -34,11 +35,9 @@ export function mortgageProperty(
     return { error: "Already mortgaged", events: [] };
   }
 
-  if (
-    (player.houses[position] ?? 0) > 0 ||
-    (player.hotels[position] ?? 0) > 0
-  ) {
-    return { error: "Sell buildings before mortgaging", events: [] };
+  const buildingsError = buildingsBlockDeedAction(state, playerId, position);
+  if (buildingsError) {
+    return { error: buildingsError, events: [] };
   }
 
   ownership.isMortgaged = true;

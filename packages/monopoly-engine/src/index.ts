@@ -105,8 +105,13 @@ export { bankSaleAmount, sellPropertyToBank } from "./bankSale.js";
 export {
   buildHotel,
   buildHouse,
+  buildingsBlockDeedAction,
+  COLOR_GROUP_BUILDINGS_CLEAR_ERROR,
+  canSellEvenly,
+  monopolyColorGroupHasBuildings,
   sellHotel,
   sellHouse,
+  tileHasOwnerBuildings,
 } from "./building.js";
 export {
   applyCardEffect,

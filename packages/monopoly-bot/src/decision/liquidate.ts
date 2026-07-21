@@ -49,21 +49,35 @@ export function scoreLiquidationOptions(ctx: StrategyContext): {
   reasoning: string;
 }[] {
   const { state, actorId, legalActions } = ctx;
+  // NOTE: Only liquidate during debt — high sell scores must not beat END_TURN/BUILD.
+  if (state.phase !== "RAISE_CASH") {
+    return [];
+  }
+
   const options: { action: GameAction; score: number; reasoning: string }[] =
     [];
 
   for (const action of legalActions) {
+    if (action.type === "SELL_HOUSE" || action.type === "SELL_HOTEL") {
+      // NOTE: Issue #52 — demolish evenly before mortgage / deed sale (official order).
+      options.push({
+        action,
+        score: 400,
+        reasoning: `Raise cash via ${action.type.replace(/_/g, " ").toLowerCase()}`,
+      });
+      continue;
+    }
+
     if (
-      action.type === "SELL_HOUSE" ||
-      action.type === "SELL_HOTEL" ||
       action.type === "MORTGAGE_PROPERTY" ||
       action.type === "SELL_PROPERTY_TO_BANK"
     ) {
       const position = action.position;
       const priority = liquidationPriority(state, actorId, position);
+      const bankSalePenalty = action.type === "SELL_PROPERTY_TO_BANK" ? -60 : 0;
       options.push({
         action,
-        score: priority,
+        score: priority + bankSalePenalty,
         reasoning: `Raise cash via ${action.type.replace(/_/g, " ").toLowerCase()}`,
       });
     }

@@ -1,3 +1,4 @@
+import { buildingsBlockDeedAction } from "./building.js";
 import { TILE_BY_POSITION } from "./config/board.js";
 import { pauseActionDeadline, resumeActionDeadline } from "./turnTimeout.js";
 import type {
@@ -37,14 +38,6 @@ function eligibleBidders(
     if (sellerId !== null && id === sellerId) return false;
     return true;
   });
-}
-
-function tileHasBuildings(state: GameState, position: number): boolean {
-  const ownership = state.ownership[position];
-  if (!ownership) return false;
-  const owner = state.players[ownership.ownerId];
-  if (!owner) return false;
-  return (owner.houses[position] ?? 0) > 0 || (owner.hotels[position] ?? 0) > 0;
 }
 
 function autofoldBrokeBidders(state: GameState): GameEvent[] {
@@ -289,8 +282,9 @@ export function startOwnerAuction(
     return { error: "You do not own this property", events: [] };
   }
 
-  if (tileHasBuildings(state, position)) {
-    return { error: "Sell buildings before auctioning", events: [] };
+  const buildingsError = buildingsBlockDeedAction(state, sellerId, position);
+  if (buildingsError) {
+    return { error: buildingsError, events: [] };
   }
 
   const bidders = eligibleBidders(state, sellerId);

@@ -1,3 +1,4 @@
+import { buildingsBlockDeedAction } from "./building.js";
 import type {
   GameEvent,
   GameState,
@@ -32,12 +33,10 @@ function validateOfferSide(
     if (!ownership || ownership.ownerId !== playerId) {
       return `${label} does not own all offered properties`;
     }
-    // NOTE: Trades with buildings on the property are disallowed (must sell first).
-    if (
-      (player.houses[position] ?? 0) > 0 ||
-      (player.hotels[position] ?? 0) > 0
-    ) {
-      return `${label} must sell buildings before trading property`;
+    // NOTE: Issue #52 — clear monopoly buildings before trading any color-group deed.
+    const buildingsError = buildingsBlockDeedAction(state, playerId, position);
+    if (buildingsError) {
+      return `${label}: ${buildingsError}`;
     }
   }
 

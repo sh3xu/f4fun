@@ -204,6 +204,33 @@ describe("trade", () => {
     expect(offTurn.error).toBe("Not your turn");
   });
 
+  it("blocks trading a bare deed while monopoly siblings have buildings", () => {
+    const state = createInitialState("test", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    state.players.p1.ownedPositions = [1, 3];
+    state.ownership[1] = { ownerId: "p1", isMortgaged: false };
+    state.ownership[3] = { ownerId: "p1", isMortgaged: false };
+    state.players.p1.houses[3] = 1;
+
+    const propose = applyAction(
+      state,
+      {
+        type: "PROPOSE_TRADE",
+        tradeId: "t-buildings",
+        toPlayerId: "p2",
+        offer: { cash: 0, positions: [1], goojfCards: 0 },
+        request: { cash: 50, positions: [], goojfCards: 0 },
+      },
+      Math.random,
+      "p1",
+    );
+    expect(propose.error).toBe(
+      "Initiator: Sell all houses/hotels evenly from this color group first.",
+    );
+  });
+
   it("blocks roll while a trade is pending", () => {
     const state = createInitialState("test", [
       { id: "p1", name: "Alice", token: "car" },
