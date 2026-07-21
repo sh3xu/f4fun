@@ -111,5 +111,6 @@ describe("mortgage", () => {
       position: 1,
     });
     expect(result.error).toBe(COLOR_GROUP_BUILDINGS_CLEAR_ERROR);
+    expect(state.ownership[1]?.isMortgaged).toBe(false);
   });
 });

@@ -382,8 +382,12 @@ describe("monopoly-bot regressions", () => {
       rng: () => 0.5,
     });
 
-    for (const action of proposals) {
-      if (action.type !== "PROPOSE_TRADE") continue;
+    const tradeProposals = proposals.filter(
+      (action) => action.type === "PROPOSE_TRADE",
+    );
+    expect(tradeProposals.length).toBeGreaterThan(0);
+
+    for (const action of tradeProposals) {
       expect(action.offer.positions).not.toContain(1);
       expect(action.offer.positions).not.toContain(3);
     }

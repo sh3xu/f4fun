@@ -1,3 +1,4 @@
+import { COLOR_GROUP_BUILDINGS_CLEAR_ERROR } from "@f4fun/monopoly-engine";
 import { Button } from "@/components/ui/Button";
 
 interface BuyActionsProps {
@@ -119,6 +120,11 @@ export function PropertyActions(props: PropertyActionsProps) {
 
   return (
     <div className="flex flex-col gap-[clamp(0.25rem,0.9cqmin,0.4rem)]">
+      {deedTransferBlocked && (
+        <p className="text-[length:var(--board-text-xs)] leading-snug text-amber-200/90">
+          {COLOR_GROUP_BUILDINGS_CLEAR_ERROR}
+        </p>
+      )}
       <div className="grid grid-cols-2 gap-[clamp(0.25rem,0.9cqmin,0.4rem)]">
         {isProperty && (
           <>
@@ -156,6 +162,11 @@ export function PropertyActions(props: PropertyActionsProps) {
           disabled={loading || (!isMortgaged && deedTransferBlocked)}
           onClick={isMortgaged ? onUnmortgage : onMortgage}
           className={btnClass}
+          title={
+            !isMortgaged && deedTransferBlocked
+              ? COLOR_GROUP_BUILDINGS_CLEAR_ERROR
+              : undefined
+          }
           aria-label={isMortgaged ? `Unmortgage ${label}` : `Mortgage ${label}`}
         >
           {isMortgaged ? "Unmortgage" : "Mortgage"}
@@ -166,6 +177,9 @@ export function PropertyActions(props: PropertyActionsProps) {
           disabled={loading || deedTransferBlocked}
           onClick={onOwnerAuction}
           className={`${btnClass} border-amber-400/30 text-amber-200`}
+          title={
+            deedTransferBlocked ? COLOR_GROUP_BUILDINGS_CLEAR_ERROR : undefined
+          }
           aria-label={`Auction ${label}`}
         >
           Auction
@@ -176,6 +190,9 @@ export function PropertyActions(props: PropertyActionsProps) {
           disabled={loading || deedTransferBlocked}
           onClick={onSellToBank}
           className={`${btnClass} border-rose-400/30 text-rose-200`}
+          title={
+            deedTransferBlocked ? COLOR_GROUP_BUILDINGS_CLEAR_ERROR : undefined
+          }
           aria-label={`Sell ${label} to bank`}
         >
           Sell to Bank
