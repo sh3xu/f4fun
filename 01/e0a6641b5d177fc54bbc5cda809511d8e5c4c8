@@ -1,0 +1,23 @@
+packages/monopoly-bot/src/__tests__/expert-vs-baseline.test.ts
+  s_1463a4ac380cd8::t_7f46ba29b35aaa 33
+packages/monopoly-bot/src/strategy/baselineStrategy.ts
+  s_1463a4ac380cd8::t_9b012f0749dc83 15,53,63
+packages/monopoly-bot/src/decision/liquidate.ts
+  s_1463a4ac380cd8::t_450636ace92329 52-56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "01e0a6641b5d177fc54bbc5cda809511d8e5c4c8",
+  "prompts": {},
+  "sessions": {
+    "s_1463a4ac380cd8": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "5a1ed6e2-651f-47f6-aa09-aceb4198f015",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
