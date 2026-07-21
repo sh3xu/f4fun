@@ -12,6 +12,7 @@ export const baselineStrategy: StrategyProfile = {
   generateTradeProposals: () => [],
   scoreOptions(ctx: StrategyContext): ScoredOption[] {
     const options: ScoredOption[] = [];
+    const raisingCash = ctx.state.phase === "RAISE_CASH";
 
     for (const action of ctx.legalActions) {
       switch (action.type) {
@@ -49,6 +50,7 @@ export const baselineStrategy: StrategyProfile = {
           break;
         case "SELL_HOUSE":
         case "SELL_HOTEL":
+          if (!raisingCash) break;
           // NOTE: Issue #52 — demolish buildings before mortgage / bank sale.
           options.push({
             action,
@@ -58,6 +60,7 @@ export const baselineStrategy: StrategyProfile = {
           break;
         case "MORTGAGE_PROPERTY":
         case "SELL_PROPERTY_TO_BANK":
+          if (!raisingCash) break;
           options.push({
             action,
             score: 80,

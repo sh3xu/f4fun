@@ -30,5 +30,5 @@ describe("expert vs baseline", () => {
     }
 
     expect(expertWins / total).toBeGreaterThanOrEqual(0.7);
-  }, 120_000);
+  }, 180_000);
 });

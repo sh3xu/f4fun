@@ -49,6 +49,11 @@ export function scoreLiquidationOptions(ctx: StrategyContext): {
   reasoning: string;
 }[] {
   const { state, actorId, legalActions } = ctx;
+  // NOTE: Only liquidate during debt — high sell scores must not beat END_TURN/BUILD.
+  if (state.phase !== "RAISE_CASH") {
+    return [];
+  }
+
   const options: { action: GameAction; score: number; reasoning: string }[] =
     [];
 
