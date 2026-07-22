@@ -1,0 +1,42 @@
+server/src/games/monopoly/bot-runtime/botMemory.ts
+  s_41d6f8ef6fdae1::t_d7edca56b33543 1-5,12
+packages/monopoly-bot/src/decision/auction.ts
+  s_41d6f8ef6fdae1::t_8dfcd3138776a0 177,180-181,184,186-187,191-192
+  s_41d6f8ef6fdae1::t_0f543e8500ab13 110
+  s_41d6f8ef6fdae1::t_1d478dff710bc1 69-75
+  s_41d6f8ef6fdae1::t_ce6466dec3f751 1-8,12-68,76-109,111,113-132,134-176,178-179,182-183,185,188-190,193-206,209-214,221,227-233,235-241,244-253,255
+  s_41d6f8ef6fdae1::t_c32437ca62058c 9,112,133,207-208
+packages/monopoly-bot/src/strategy/types.ts
+  s_41d6f8ef6fdae1::t_0acd191de44e65 8,27-28
+packages/monopoly-bot/src/decision/orchestrator.ts
+  s_41d6f8ef6fdae1::t_c32437ca62058c 11
+  s_41d6f8ef6fdae1::t_85ce9fb0fd4c07 26,28-37,119,135,159-163
+packages/monopoly-bot/src/strategy/expertStrategy.ts
+  s_41d6f8ef6fdae1::t_c32437ca62058c 1
+  s_41d6f8ef6fdae1::t_1ade44eb32973e 2-5
+  s_41d6f8ef6fdae1::t_980db56adbce36 102-103,106-118
+packages/monopoly-bot/src/index.ts
+  s_41d6f8ef6fdae1::t_c32437ca62058c 2-8,32-33
+  s_41d6f8ef6fdae1::t_5a7afba9bdfef1 1,29-31,34
+packages/monopoly-bot/src/__tests__/auction-strategy.test.ts
+  s_41d6f8ef6fdae1::t_f67bf6088eeb84 1-3,5-34,36-38,45-80,86-98,101-105,108-133,138-142,146-174,176-190,192-193,195-204
+  s_41d6f8ef6fdae1::t_1286f001964c37 4,35,39-44,81-85,99-100,106-107,134-137,143-145,175,191,194
+packages/monopoly-bot/src/strategy/personality.ts
+  s_41d6f8ef6fdae1::t_7cff91f0296caf 1-88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "d16850595a0f762b2e41ca2b422b94b5393b607f",
+  "prompts": {},
+  "sessions": {
+    "s_41d6f8ef6fdae1": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "35d2bbae-a0e2-4cb4-b3a9-087b1760f56f",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
