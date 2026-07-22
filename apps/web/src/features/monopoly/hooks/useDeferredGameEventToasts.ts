@@ -7,14 +7,13 @@ import { useGameStore } from "../store/gameStore";
 
 /**
  * Flushes deferred game events after dice/move animations settle.
- * Call the returned function only for non-deferred batches (when
- * applyServerUpdate returns false).
+ * Passes the full batch so callers can assign unique keys in one shot.
  */
 export function useDeferredGameEventToasts(
-  onEvent: (event: GameEvent) => void,
+  onEvents: (events: GameEvent[]) => void,
 ): void {
-  const onEventRef = useRef(onEvent);
-  onEventRef.current = onEvent;
+  const onEventsRef = useRef(onEvents);
+  onEventsRef.current = onEvents;
 
   const pendingType = useGameStore((s) => s.pendingAnimation.type);
   const diceAnimationComplete = useGameStore((s) => s.diceAnimationComplete);
@@ -31,9 +30,8 @@ export function useDeferredGameEventToasts(
       return;
     }
     const events = takeDeferredToastEvents();
-    for (const event of events) {
-      onEventRef.current(event);
-    }
+    if (events.length === 0) return;
+    onEventsRef.current(events);
   }, [
     diceAnimationComplete,
     pendingType,

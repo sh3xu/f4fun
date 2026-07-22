@@ -344,18 +344,16 @@ export function Board({
         >
           {!centerBusy && (
             <>
-              <div className="absolute top-0 right-0 left-0 z-10 shrink-0 px-[clamp(0.4rem,2cqmin,1rem)] pt-[clamp(0.5rem,2.2cqmin,1.5rem)] text-center select-none opacity-70">
-                <h1 className="text-[length:var(--board-text-xl)] font-black tracking-wider">
-                  <span className="bg-gradient-to-r from-[#4fc3f7]/80 via-[#29b6f6]/70 to-[#26c6da]/80 bg-clip-text text-transparent">
-                    MONOPOLY
-                  </span>
+              <div className="absolute top-0 right-0 left-0 z-10 shrink-0 px-[clamp(0.4rem,2cqmin,1rem)] pt-[clamp(0.5rem,2.2cqmin,1.5rem)] text-center opacity-80 select-none">
+                <h1 className="text-[length:var(--board-text-xl)] font-black tracking-wider text-teal-700">
+                  MONOPOLY
                 </h1>
-                <p className="mt-0.5 text-[length:var(--board-text-sm)] font-semibold uppercase tracking-[0.2em] text-gray-600">
+                <p className="mt-0.5 text-[length:var(--board-text-sm)] font-semibold tracking-[0.2em] text-slate-500 uppercase">
                   Board Game House
                 </p>
               </div>
 
-              <div className="absolute right-0 bottom-0 left-0 z-10 shrink-0 px-[clamp(0.4rem,2cqmin,1rem)] pb-[clamp(0.5rem,2.2cqmin,1.5rem)] text-center text-[length:var(--board-text-xs)] font-medium text-gray-600 select-none opacity-60">
+              <div className="absolute right-0 bottom-0 left-0 z-10 shrink-0 px-[clamp(0.4rem,2cqmin,1rem)] pb-[clamp(0.5rem,2.2cqmin,1.5rem)] text-center text-[length:var(--board-text-xs)] font-medium text-slate-500 opacity-70 select-none">
                 {state?.turnOrder.length || 0} Players active
               </div>
             </>

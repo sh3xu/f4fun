@@ -23,16 +23,16 @@ export function GameActivityFeed({
 
   return (
     <div className={cn(MATERIAL_CARD, "flex flex-col gap-1 p-3", className)}>
-      <h2 className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
-        Table log
+      <h2 className="text-[10px] font-bold tracking-widest text-slate-600 uppercase">
+        Activity
       </h2>
-      <ul className="max-h-40 space-y-1 overflow-y-auto text-xs text-gray-300">
+      <ul className="max-h-40 space-y-1 overflow-y-auto text-xs text-slate-600">
         {entries.map((entry) => (
           <li key={entry.id} className="leading-snug">
-            <span className="font-semibold text-[#4fc3f7]">
+            <span className="font-semibold text-teal-700">
               {entry.playerName}
             </span>
-            <span className="text-gray-500"> — </span>
+            <span className="text-slate-500"> — </span>
             {entry.message}
           </li>
         ))}

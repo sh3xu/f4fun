@@ -14,31 +14,27 @@ const CARD_STOCK: Record<
 > = {
   property: {
     headerClass: "",
-    edgeClass: "border-white/[0.22]",
+    edgeClass: "border-slate-200",
   },
   chance: {
     headerClass: "bg-gradient-to-b from-[#ffb347] to-[#f7941d]",
-    edgeClass: "border-amber-400/70",
-    bodyClass:
-      "bg-gradient-to-b from-amber-600/35 via-amber-950/50 to-[rgba(18,26,40,0.94)]",
+    edgeClass: "border-amber-300",
+    bodyClass: "bg-gradient-to-b from-amber-50 to-white",
   },
   community: {
-    headerClass: "bg-gradient-to-b from-[#4fc3f7] to-[#00aeef]",
-    edgeClass: "border-sky-400/70",
-    bodyClass:
-      "bg-gradient-to-b from-sky-500/35 via-sky-950/50 to-[rgba(18,26,40,0.94)]",
+    headerClass: "bg-gradient-to-b from-teal-400 to-teal-600",
+    edgeClass: "border-teal-200",
+    bodyClass: "bg-gradient-to-b from-teal-50 to-white",
   },
   buyPrompt: {
-    headerClass: "bg-gradient-to-b from-[#81d4fa] to-[#2196f3]",
-    edgeClass: "border-[#4fc3f7]/70 shadow-[4px_10px_22px_rgba(0,0,0,0.5)]",
-    bodyClass:
-      "bg-gradient-to-b from-sky-400/30 via-sky-950/40 to-[rgba(18,26,40,0.94)]",
+    headerClass: "bg-gradient-to-b from-teal-400 to-teal-700",
+    edgeClass: "border-teal-300 shadow-[0_10px_28px_rgba(13,148,136,0.18)]",
+    bodyClass: "bg-gradient-to-b from-teal-50/80 to-white",
   },
   auction: {
-    headerClass: "bg-gradient-to-b from-amber-300 to-amber-600",
-    edgeClass: "border-amber-400/70",
-    bodyClass:
-      "bg-gradient-to-b from-amber-400/30 via-amber-950/45 to-[rgba(18,26,40,0.94)]",
+    headerClass: "bg-gradient-to-b from-amber-300 to-amber-500",
+    edgeClass: "border-amber-300",
+    bodyClass: "bg-gradient-to-b from-amber-50 to-white",
   },
 };
 
@@ -48,14 +44,17 @@ interface GameCardProps extends HTMLAttributes<HTMLDivElement> {
   header?: ReactNode;
   headerClassName?: string;
   dealIn?: boolean;
+  /** Optional full-bleed layer behind header/body (e.g. blurred property art). */
+  backdrop?: ReactNode;
 }
 
-/** Printed cardstock surface with optional embossed header band and stock variant. */
+/** Elevated white card with optional color header band and stock variant. */
 export function GameCard({
   stock = "property",
   header,
   headerClassName,
   dealIn = false,
+  backdrop,
   className,
   children,
   ...props
@@ -65,18 +64,24 @@ export function GameCard({
   return (
     <div
       className={cn(
-        "material-cardstock overflow-hidden",
+        "material-cardstock relative isolate overflow-hidden",
         stockStyle.edgeClass,
-        stockStyle.bodyClass,
+        !backdrop && stockStyle.bodyClass,
+        backdrop && "bg-transparent",
         dealIn && "animate-card-deal",
         className,
       )}
       {...props}
     >
+      {backdrop != null && (
+        <div className="pointer-events-none absolute inset-0 z-0" aria-hidden>
+          {backdrop}
+        </div>
+      )}
       {header != null && (
         <div
           className={cn(
-            "material-cardstock-header px-3 py-2 text-center text-sm font-bold uppercase tracking-wide text-white",
+            "material-cardstock-header font-card-label relative z-10 px-3 py-2 text-center text-sm font-bold tracking-wide text-white uppercase",
             stockStyle.headerClass,
             headerClassName,
           )}
@@ -84,7 +89,9 @@ export function GameCard({
           {header}
         </div>
       )}
-      {children}
+      <div className="relative z-10 contents [&>*]:relative [&>*]:z-10">
+        {children}
+      </div>
     </div>
   );
 }

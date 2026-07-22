@@ -74,13 +74,13 @@ export function DiceTray({
           className={cn(
             "font-bold uppercase tracking-widest",
             "text-[length:var(--board-text)]",
-            isMyTurn ? "text-[#4fc3f7]" : "text-gray-500",
+            isMyTurn ? "text-teal-700" : "text-slate-500",
           )}
         >
           {isMyTurn ? "Your Turn" : "Waiting..."}
         </p>
         {isMyTurn && (
-          <p className="mt-0.5 text-[length:var(--board-text-sm)] font-medium text-gray-400">
+          <p className="mt-0.5 text-[length:var(--board-text-sm)] font-medium text-slate-500">
             {phaseHint}
           </p>
         )}
@@ -94,7 +94,7 @@ export function DiceTray({
       />
 
       {dice && !isDiceAnimating && isDoubles && (
-        <div className="inline-flex items-center gap-1 rounded-md border border-yellow-500/25 bg-yellow-500/10 px-2 py-0.5 text-[length:var(--board-text-xs)] font-bold text-yellow-400">
+        <div className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-[length:var(--board-text-xs)] font-bold text-amber-700">
           Doubles!
         </div>
       )}

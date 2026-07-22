@@ -27,10 +27,10 @@ export function ActionCountdown({
       className={cn(
         "tabular-nums font-bold tracking-wide",
         pausedMs != null
-          ? "text-white/40"
+          ? "text-slate-400"
           : remaining <= urgentThresholdSecs
             ? "text-amber-300"
-            : "text-white/60",
+            : "text-slate-500",
         className,
       )}
     >
