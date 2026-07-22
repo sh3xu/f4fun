@@ -1,0 +1,31 @@
+packages/monopoly-bot/src/simulate/runHeadlessGame.ts
+  s_41d6f8ef6fdae1::t_918afd7a75c638 91
+  s_41d6f8ef6fdae1::t_8b7abb568785ae 23
+packages/monopoly-bot/src/strategy/personality.ts
+  s_41d6f8ef6fdae1::t_d91f4a88474390 24-27
+packages/monopoly-bot/src/decision/auction.ts
+  s_41d6f8ef6fdae1::t_5a619a749e5da1 30-36
+  s_41d6f8ef6fdae1::t_e551ec0d9ad2d5 86-87
+packages/monopoly-bot/src/__tests__/auction-strategy.test.ts
+  s_41d6f8ef6fdae1::t_ea53f8d1f29405 10
+  s_41d6f8ef6fdae1::t_4d88ecc21544c0 18,20-22
+  s_41d6f8ef6fdae1::t_e624f1b24c55ee 209-260
+  s_41d6f8ef6fdae1::t_41740a0438a792 53
+  s_41d6f8ef6fdae1::t_70172a80a71631 19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "d5215c3380a0a32a342a6f92bf742cb15b26a71d",
+  "prompts": {},
+  "sessions": {
+    "s_41d6f8ef6fdae1": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "35d2bbae-a0e2-4cb4-b3a9-087b1760f56f",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
