@@ -100,7 +100,7 @@ pnpm biome check --write .
 - Counter ticker animations for cash updates
 - Sonner toasts for game events
 - Responsive board layout
-- Disconnect grace period (60s reconnect window)
+- Disconnect grace period (5 min reconnect window)
 
 ## Tech Stack
 
@@ -170,7 +170,7 @@ packages/monopoly-engine/src/
 ```env
 PORT=3001
 MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/f4fun
-DISCONNECT_GRACE_SECS=60
+DISCONNECT_GRACE_SECS=300
 CORS_ORIGIN=http://localhost:3000
 ```
 

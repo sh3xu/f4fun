@@ -1,4 +1,5 @@
 import type { ColorGroup } from "./config/board.js";
+import { BANK_HOUSE_LIMIT, GO_SALARY } from "./config/board.js";
 
 export type RNG = () => number;
 
@@ -127,6 +128,10 @@ export interface PendingTrade {
 
 export interface GameConfig {
   startingCash: number;
+  /** Cash awarded when landing on or passing GO. */
+  goSalary: number;
+  /** Initial bank house supply; hotels derived via hotelsForHouseLimit. */
+  bankHouseLimit: number;
   freeParkingJackpot: boolean;
   disconnectGraceSecs: number;
   maxPlayers: number;
@@ -146,8 +151,10 @@ export interface GameConfig {
 
 export const DEFAULT_GAME_CONFIG: GameConfig = {
   startingCash: 1500,
+  goSalary: GO_SALARY,
+  bankHouseLimit: BANK_HOUSE_LIMIT,
   freeParkingJackpot: false,
-  disconnectGraceSecs: 60,
+  disconnectGraceSecs: 300,
   maxPlayers: 8,
   shortTimeoutSecs: 10,
   longTimeoutSecs: 30,

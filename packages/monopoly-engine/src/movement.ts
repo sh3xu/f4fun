@@ -1,4 +1,4 @@
-import { BOARD_SIZE, GO_POSITION, GO_SALARY } from "./config/board.js";
+import { BOARD_SIZE } from "./config/board.js";
 import type { GameEvent, GameState, PlayerId } from "./types.js";
 
 export interface MoveResult {
@@ -15,6 +15,19 @@ export function movePlayer(
   return { newPosition, passedGo };
 }
 
+function awardGoSalary(state: GameState, playerId: PlayerId): GameEvent | null {
+  const player = state.players[playerId];
+  if (!player) return null;
+
+  const amount = state.config.goSalary;
+  player.cash += amount;
+  return {
+    type: "PASSED_GO",
+    playerId,
+    amount,
+  };
+}
+
 export function applyMove(
   state: GameState,
   playerId: PlayerId,
@@ -28,13 +41,10 @@ export function applyMove(
 
   const events: GameEvent[] = [];
 
-  if (passedGo && newPosition !== GO_POSITION) {
-    player.cash += GO_SALARY;
-    events.push({
-      type: "PASSED_GO",
-      playerId,
-      amount: GO_SALARY,
-    });
+  // NOTE: Unified GO pay — salary on pass or land on GO (official).
+  if (passedGo) {
+    const event = awardGoSalary(state, playerId);
+    if (event) events.push(event);
   }
 
   return events;
@@ -52,17 +62,10 @@ export function setPlayerPosition(
   const oldPosition = player.position;
   const events: GameEvent[] = [];
 
-  if (
-    collectGoIfPassed &&
-    targetPosition < oldPosition &&
-    targetPosition !== GO_POSITION
-  ) {
-    player.cash += GO_SALARY;
-    events.push({
-      type: "PASSED_GO",
-      playerId,
-      amount: GO_SALARY,
-    });
+  // NOTE: target < old covers wrap past GO and Advance-to-Go (land on 0).
+  if (collectGoIfPassed && targetPosition < oldPosition) {
+    const event = awardGoSalary(state, playerId);
+    if (event) events.push(event);
   }
 
   player.position = targetPosition;

@@ -30,6 +30,7 @@ interface PropertyPanelManageProps {
   houses: number;
   hotels: number;
   deedTransferBlocked: boolean;
+  canBuild: boolean;
   canSellBuilding: boolean;
   onBuild: () => void;
   onSell: () => void;
@@ -315,6 +316,7 @@ export function PropertyPanel(props: PropertyPanelProps) {
             houses={props.houses}
             hotels={props.hotels}
             deedTransferBlocked={props.deedTransferBlocked}
+            canBuild={props.canBuild}
             canSellBuilding={props.canSellBuilding}
             houseCost={tile.type === "property" ? tile.houseCost : 0}
             onBuild={props.onBuild}

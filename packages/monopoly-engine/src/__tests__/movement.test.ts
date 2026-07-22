@@ -21,7 +21,7 @@ describe("movement", () => {
     expect(result.passedGo).toBe(true);
   });
 
-  it("awards $200 for passing GO", () => {
+  it("awards GO salary for passing GO", () => {
     const state = createInitialState("test", [
       { id: "p1", name: "Alice", token: "car" },
     ]);
@@ -37,6 +37,34 @@ describe("movement", () => {
     expect(events[0]?.type).toBe("PASSED_GO");
   });
 
+  it("awards GO salary when landing exactly on GO", () => {
+    const state = createInitialState("test", [
+      { id: "p1", name: "Alice", token: "car" },
+    ]);
+    const player = state.players.p1;
+    const initialCash = player.cash;
+
+    player.position = 35;
+    const events = applyMove(state, "p1", 5);
+
+    expect(player.position).toBe(0);
+    expect(player.cash).toBe(initialCash + 200);
+    expect(events).toHaveLength(1);
+    expect(events[0]?.type).toBe("PASSED_GO");
+  });
+
+  it("uses config.goSalary for GO awards", () => {
+    const state = createInitialState(
+      "test",
+      [{ id: "p1", name: "Alice", token: "car" }],
+      { goSalary: 100, startingCash: 1000 },
+    );
+    expect(state.players.p1.cash).toBe(1000);
+    state.players.p1.position = 38;
+    applyMove(state, "p1", 5);
+    expect(state.players.p1.cash).toBe(1100);
+  });
+
   it("setPlayerPosition awards GO salary when moving backward past GO", () => {
     const state = createInitialState("test", [
       { id: "p1", name: "Alice", token: "car" },
@@ -48,6 +76,21 @@ describe("movement", () => {
     const events = setPlayerPosition(state, "p1", 5, true);
 
     expect(player.position).toBe(5);
+    expect(player.cash).toBe(initialCash + 200);
+    expect(events).toHaveLength(1);
+  });
+
+  it("setPlayerPosition awards GO salary when advancing to GO", () => {
+    const state = createInitialState("test", [
+      { id: "p1", name: "Alice", token: "car" },
+    ]);
+    const player = state.players.p1;
+    player.position = 24;
+    const initialCash = player.cash;
+
+    const events = setPlayerPosition(state, "p1", 0, true);
+
+    expect(player.position).toBe(0);
     expect(player.cash).toBe(initialCash + 200);
     expect(events).toHaveLength(1);
   });

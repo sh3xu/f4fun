@@ -46,6 +46,8 @@ interface GameStore {
   lastEvents: GameEvent[];
   /** Toast events waiting for dice/move animations to finish. */
   deferredToastEvents: GameEvent[];
+  /** Bumps on full snapshots so UI can reset cash-toast baselines (rejoin). */
+  snapshotRevision: number;
 
   setFromSnapshot: (state: GameState) => void;
   /** Returns true when events were queued until animations settle. */
@@ -227,6 +229,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   rollAnimationKey: 0,
   lastEvents: [],
   deferredToastEvents: [],
+  snapshotRevision: 0,
 
   setFromSnapshot: (state) => {
     const normalized = normalizeGameState(state);
@@ -243,6 +246,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       pendingAnimation: { type: "none" },
       diceAnimationComplete: true,
       rollAnimationKey: 0,
+      snapshotRevision: get().snapshotRevision + 1,
     });
   },
 
@@ -473,6 +477,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       rollAnimationKey: 0,
       lastEvents: [],
       deferredToastEvents: [],
+      snapshotRevision: 0,
     });
   },
 }));

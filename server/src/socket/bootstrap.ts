@@ -11,9 +11,14 @@ import { getGameEventLog } from "../games/monopoly/GameEventLogger.js";
 import { loadGame, saveGame } from "../games/monopoly/GameStore.js";
 import { registerMonopolyHandlers } from "../games/monopoly/handlers.js";
 import { withRoomLock } from "../games/monopoly/roomMutex.js";
-import { cancelGrace, startGrace } from "../rooms/DisconnectGrace.js";
+import {
+  cancelGrace,
+  hasActiveGrace,
+  startGrace,
+} from "../rooms/DisconnectGrace.js";
 import { destroyRoomIfAbandoned } from "../rooms/RoomCleanup.js";
 import {
+  getRoom,
   setPlayerConnected,
   verifyPlayerSession,
 } from "../rooms/RoomManager.js";
@@ -21,7 +26,7 @@ import type { SocketWithPlayer } from "./middleware.js";
 import { validatePayload } from "./middleware.js";
 import { registerRoomHandlers } from "./room-handlers.js";
 
-const DISCONNECT_GRACE_SECS = Number(process.env.DISCONNECT_GRACE_SECS ?? 60);
+const DISCONNECT_GRACE_SECS = Number(process.env.DISCONNECT_GRACE_SECS ?? 300);
 
 function parseCorsOrigins(value: string | undefined): string[] {
   return (value || "http://localhost:3000")
@@ -134,7 +139,7 @@ export function createSocketServer(httpServer: HttpServer): Server {
         isConnected: false,
       });
 
-      startGrace(roomId, playerId, DISCONNECT_GRACE_SECS, async () => {
+      const onExpire = async () => {
         console.log(`[Grace] Expired for player=${playerId} room=${roomId}`);
         socket.to(roomId).emit("room:playerLeft", {
           playerId,
@@ -142,7 +147,26 @@ export function createSocketServer(httpServer: HttpServer): Server {
         });
         // NOTE: Wait until every seat is offline and no reconnect grace remains.
         await destroyRoomIfAbandoned(roomId);
-      });
+      };
+
+      // NOTE: Arm before config I/O so a fast rejoin's cancelGrace always hits a timer.
+      startGrace(roomId, playerId, DISCONNECT_GRACE_SECS, onExpire);
+
+      try {
+        const room = await getRoom(roomId);
+        if (!room?.gameId) return;
+        const state = await loadGame(room.gameId);
+        const configured = state?.config.disconnectGraceSecs;
+        if (
+          configured != null &&
+          configured !== DISCONNECT_GRACE_SECS &&
+          hasActiveGrace(roomId, playerId)
+        ) {
+          startGrace(roomId, playerId, configured, onExpire);
+        }
+      } catch (err) {
+        console.error("[Grace] Failed to resolve config graceSecs:", err);
+      }
     });
   });
 
