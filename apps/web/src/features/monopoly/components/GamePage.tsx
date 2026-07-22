@@ -25,6 +25,14 @@ import { WinScreen } from "./WinScreen";
 const SESSION_KEY = "monopoly_session";
 const ACTIVITY_CAP = 500;
 
+/** Monotonic suffix so activity rows stay unique across same-ms batches. */
+let activityIdSeq = 0;
+
+function nextActivityId(eventType: string): string {
+  activityIdSeq += 1;
+  return `${eventType}-${Date.now()}-${activityIdSeq}`;
+}
+
 interface SessionData {
   roomId: string;
   roomCode: string;
@@ -176,7 +184,7 @@ export function GamePage() {
         const formatted = formatGameEvent(nextState, event);
         if (!formatted) continue;
         fresh.push({
-          id: `${event.type}-${Date.now()}-${fresh.length}`,
+          id: nextActivityId(event.type),
           playerId: formatted.playerId,
           playerName: formatted.playerName,
           message: formatted.message,
@@ -188,10 +196,10 @@ export function GamePage() {
     [showTradeOutcome],
   );
 
-  useDeferredGameEventToasts((event) => {
+  useDeferredGameEventToasts((events) => {
     const nextState = useGameStore.getState().state;
     if (!nextState) return;
-    appendActivityFromEvents(nextState, [event]);
+    appendActivityFromEvents(nextState, events);
   });
 
   useEffect(() => {
