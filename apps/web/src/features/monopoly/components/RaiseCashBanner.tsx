@@ -19,18 +19,20 @@ export function RaiseCashBanner({
   const seconds = remainingMs == null ? null : Math.ceil(remainingMs / 1000);
 
   return (
-    <div className="rounded-xl border border-rose-400/40 bg-rose-950/80 px-4 py-3 text-center shadow-lg backdrop-blur-sm">
-      <p className="text-sm font-bold text-rose-200">
+    <div className="rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-center shadow-md">
+      <p className="text-sm font-bold text-rose-800">
         {isDebtor ? "You must raise cash" : "Player raising cash"}
       </p>
-      <p className="mt-1 text-lg font-bold text-white">Need ${amountNeeded}</p>
+      <p className="mt-1 text-lg font-bold text-slate-900">
+        Need ${amountNeeded}
+      </p>
       {isDebtor && (
-        <p className="mt-1 text-xs text-rose-200/90">
+        <p className="mt-1 text-xs text-rose-700">
           Tap your properties to mortgage, sell, or auction
         </p>
       )}
       {seconds != null && (
-        <p className="mt-1 text-xs text-rose-200/90">{seconds}s remaining</p>
+        <p className="mt-1 text-xs text-rose-700">{seconds}s remaining</p>
       )}
     </div>
   );

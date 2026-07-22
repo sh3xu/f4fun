@@ -101,7 +101,7 @@ export function PropertyActions(props: PropertyActionsProps) {
           onClick={onAuction}
           disabled={loading}
           size="sm"
-          className={`${btnClass} border-amber-400/30 text-amber-200`}
+          className={`${btnClass} border-amber-300 text-amber-800`}
           aria-label={`Auction ${label}`}
         >
           Auction
@@ -147,7 +147,7 @@ export function PropertyActions(props: PropertyActionsProps) {
   return (
     <div className="flex flex-col gap-[clamp(0.25rem,0.9cqmin,0.4rem)]">
       {deedTransferBlocked && (
-        <p className="text-[length:var(--board-text-xs)] leading-snug text-amber-200/90">
+        <p className="text-[length:var(--board-text-xs)] leading-snug text-amber-800">
           {COLOR_GROUP_BUILDINGS_CLEAR_ERROR}
         </p>
       )}
@@ -219,7 +219,7 @@ export function PropertyActions(props: PropertyActionsProps) {
           size="sm"
           disabled={loading || deedTransferBlocked}
           onClick={onOwnerAuction}
-          className={`${btnClass} border-amber-400/30 text-amber-200`}
+          className={`${btnClass} border-amber-300 text-amber-800`}
           title={
             deedTransferBlocked ? COLOR_GROUP_BUILDINGS_CLEAR_ERROR : undefined
           }
@@ -232,7 +232,7 @@ export function PropertyActions(props: PropertyActionsProps) {
           variant="outline"
           disabled={loading || deedTransferBlocked}
           onClick={onSellToBank}
-          className={`${btnClass} border-rose-400/30 text-rose-200`}
+          className={`${btnClass} border-rose-300 text-rose-700`}
           title={
             deedTransferBlocked ? COLOR_GROUP_BUILDINGS_CLEAR_ERROR : undefined
           }

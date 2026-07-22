@@ -22,7 +22,7 @@ export function WinScreen({ gameState, winnerId, myPlayerId }: WinScreenProps) {
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
       <Confetti />
       <GameCard
         stock="buyPrompt"
@@ -32,28 +32,28 @@ export function WinScreen({ gameState, winnerId, myPlayerId }: WinScreenProps) {
         <div className="space-y-4 p-5">
           <div className="py-2 text-center">
             <div className="mb-2 text-5xl">{winner.token}</div>
-            <p className="text-2xl font-bold text-white">{winner.name}</p>
-            <p className="text-lg font-semibold text-emerald-400">
+            <p className="text-2xl font-bold text-slate-900">{winner.name}</p>
+            <p className="text-lg font-semibold text-emerald-600">
               ${winner.cash}
             </p>
           </div>
 
-          <div className="border-t border-white/10 pt-4">
-            <h3 className="mb-2 font-semibold text-white/80">
+          <div className="border-t border-slate-200 pt-4">
+            <h3 className="mb-2 font-semibold text-slate-700">
               Final standings
             </h3>
             <div className="space-y-2">
               {sortedPlayers.map((player, index) => (
                 <div
                   key={player.id}
-                  className="flex items-center justify-between rounded-md border border-white/[0.06] bg-white/[0.04] p-2"
+                  className="flex items-center justify-between rounded-md border border-slate-200 bg-slate-50 p-2"
                 >
                   <div className="flex items-center gap-2">
-                    <span className="w-6 font-semibold text-white/40">
+                    <span className="w-6 font-semibold text-slate-400">
                       #{index + 1}
                     </span>
                     <span className="text-xl">{player.token}</span>
-                    <span className="font-medium text-white/90">
+                    <span className="font-medium text-slate-800">
                       {player.name}
                     </span>
                     {player.isBankrupt && (
@@ -62,7 +62,9 @@ export function WinScreen({ gameState, winnerId, myPlayerId }: WinScreenProps) {
                       </span>
                     )}
                   </div>
-                  <span className="font-bold text-white">${player.cash}</span>
+                  <span className="font-bold text-slate-900">
+                    ${player.cash}
+                  </span>
                 </div>
               ))}
             </div>

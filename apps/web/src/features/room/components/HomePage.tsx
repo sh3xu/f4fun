@@ -153,7 +153,7 @@ export function HomePage() {
             <div className="flex flex-col gap-2.5">
               <label
                 htmlFor="home-nickname"
-                className="px-0.5 text-xs font-bold uppercase tracking-widest text-slate-300"
+                className="px-0.5 text-xs font-bold tracking-widest text-slate-500 uppercase"
               >
                 Your nickname
               </label>
@@ -171,12 +171,12 @@ export function HomePage() {
                 autoFocus
                 autoComplete="off"
                 spellCheck={false}
-                className="h-11 w-full rounded-md border-white/15 bg-black/30 px-4 text-sm font-semibold text-slate-100 placeholder-slate-500 focus:border-[#4fc3f7]"
+                className="h-11 w-full rounded-xl border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 placeholder-slate-400 focus:border-teal-500"
               />
             </div>
 
             <div className="flex flex-col gap-2.5">
-              <span className="px-0.5 text-xs font-bold uppercase tracking-widest text-slate-300">
+              <span className="px-0.5 text-xs font-bold tracking-widest text-slate-500 uppercase">
                 Choose your token
               </span>
               <div className="grid max-h-[140px] grid-cols-4 gap-2.5 overflow-y-auto pr-1">
@@ -190,16 +190,16 @@ export function HomePage() {
                       disabled={loading}
                       aria-label={avatar.label}
                       aria-pressed={isSelected}
-                      className={`relative flex items-center justify-center rounded-md border p-2 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--material-focus-glow)] ${
+                      className={`relative flex min-h-11 items-center justify-center rounded-xl border p-2 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--material-focus-glow)] ${
                         isSelected
-                          ? "scale-[1.02] border-[#4fc3f7]/70 bg-white/10 shadow-lg"
-                          : "border-white/10 bg-black/20 hover:bg-white/5"
+                          ? "scale-[1.02] border-teal-500 bg-teal-50 shadow-md"
+                          : "border-slate-200 bg-white hover:bg-slate-50"
                       }`}
                     >
                       <Avatar
                         avatarId={avatar.id}
                         size="sm"
-                        backgroundColor={isSelected ? "#2196f3" : "transparent"}
+                        backgroundColor={isSelected ? "#0d9488" : "transparent"}
                       />
                     </button>
                   );
@@ -208,7 +208,7 @@ export function HomePage() {
             </div>
 
             {error && (
-              <div className="rounded-md border border-rose-500/30 bg-rose-950/30 p-3 text-xs font-semibold leading-relaxed text-rose-300">
+              <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs leading-relaxed font-semibold text-rose-700">
                 {error}
               </div>
             )}
@@ -253,20 +253,20 @@ export function HomePage() {
                 disabled={loading}
                 className="h-12 flex-1 gap-2 font-extrabold"
               >
-                <Gamepad2 className="h-4 w-4 text-[#4fc3f7]" />
+                <Gamepad2 className="h-4 w-4 text-teal-700" />
                 <span>Join with code</span>
               </Button>
             </div>
           </div>
         ) : (
           <div className="flex flex-col gap-5">
-            <div className="flex items-center gap-3 rounded-md border border-white/10 bg-black/25 p-3">
+            <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
               <Avatar avatarId={selectedAvatar} size="md" />
               <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+                <p className="text-xs font-semibold tracking-widest text-slate-500 uppercase">
                   Joining as
                 </p>
-                <p className="truncate text-sm font-bold text-slate-100">
+                <p className="truncate text-sm font-bold text-slate-900">
                   {name.trim() || "Player"}
                 </p>
               </div>
@@ -275,7 +275,7 @@ export function HomePage() {
             <div className="flex flex-col gap-2.5">
               <label
                 htmlFor="home-room-code"
-                className="px-0.5 text-xs font-bold uppercase tracking-widest text-slate-300"
+                className="px-0.5 text-xs font-bold tracking-widest text-slate-500 uppercase"
               >
                 Enter 6-digit room code
               </label>
@@ -290,12 +290,12 @@ export function HomePage() {
                 maxLength={6}
                 disabled={loading}
                 autoFocus
-                className="h-12 w-full rounded-md border-white/15 bg-black/30 text-center font-mono text-xl font-extrabold tracking-widest text-[#4fc3f7] placeholder-slate-600 focus:border-[#4fc3f7]"
+                className="h-12 w-full rounded-xl border-slate-200 bg-white text-center font-mono text-xl font-extrabold tracking-widest text-teal-700 placeholder-slate-400 focus:border-teal-500"
               />
             </div>
 
             {error && (
-              <div className="rounded-md border border-rose-500/30 bg-rose-950/30 p-3 text-xs font-semibold leading-relaxed text-rose-300">
+              <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs leading-relaxed font-semibold text-rose-700">
                 {error}
               </div>
             )}
@@ -335,7 +335,7 @@ export function HomePage() {
       </GameCard>
 
       <p className="mt-8 max-w-md text-center text-[10px] font-semibold tracking-wide text-slate-500 md:text-xs">
-        Real-time multiplayer · Physical board feel · 2–8 players
+        Real-time multiplayer · Bright digital board · 2–8 players
       </p>
     </TableShell>
   );

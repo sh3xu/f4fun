@@ -6,9 +6,10 @@ import { cn } from "@/lib/cn";
 
 interface AvatarProps {
   avatarId: string;
-  size?: "xs" | "sm" | "md" | "lg" | "xl";
+  size?: "xxs" | "xs" | "sm" | "md" | "lg" | "xl";
   isActive?: boolean;
   backgroundColor?: string;
+  className?: string;
 }
 
 export function Avatar({
@@ -16,34 +17,40 @@ export function Avatar({
   size = "md",
   isActive = false,
   backgroundColor,
+  className,
 }: AvatarProps) {
   const url = getAvatarUrl(avatarId);
 
   const sizeConfig = {
+    xxs: {
+      size: 12,
+      classes: "h-3 w-3 border border-white",
+      activeClass: "ring-1 ring-teal-400 ring-offset-[0.5px] scale-105",
+    },
     xs: {
       size: 20,
-      classes: "w-5 h-5 border border-white",
-      activeClass: "ring-[1.5px] ring-blue-300 ring-offset-[1px] scale-105",
+      classes: "h-5 w-5 border border-white",
+      activeClass: "ring-[1.5px] ring-teal-400 ring-offset-[1px] scale-105",
     },
     sm: {
       size: 32,
-      classes: "w-8 h-8",
-      activeClass: "ring-2 ring-blue-300 ring-offset-1 scale-105",
+      classes: "h-8 w-8",
+      activeClass: "ring-2 ring-teal-400 ring-offset-1 scale-105",
     },
     md: {
       size: 40,
-      classes: "w-10 h-10",
-      activeClass: "ring-[3px] ring-blue-300 ring-offset-2 scale-110",
+      classes: "h-10 w-10",
+      activeClass: "ring-[3px] ring-teal-400 ring-offset-2 scale-110",
     },
     lg: {
       size: 56,
-      classes: "w-14 h-14",
-      activeClass: "ring-4 ring-blue-300 ring-offset-2 scale-110",
+      classes: "h-14 w-14",
+      activeClass: "ring-4 ring-teal-400 ring-offset-2 scale-110",
     },
     xl: {
       size: 80,
-      classes: "w-20 h-20",
-      activeClass: "ring-4 ring-blue-300 ring-offset-2 scale-110",
+      classes: "h-20 w-20",
+      activeClass: "ring-4 ring-teal-400 ring-offset-2 scale-110",
     },
   };
 
@@ -54,13 +61,14 @@ export function Avatar({
       key={avatarId}
       className={cn(
         config.classes,
-        "material-piece relative rounded-full overflow-hidden flex-shrink-0 transition-transform duration-200",
+        "material-piece relative flex-shrink-0 overflow-hidden rounded-full transition-transform duration-200",
         isActive && config.activeClass,
+        className,
       )}
       style={{
         backgroundColor,
         backgroundImage:
-          "linear-gradient(145deg, rgba(255,255,255,0.35) 0%, transparent 45%, rgba(0,0,0,0.25) 100%)",
+          "linear-gradient(145deg, rgba(255,255,255,0.4) 0%, transparent 45%, rgba(0,0,0,0.15) 100%)",
       }}
     >
       <Image
@@ -69,7 +77,7 @@ export function Avatar({
         alt="Player avatar"
         width={config.size}
         height={config.size}
-        className="w-full h-full object-cover"
+        className="h-full w-full object-cover"
         priority={false}
       />
     </div>

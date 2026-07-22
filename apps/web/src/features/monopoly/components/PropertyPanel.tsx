@@ -7,6 +7,7 @@ import { GameCard } from "@/components/ui/GameCard";
 import { cn } from "@/lib/cn";
 import { PROPERTY_IMAGES } from "../lib/property-images";
 import { BOARD_MONEY_CLASS, PROPERTY_COLORS } from "../theme/board-theme";
+import { CardPhotoBackdrop } from "./CardPhotoBackdrop";
 import { PropertyActions } from "./PropertyActions";
 import { PropertyCoverImage } from "./PropertyCoverImage";
 import { getTileLabel } from "./tile-labels";
@@ -79,6 +80,7 @@ export function PropertyPanel(props: PropertyPanelProps) {
   const hotels = props.mode === "buy" ? 0 : (props.hotels ?? 0);
   const ownerName = props.mode === "view" ? props.ownerName : undefined;
   const stock = props.mode === "buy" ? "buyPrompt" : "property";
+  const coverSrc = PROPERTY_IMAGES[props.position];
 
   return (
     <GameCard
@@ -89,16 +91,19 @@ export function PropertyPanel(props: PropertyPanelProps) {
         "text-[length:var(--board-text-sm)]",
       )}
       className="animate-card-deal"
+      backdrop={
+        coverSrc ? <CardPhotoBackdrop src={coverSrc} veil="light" /> : undefined
+      }
     >
-      {PROPERTY_IMAGES[props.position] && (
+      {coverSrc && (
         <div className="relative h-[clamp(3rem,11cqmin,6rem)] w-full overflow-hidden">
           <PropertyCoverImage
-            src={PROPERTY_IMAGES[props.position]}
+            src={coverSrc}
             alt={label}
-            className="brightness-95"
+            className="brightness-105 saturate-110"
             sizes="280px"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[rgba(18,26,40,0.95)] via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/20 to-transparent" />
         </div>
       )}
 
@@ -109,7 +114,7 @@ export function PropertyPanel(props: PropertyPanelProps) {
             aria-hidden
           >
             {tile.type === "railroad" && (
-              <Train className="h-[1em] w-[1em] text-white/70" />
+              <Train className="h-[1em] w-[1em] text-slate-600" />
             )}
             {tile.type === "utility" &&
               (tile.name.includes("Electric") ? (
@@ -121,7 +126,7 @@ export function PropertyPanel(props: PropertyPanelProps) {
         )}
 
         {ownerName && (
-          <p className="text-[length:var(--board-text-xs)] text-white/50">
+          <p className="text-[length:var(--board-text-xs)] text-slate-500">
             Owned by {ownerName}
             {isMortgaged ? " · Mortgaged" : ""}
             {tile.type === "property" ? ` · ${houses}H ${hotels}Hotel` : ""}
@@ -129,20 +134,20 @@ export function PropertyPanel(props: PropertyPanelProps) {
         )}
 
         {props.mode === "manage" && (
-          <p className="text-[length:var(--board-text-xs)] text-white/50">
+          <p className="text-[length:var(--board-text-xs)] text-slate-500">
             {isMortgaged ? "Mortgaged" : "Unmortgaged"}
             {tile.type === "property" ? ` · ${houses}H ${hotels}Hotel` : ""}
           </p>
         )}
 
         <div className="flex items-baseline gap-1.5">
-          <span className="text-[length:var(--board-text-xs)] text-white/50">
+          <span className="text-[length:var(--board-text-xs)] text-slate-500">
             Price
           </span>
           <span
             className={cn(
               BOARD_MONEY_CLASS,
-              "text-[length:var(--board-text)] font-black text-white",
+              "text-[length:var(--board-text)] font-black text-slate-900",
             )}
           >
             ${tile.price}
@@ -150,16 +155,16 @@ export function PropertyPanel(props: PropertyPanelProps) {
         </div>
 
         {/* {tile.type === "property" && (
-          <div className="grid grid-cols-2 gap-1.5 rounded-md border border-white/[0.08] bg-white/[0.04] px-2 py-1.5 text-[length:var(--board-text-xs)]">
+          <div className="grid grid-cols-2 gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5 text-[length:var(--board-text-xs)]">
             <div className="flex items-baseline justify-between gap-1">
-              <span className="text-white/50">House</span>
-              <span className={cn(BOARD_MONEY_CLASS, "font-bold text-white/90")}>
+              <span className="text-slate-500">House</span>
+              <span className={cn(BOARD_MONEY_CLASS, "font-bold text-slate-800")}>
                 ${tile.houseCost}
               </span>
             </div>
             <div className="flex items-baseline justify-between gap-1">
-              <span className="text-white/50">Hotel</span>
-              <span className={cn(BOARD_MONEY_CLASS, "font-bold text-white/90")}>
+              <span className="text-slate-500">Hotel</span>
+              <span className={cn(BOARD_MONEY_CLASS, "font-bold text-slate-800")}>
                 ${hotelUpgradeCost(tile.houseCost)}
               </span>
             </div>
@@ -173,7 +178,7 @@ export function PropertyPanel(props: PropertyPanelProps) {
             <button
               type="button"
               onClick={() => setRentOpen((o) => !o)}
-              className="flex w-full items-center justify-between rounded-md border border-white/[0.08] bg-white/[0.04] px-2 py-1.5 text-[length:var(--board-text-xs)] font-semibold text-white/70 hover:bg-white/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--material-focus-glow)]"
+              className="flex w-full items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5 text-[length:var(--board-text-xs)] font-semibold text-slate-600 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--material-focus-glow)]"
               aria-expanded={rentOpen}
             >
               {rentOpen ? "Hide rent schedule" : "Show rent schedule"}
@@ -185,23 +190,23 @@ export function PropertyPanel(props: PropertyPanelProps) {
               />
             </button>
             {rentOpen && tile.type === "property" && (
-              <div className="mt-1 space-y-0.5 rounded-md border border-white/[0.06] bg-white/[0.05] p-[clamp(0.3rem,1.2cqmin,0.55rem)] text-[length:var(--board-text-xs)]">
+              <div className="mt-1 space-y-0.5 rounded-md border border-slate-200 bg-slate-50 p-[clamp(0.3rem,1.2cqmin,0.55rem)] text-[length:var(--board-text-xs)]">
                 {tile.rentLevels.map((rent, i) => {
                   if (i === 0) {
                     return (
                       <Fragment key="rent-schedule-base">
                         <div className="flex justify-between gap-2">
-                          <span className="text-white/50">Rent</span>
+                          <span className="text-slate-500">Rent</span>
                           <span
-                            className={cn(BOARD_MONEY_CLASS, "text-white/90")}
+                            className={cn(BOARD_MONEY_CLASS, "text-slate-800")}
                           >
                             ${rent}
                           </span>
                         </div>
                         <div className="flex justify-between gap-2">
-                          <span className="text-[#4fc3f7]">Monopoly</span>
+                          <span className="text-teal-700">Monopoly</span>
                           <span
-                            className={cn(BOARD_MONEY_CLASS, "text-[#4fc3f7]")}
+                            className={cn(BOARD_MONEY_CLASS, "text-teal-700")}
                           >
                             ${tile.rent * 2}
                           </span>
@@ -214,36 +219,36 @@ export function PropertyPanel(props: PropertyPanelProps) {
                     i < 5 ? `${i} House${i > 1 ? "s" : ""}` : "Hotel";
                   return (
                     <div key={rentLabel} className="flex justify-between gap-2">
-                      <span className="text-white/50">{rentLabel}</span>
-                      <span className={cn(BOARD_MONEY_CLASS, "text-white/90")}>
+                      <span className="text-slate-500">{rentLabel}</span>
+                      <span className={cn(BOARD_MONEY_CLASS, "text-slate-800")}>
                         ${rent}
                       </span>
                     </div>
                   );
                 })}
-                <div className="mt-1 flex justify-between gap-2 border-t border-white/[0.06] pt-0.5">
-                  <span className="text-white/50">Mortgage</span>
-                  <span className={cn(BOARD_MONEY_CLASS, "text-emerald-400")}>
+                <div className="mt-1 flex justify-between gap-2 border-t border-slate-200 pt-0.5">
+                  <span className="text-slate-500">Mortgage</span>
+                  <span className={cn(BOARD_MONEY_CLASS, "text-emerald-600")}>
                     ${tile.price / 2}
                   </span>
                 </div>
                 <div className="flex justify-between gap-2">
-                  <span className="text-white/50">Houses cost</span>
-                  <span className={cn(BOARD_MONEY_CLASS, "text-white/90")}>
+                  <span className="text-slate-500">Houses cost</span>
+                  <span className={cn(BOARD_MONEY_CLASS, "text-slate-800")}>
                     ${tile.houseCost} each
                   </span>
                 </div>
                 <div className="flex justify-between gap-2">
-                  <span className="text-white/50">Hotels cost</span>
-                  <span className={cn(BOARD_MONEY_CLASS, "text-white/90")}>
+                  <span className="text-slate-500">Hotels cost</span>
+                  <span className={cn(BOARD_MONEY_CLASS, "text-slate-800")}>
                     ${hotelUpgradeCost(tile.houseCost)} + 4 houses
                   </span>
                 </div>
               </div>
             )}
             {rentOpen && tile.type === "railroad" && (
-              <div className="mt-1 space-y-0.5 rounded-md border border-white/[0.06] bg-white/[0.05] p-[clamp(0.3rem,1.2cqmin,0.55rem)] text-[length:var(--board-text-xs)]">
-                <p className="mb-0.5 font-semibold text-white/70">
+              <div className="mt-1 space-y-0.5 rounded-md border border-slate-200 bg-slate-50 p-[clamp(0.3rem,1.2cqmin,0.55rem)] text-[length:var(--board-text-xs)]">
+                <p className="mb-0.5 font-semibold text-slate-600">
                   Rent by count
                 </p>
                 {[
@@ -253,11 +258,11 @@ export function PropertyPanel(props: PropertyPanelProps) {
                   [4, 200],
                 ].map(([count, rent]) => (
                   <div key={count} className="flex justify-between gap-2">
-                    <span className="text-white/50">{count} RR</span>
+                    <span className="text-slate-500">{count} RR</span>
                     <span
                       className={cn(
                         BOARD_MONEY_CLASS,
-                        count === 4 ? "text-emerald-400" : "text-white/90",
+                        count === 4 ? "text-emerald-600" : "text-slate-800",
                       )}
                     >
                       ${rent}
@@ -267,14 +272,14 @@ export function PropertyPanel(props: PropertyPanelProps) {
               </div>
             )}
             {rentOpen && tile.type === "utility" && (
-              <div className="mt-1 space-y-0.5 rounded-md border border-white/[0.06] bg-white/[0.05] p-[clamp(0.3rem,1.2cqmin,0.55rem)] text-[length:var(--board-text-xs)]">
+              <div className="mt-1 space-y-0.5 rounded-md border border-slate-200 bg-slate-50 p-[clamp(0.3rem,1.2cqmin,0.55rem)] text-[length:var(--board-text-xs)]">
                 <div className="flex justify-between gap-2">
-                  <span className="text-white/50">1 Utility</span>
-                  <span className="font-bold text-white/90">4x dice</span>
+                  <span className="text-slate-500">1 Utility</span>
+                  <span className="font-bold text-slate-800">4x dice</span>
                 </div>
                 <div className="flex justify-between gap-2">
-                  <span className="text-white/50">2 Utilities</span>
-                  <span className="font-bold text-emerald-400">10x dice</span>
+                  <span className="text-slate-500">2 Utilities</span>
+                  <span className="font-bold text-emerald-600">10x dice</span>
                 </div>
               </div>
             )}
@@ -282,7 +287,7 @@ export function PropertyPanel(props: PropertyPanelProps) {
         )}
 
         {props.mode === "buy" && !canAfford && (
-          <div className="rounded-md border border-rose-400/20 bg-rose-500/10 p-[clamp(0.3rem,1.2cqmin,0.55rem)] text-[length:var(--board-text-xs)] font-semibold text-rose-300">
+          <div className="rounded-md border border-rose-400/20 bg-rose-500/10 p-[clamp(0.3rem,1.2cqmin,0.55rem)] text-[length:var(--board-text-xs)] font-semibold text-rose-700">
             Need ${tile.price - props.playerCash} more — that move&apos;s not
             covered yet
           </div>

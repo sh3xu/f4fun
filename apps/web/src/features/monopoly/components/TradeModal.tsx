@@ -95,7 +95,7 @@ export function TradeModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
       <GameCard
         stock="property"
         className={cn(
@@ -103,7 +103,7 @@ export function TradeModal({
         )}
       >
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white">Trade</h2>
+          <h2 className="text-lg font-bold text-slate-900">Trade</h2>
           <Button size="sm" variant="tokenGhost" onClick={onClose}>
             Close
           </Button>
@@ -111,7 +111,7 @@ export function TradeModal({
 
         {incoming.length > 0 && (
           <div className="mb-4 space-y-2">
-            <h3 className="text-sm font-semibold text-white/80">Incoming</h3>
+            <h3 className="text-sm font-semibold text-slate-700">Incoming</h3>
             {incoming.map((trade) => (
               <TradeOfferSummary
                 key={trade.tradeId}
@@ -128,7 +128,7 @@ export function TradeModal({
         {outgoing && (
           <div className="mb-4 space-y-2">
             <div className="flex items-center justify-between gap-2">
-              <h3 className="text-sm font-semibold text-white/80">
+              <h3 className="text-sm font-semibold text-slate-700">
                 Waiting for response
               </h3>
               <ActionCountdown
@@ -137,23 +137,23 @@ export function TradeModal({
                 urgentThresholdSecs={10}
               />
             </div>
-            <div className="rounded-lg border border-[#4fc3f7]/25 bg-[#4fc3f7]/10 p-3 text-sm">
-              <p className="mb-2 text-white/80">
+            <div className="rounded-lg border border-teal-400/25 bg-teal-50 p-3 text-sm">
+              <p className="mb-2 text-slate-700">
                 Waiting for{" "}
-                <span className="font-semibold text-white">
+                <span className="font-semibold text-slate-900">
                   {outgoingPartner?.name ?? "partner"}
                 </span>{" "}
                 to accept or decline your offer.
               </p>
-              <p className="text-white/70">
-                <span className="text-[#4fc3f7]">You offer:</span>{" "}
+              <p className="text-slate-600">
+                <span className="text-teal-700">You offer:</span>{" "}
                 <OfferSideVisual
                   cash={outgoing.offer.cash}
                   positions={outgoing.offer.positions}
                   goojfCards={outgoing.offer.goojfCards}
                 />
               </p>
-              <p className="mt-1 text-white/70">
+              <p className="mt-1 text-slate-600">
                 <span className="text-amber-200">You ask:</span>{" "}
                 <OfferSideVisual
                   cash={outgoing.request.cash}
@@ -175,9 +175,9 @@ export function TradeModal({
         )}
 
         {partners.length === 0 || !me ? (
-          <p className="text-sm text-white/50">No partners available.</p>
+          <p className="text-sm text-slate-500">No partners available.</p>
         ) : outgoing || incoming.length > 0 ? null : !canPropose ? (
-          <p className="text-sm text-white/50">
+          <p className="text-sm text-slate-500">
             {state.pendingTrades.length > 0
               ? "A trade offer is already pending."
               : "You can only propose a trade on your turn (before or after rolling)."}
@@ -185,7 +185,7 @@ export function TradeModal({
         ) : (
           <div className="space-y-3 text-sm">
             <div>
-              <span id="trade-partner-label" className="text-white/50">
+              <span id="trade-partner-label" className="text-slate-500">
                 Partner
               </span>
               <div
@@ -204,8 +204,8 @@ export function TradeModal({
                       className={cn(
                         "flex cursor-pointer items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors",
                         selected
-                          ? "border-[#4fc3f7]/50 bg-[#4fc3f7]/15 text-white"
-                          : "border-white/10 bg-black/25 text-white/70 hover:border-white/25",
+                          ? "border-teal-400/50 bg-teal-50 text-slate-900"
+                          : "border-slate-200 bg-slate-100 text-slate-600 hover:border-teal-300",
                       )}
                     >
                       <input
@@ -230,7 +230,7 @@ export function TradeModal({
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <div className="mb-1 flex items-center gap-1.5 font-semibold text-[#4fc3f7]">
+                <div className="mb-1 flex items-center gap-1.5 font-semibold text-teal-700">
                   <Avatar
                     avatarId={me.token}
                     size="xs"

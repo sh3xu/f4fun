@@ -19,7 +19,7 @@ function OfferSideVisual({
   goojfCards: number;
 }) {
   if (cash <= 0 && positions.length === 0 && goojfCards <= 0) {
-    return <span className="text-white/40">Nothing</span>;
+    return <span className="text-slate-400">Nothing</span>;
   }
 
   return (
@@ -61,12 +61,12 @@ export function TradeOfferSummary({
   return (
     <div
       className={cn(
-        "rounded-lg border border-white/10 bg-white/5 p-3 text-sm",
+        "rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm",
         className,
       )}
     >
       <div className="mb-2 flex items-start justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-1.5 font-semibold text-white">
+        <div className="flex min-w-0 items-center gap-1.5 font-semibold text-slate-900">
           {from && (
             <Avatar
               avatarId={from.token}
@@ -84,15 +84,15 @@ export function TradeOfferSummary({
           />
         )}
       </div>
-      <p className="text-white/70">
-        <span className="text-[#4fc3f7]">Offers:</span>{" "}
+      <p className="text-slate-600">
+        <span className="text-teal-700">Offers:</span>{" "}
         <OfferSideVisual
           cash={trade.offer.cash}
           positions={trade.offer.positions}
           goojfCards={trade.offer.goojfCards}
         />
       </p>
-      <p className="mt-1 text-white/70">
+      <p className="mt-1 text-slate-600">
         <span className="text-amber-200">Asks:</span>{" "}
         <OfferSideVisual
           cash={trade.request.cash}
@@ -149,7 +149,7 @@ export function IncomingTradeOfferCard({
         stock="buyPrompt"
         className="pointer-events-auto w-full max-w-sm space-y-2 p-3 animate-card-deal"
       >
-        <h3 className="text-xs font-bold uppercase tracking-wider text-white/80">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
           Incoming trades
         </h3>
         {incoming.map((trade) => (

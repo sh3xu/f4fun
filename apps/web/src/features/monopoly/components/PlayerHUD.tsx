@@ -23,6 +23,7 @@ interface PlayerHUDProps {
   timerDurationSecs?: number | null;
 }
 
+/** Compact player card — timer/jail/bankrupt sit on the avatar so height stays stable. */
 export function PlayerHUD({
   player,
   isActive,
@@ -38,66 +39,87 @@ export function PlayerHUD({
   const displayCash = useGameStore(
     (s) => s.displayCash[player.id] ?? player.cash,
   );
+  const showTimer = isActive && !player.isBankrupt;
 
   return (
     <div
       className={cn(
-        "relative flex w-full flex-col gap-0.5 overflow-hidden rounded-md p-2 select-none transition-all",
+        "relative flex w-full flex-col gap-1 overflow-hidden rounded-xl p-2.5 select-none transition-all",
         MATERIAL_CARD,
-        isActive
-          ? "brightness-110"
-          : "brightness-90 opacity-90 hover:brightness-100",
+        isActive ? "brightness-100" : "opacity-95 hover:opacity-100",
         player.isBankrupt && "opacity-40 grayscale",
       )}
       style={
         isActive && !player.isBankrupt
           ? {
-              borderColor: `${playerColor.hex}70`,
-              boxShadow: `0 0 10px ${playerColor.hex}20, inset 0 1px 0 rgba(255,255,255,0.08)`,
+              borderColor: playerColor.hex,
+              boxShadow: `0 0 0 2px ${playerColor.hex}55, 0 8px 20px ${playerColor.hex}18`,
             }
           : undefined
       }
     >
       <div className="flex items-center gap-2">
-        <Avatar
-          avatarId={player.token}
-          size="sm"
-          isActive={isActive}
-          backgroundColor={playerColor.hex}
-        />
+        <div className="relative h-8 w-8 shrink-0">
+          <Avatar
+            avatarId={player.token}
+            size="sm"
+            isActive={isActive}
+            backgroundColor={playerColor.hex}
+          />
+          {showTimer && (
+            <TurnTimerRing
+              deadlineAt={deadlineAt}
+              pausedMs={deadlinePausedMs}
+              durationSecs={timerDurationSecs}
+              className="absolute -top-1.5 -right-1.5"
+            />
+          )}
+          {player.isInJail && (
+            <span
+              role="img"
+              className="absolute -bottom-1 -left-1 flex h-4 w-4 items-center justify-center rounded-full border border-amber-300 bg-amber-50 text-amber-700 shadow-sm"
+              title="In jail"
+              aria-label="In jail"
+            >
+              <Lock className="h-2.5 w-2.5" aria-hidden />
+            </span>
+          )}
+          {player.isBankrupt && (
+            <span
+              role="img"
+              className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-full border border-rose-300 bg-rose-50 text-rose-700 shadow-sm"
+              title="Bankrupt"
+              aria-label="Bankrupt"
+            >
+              <Skull className="h-2.5 w-2.5" aria-hidden />
+            </span>
+          )}
+        </div>
 
         <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-center gap-1 text-xs font-bold text-gray-100">
+          <div className="flex h-4 min-w-0 items-center gap-1 text-xs font-bold text-slate-800">
             <span className="truncate">{player.name}</span>
             {isMe && (
-              <span className="shrink-0 rounded-full border border-[#4fc3f7]/25 bg-[#4fc3f7]/15 px-1.5 py-px text-[8px] font-semibold text-[#4fc3f7]">
+              <span className="shrink-0 rounded-full border border-teal-200 bg-teal-50 px-1.5 py-px text-[8px] font-semibold text-teal-700">
                 you
               </span>
             )}
             {isBot && (
-              <span className="shrink-0 rounded-full border border-violet-400/30 bg-violet-500/20 px-1.5 py-px text-[8px] font-bold uppercase tracking-wide text-violet-200">
+              <span className="shrink-0 rounded-full border border-violet-200 bg-violet-50 px-1.5 py-px text-[8px] font-bold tracking-wide text-violet-700 uppercase">
                 AI
               </span>
-            )}
-            {isActive && !player.isBankrupt && (
-              <TurnTimerRing
-                deadlineAt={deadlineAt}
-                pausedMs={deadlinePausedMs}
-                durationSecs={timerDurationSecs}
-                className="ml-0.5"
-              />
             )}
           </div>
           <CounterTicker
             value={displayCash}
             className={cn(
               BOARD_MONEY_CLASS,
-              "mt-0.5 text-xs",
+              "mt-0.5 block leading-none text-sm",
               displayCash < 200
-                ? "text-rose-400"
+                ? "text-rose-600"
                 : displayCash > 1000
-                  ? "text-emerald-400"
-                  : "text-gray-100",
+                  ? "text-emerald-600"
+                  : "text-slate-900",
             )}
           />
 
@@ -105,11 +127,11 @@ export function PlayerHUD({
             <button
               type="button"
               onClick={() => setPropsOpen((o) => !o)}
-              className="mt-0.5 flex items-center gap-1 text-[9px] text-gray-500 hover:text-gray-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--material-focus-glow)]"
+              className="mt-0.5 flex h-5 items-center gap-1 text-[10px] text-slate-500 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--material-focus-glow)]"
               aria-expanded={propsOpen}
             >
               <span>Properties:</span>
-              <span className="font-bold text-gray-300">
+              <span className="font-bold text-slate-700">
                 {player.ownedPositions.length}
               </span>
               <ChevronDown
@@ -120,30 +142,16 @@ export function PlayerHUD({
               />
             </button>
           ) : (
-            <p className="mt-0.5 flex items-center gap-1 text-[9px] text-gray-500">
+            <p className="mt-0.5 flex h-5 items-center gap-1 text-[10px] text-slate-500">
               <span>Properties:</span>
-              <span className="font-bold text-gray-300">0</span>
+              <span className="font-bold text-slate-700">0</span>
             </p>
-          )}
-
-          {player.isInJail && (
-            <span className="mt-0.5 flex items-center gap-1 text-[9px] font-bold text-amber-400">
-              <Lock className="h-3 w-3" />
-              Jail
-            </span>
-          )}
-
-          {player.isBankrupt && (
-            <span className="mt-0.5 flex items-center gap-1 text-[9px] font-bold text-rose-500">
-              <Skull className="h-3 w-3" />
-              Bankrupt
-            </span>
           )}
         </div>
       </div>
 
       {propsOpen && player.ownedPositions.length > 0 && (
-        <ul className="mt-1 max-h-24 space-y-0.5 overflow-y-auto border-t border-white/[0.06] pt-1 text-[9px] text-white/70">
+        <ul className="mt-1 max-h-24 space-y-0.5 overflow-y-auto border-t border-slate-100 pt-1 text-[10px] text-slate-600">
           {player.ownedPositions.map((pos) => (
             <li key={pos}>
               <PropertySwatch position={pos} />

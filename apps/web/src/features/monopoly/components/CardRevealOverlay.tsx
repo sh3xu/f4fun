@@ -71,7 +71,7 @@ export function CardRevealOverlay({
           isActive
           backgroundColor={drawerColorHex}
         />
-        <p className="text-center text-[length:var(--board-text-sm)] font-semibold text-white">
+        <p className="text-center text-[length:var(--board-text-sm)] font-semibold text-slate-900">
           {drawerName}
         </p>
         <p
@@ -91,7 +91,7 @@ export function CardRevealOverlay({
       >
         <CardFlip flipKey={cardText}>
           <GameCard stock={stock} header={header} className="text-left">
-            <p className="p-3 text-center text-[length:var(--board-text-sm)] leading-snug text-gray-200">
+            <p className="p-3 text-center text-[length:var(--board-text-sm)] leading-snug text-slate-700">
               {cardText}
             </p>
           </GameCard>
@@ -99,7 +99,7 @@ export function CardRevealOverlay({
       </div>
 
       {!revealReady ? (
-        <p className="text-center text-[length:var(--board-text-xs)] font-medium text-white/55">
+        <p className="text-center text-[length:var(--board-text-xs)] font-medium text-slate-500">
           Showing card… {secsLeft}s
         </p>
       ) : showAck ? (
@@ -118,7 +118,7 @@ export function CardRevealOverlay({
           {loading ? "..." : "Acknowledge"}
         </Button>
       ) : (
-        <p className="text-center text-[length:var(--board-text-xs)] font-medium text-white/45">
+        <p className="text-center text-[length:var(--board-text-xs)] font-medium text-slate-400">
           Waiting for {drawerName}…
         </p>
       )}

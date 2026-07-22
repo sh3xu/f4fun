@@ -36,13 +36,13 @@ export function CashAmountSlider({
     <div className={cn("w-full space-y-1", className)}>
       <div className="flex items-center justify-between gap-2 text-xs">
         {label ? (
-          <label htmlFor={inputId} className="font-medium text-white/55">
+          <label htmlFor={inputId} className="font-medium text-slate-500">
             {label}
           </label>
         ) : (
-          <span className="text-white/45">Amount</span>
+          <span className="text-slate-400">Amount</span>
         )}
-        <span className="font-bold tabular-nums text-emerald-400">
+        <span className="font-bold text-emerald-600 tabular-nums">
           ${clamped}
         </span>
       </div>
@@ -56,19 +56,19 @@ export function CashAmountSlider({
         disabled={disabled || safeMax <= min}
         onChange={(e) => onChange(Number(e.target.value))}
         className={cn(
-          "h-2 w-full cursor-pointer appearance-none rounded-full bg-white/15 accent-[#4fc3f7]",
+          "h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-200 accent-teal-600",
           "disabled:cursor-not-allowed disabled:opacity-40",
           "[&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:w-3.5",
           "[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full",
-          "[&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-white/30",
-          "[&::-webkit-slider-thumb]:bg-[#4fc3f7]",
+          "[&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-teal-700",
+          "[&::-webkit-slider-thumb]:bg-teal-600",
         )}
         aria-valuemin={min}
         aria-valuemax={safeMax}
         aria-valuenow={clamped}
         aria-label={label ?? "Cash amount"}
       />
-      <div className="flex justify-between text-[10px] text-white/35">
+      <div className="flex justify-between text-[10px] text-slate-400">
         <span>${min}</span>
         <span>${safeMax}</span>
       </div>
