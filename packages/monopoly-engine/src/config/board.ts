@@ -425,6 +425,23 @@ export const BANK_HOTEL_LIMIT = 12;
 // NOTE: House rule — sell houses/hotels back to bank at 75% (official is 50%).
 export const HOUSE_SELL_RATE = 0.75;
 
+/**
+ * Title-deed cash price to upgrade 4 houses → hotel.
+ * Official Monopoly: hotel cost equals house cost (plus return 4 houses to the bank).
+ */
+export function hotelUpgradeCost(houseCost: number): number {
+  return houseCost;
+}
+
+/** Total cash invested once a hotel stands (4 houses + upgrade). */
+export function hotelDevelopmentCost(houseCost: number): number {
+  return houseCost * 5;
+}
+
+export function buildingSellPayout(purchaseCost: number): number {
+  return Math.floor(purchaseCost * HOUSE_SELL_RATE);
+}
+
 export const RAILROAD_RENT = [0, 25, 50, 100, 200] as const;
 
 export const UTILITY_MULTIPLIER = [0, 4, 10] as const;

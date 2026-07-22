@@ -1,16 +1,12 @@
 "use client";
 
-import { TILE_BY_POSITION } from "@f4fun/monopoly-engine";
+import { hotelUpgradeCost, TILE_BY_POSITION } from "@f4fun/monopoly-engine";
 import { ChevronDown, Droplets, Train, Zap } from "lucide-react";
 import { Fragment, useState } from "react";
 import { GameCard } from "@/components/ui/GameCard";
 import { cn } from "@/lib/cn";
 import { PROPERTY_IMAGES } from "../lib/property-images";
-import {
-  BOARD_MONEY_CLASS,
-  PROPERTY_COLORS,
-  propertyHotelCost,
-} from "../theme/board-theme";
+import { BOARD_MONEY_CLASS, PROPERTY_COLORS } from "../theme/board-theme";
 import { PropertyActions } from "./PropertyActions";
 import { PropertyCoverImage } from "./PropertyCoverImage";
 import { getTileLabel } from "./tile-labels";
@@ -164,7 +160,7 @@ export function PropertyPanel(props: PropertyPanelProps) {
             <div className="flex items-baseline justify-between gap-1">
               <span className="text-white/50">Hotel</span>
               <span className={cn(BOARD_MONEY_CLASS, "font-bold text-white/90")}>
-                ${propertyHotelCost(tile.houseCost)}
+                ${hotelUpgradeCost(tile.houseCost)}
               </span>
             </div>
           </div>
@@ -240,7 +236,7 @@ export function PropertyPanel(props: PropertyPanelProps) {
                 <div className="flex justify-between gap-2">
                   <span className="text-white/50">Hotels cost</span>
                   <span className={cn(BOARD_MONEY_CLASS, "text-white/90")}>
-                    ${propertyHotelCost(tile.houseCost)}
+                    ${hotelUpgradeCost(tile.houseCost)} + 4 houses
                   </span>
                 </div>
               </div>
@@ -315,6 +311,7 @@ export function PropertyPanel(props: PropertyPanelProps) {
             hotels={props.hotels}
             deedTransferBlocked={props.deedTransferBlocked}
             canSellBuilding={props.canSellBuilding}
+            houseCost={tile.type === "property" ? tile.houseCost : 0}
             onBuild={props.onBuild}
             onSell={props.onSell}
             onMortgage={props.onMortgage}

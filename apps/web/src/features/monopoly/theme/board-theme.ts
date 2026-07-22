@@ -100,11 +100,6 @@ export const BOARD_TEXT_VARS: Record<string, string> = {
 export const BOARD_MONEY_CLASS =
   "font-mono tabular-nums tracking-tight font-semibold";
 
-/** Full hotel development cost (5 house-equivalents), matching engine valuation. */
-export function propertyHotelCost(houseCost: number): number {
-  return houseCost * 5;
-}
-
 /**
  * Buy / auction overlay — width tracks board cqmin so the card scales with the board.
  * Do not nest another container-type inside; keep cq units on the board/center.
