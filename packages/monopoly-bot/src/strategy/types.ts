@@ -5,6 +5,7 @@ import type {
   PlayerId,
   RNG,
 } from "@f4fun/monopoly-engine";
+import type { BotPersonality } from "./personality.js";
 
 export interface ScoredOption {
   action: GameAction;
@@ -23,6 +24,8 @@ export interface StrategyContext {
    * cleared at the start of the bot's next PRE_ROLL turn.
    */
   rejectedTradeLocks?: ReadonlySet<string>;
+  /** Auction / risk personality; defaults to balanced when omitted. */
+  personality?: BotPersonality;
 }
 
 export interface StrategyProfile {

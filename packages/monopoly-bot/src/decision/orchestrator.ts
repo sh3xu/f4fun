@@ -8,6 +8,7 @@ import {
   timeoutActionForState,
 } from "@f4fun/monopoly-engine";
 import { pickBestOption } from "../strategy/expertStrategy.js";
+import { type BotPersonality, PERSONALITIES } from "../strategy/personality.js";
 import type { StrategyProfile } from "../strategy/types.js";
 import { rejectedDealLockKey } from "./tradeFingerprint.js";
 
@@ -22,8 +23,18 @@ export class BotPlayer {
    * Cleared at the start of the bot's next PRE_ROLL turn so deals may be retried later.
    */
   private readonly rejectedTradeLocks = new Set<string>();
+  private readonly personality: BotPersonality;
 
-  constructor(private readonly strategy: StrategyProfile) {}
+  constructor(
+    private readonly strategy: StrategyProfile,
+    personality: BotPersonality = PERSONALITIES.balanced,
+  ) {
+    this.personality = personality;
+  }
+
+  getPersonality(): BotPersonality {
+    return this.personality;
+  }
 
   /**
    * Record a rejected deal for the partner's current conditions.
@@ -105,6 +116,7 @@ export class BotPlayer {
       legalActions: actions,
       rng,
       rejectedTradeLocks: this.rejectedTradeLocks,
+      personality: this.personality,
     };
     const tradeProposals = this.strategy.generateTradeProposals(ctx);
     const allLegal = [...actions];
@@ -120,7 +132,7 @@ export class BotPlayer {
       ...ctx,
       legalActions: allLegal,
     });
-    let best = pickBestOption(scored, allLegal);
+    let best = pickBestOption(scored, allLegal, state, actorId);
 
     if (!best && state.phase === "RAISE_CASH") {
       const settle = allLegal.find((a) => a.type === "FORCE_SETTLE_DEBT");
@@ -144,6 +156,9 @@ export class BotPlayer {
   }
 }
 
-export function createBotPlayer(strategy: StrategyProfile): BotPlayer {
-  return new BotPlayer(strategy);
+export function createBotPlayer(
+  strategy: StrategyProfile,
+  personality: BotPersonality = PERSONALITIES.balanced,
+): BotPlayer {
+  return new BotPlayer(strategy, personality);
 }
