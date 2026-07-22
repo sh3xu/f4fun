@@ -154,7 +154,7 @@ export function TradeModal({
                 />
               </p>
               <p className="mt-1 text-slate-600">
-                <span className="text-amber-200">You ask:</span>{" "}
+                <span className="text-amber-700">You ask:</span>{" "}
                 <OfferSideVisual
                   cash={outgoing.request.cash}
                   positions={outgoing.request.positions}
@@ -280,7 +280,7 @@ export function TradeModal({
               </div>
 
               <div>
-                <div className="mb-1 flex items-center gap-1.5 font-semibold text-amber-200">
+                <div className="mb-1 flex items-center gap-1.5 font-semibold text-amber-700">
                   {partner && partnerColor && (
                     <Avatar
                       avatarId={partner.token}

@@ -33,7 +33,7 @@ export function WinScreen({ gameState, winnerId, myPlayerId }: WinScreenProps) {
           <div className="py-2 text-center">
             <div className="mb-2 text-5xl">{winner.token}</div>
             <p className="text-2xl font-bold text-slate-900">{winner.name}</p>
-            <p className="text-lg font-semibold text-emerald-600">
+            <p className="text-lg font-semibold text-emerald-700">
               ${winner.cash}
             </p>
           </div>
@@ -49,7 +49,7 @@ export function WinScreen({ gameState, winnerId, myPlayerId }: WinScreenProps) {
                   className="flex items-center justify-between rounded-md border border-slate-200 bg-slate-50 p-2"
                 >
                   <div className="flex items-center gap-2">
-                    <span className="w-6 font-semibold text-slate-400">
+                    <span className="w-6 font-semibold text-slate-600">
                       #{index + 1}
                     </span>
                     <span className="text-xl">{player.token}</span>

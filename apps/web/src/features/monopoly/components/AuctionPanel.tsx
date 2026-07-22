@@ -71,7 +71,7 @@ export function AuctionPanel({
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">High bid:</span>
-              <span className="font-bold text-emerald-600">
+              <span className="font-bold text-emerald-700">
                 {auction.highBid > 0 ? `$${auction.highBid}` : "None yet"}
               </span>
             </div>
@@ -98,11 +98,11 @@ export function AuctionPanel({
           </div>
 
           <div className="flex min-h-[6.5rem] flex-col rounded-md border border-slate-200 bg-slate-50 p-[clamp(0.5rem,1.8cqmin,0.9rem)]">
-            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <p className="mb-1.5 text-[10px] font-bold tracking-wider text-slate-600 uppercase">
               Bid history
             </p>
             {bidHistory.length === 0 ? (
-              <p className="text-[length:var(--board-text-sm)] text-slate-400">
+              <p className="text-[length:var(--board-text-sm)] text-slate-500">
                 No bids yet
               </p>
             ) : (
@@ -127,8 +127,8 @@ export function AuctionPanel({
                         className={cn(
                           "shrink-0 tabular-nums",
                           entry.kind === "bid"
-                            ? "font-bold text-emerald-600"
-                            : "text-slate-400",
+                            ? "font-bold text-emerald-700"
+                            : "text-slate-500",
                         )}
                       >
                         {detail}

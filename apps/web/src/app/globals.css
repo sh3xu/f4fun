@@ -8,13 +8,13 @@
   --sidebar-bg: #ffffff;
   --tile-bg: #ffffff;
   --tile-face: #f7f4ef;
-  --accent: #0d9488;
-  --accent-soft: rgba(13, 148, 136, 0.14);
-  --accent-strong: #0f766e;
+  --accent: #0f766e;
+  --accent-soft: rgba(15, 118, 110, 0.14);
+  --accent-strong: #115e59;
   --scrollbar-size: 6px;
   --scrollbar-track: transparent;
-  --scrollbar-thumb: rgba(13, 148, 136, 0.35);
-  --scrollbar-thumb-hover: rgba(13, 148, 136, 0.55);
+  --scrollbar-thumb: rgba(15, 118, 110, 0.35);
+  --scrollbar-thumb-hover: rgba(15, 118, 110, 0.55);
 
   /* Soft cool table wash */
   --material-felt-base: #d4e8ec;
@@ -22,11 +22,11 @@
   --material-felt-edge: #c5dde3;
   --material-cardstock-bg: #ffffff;
   --material-cardstock-edge: rgba(15, 23, 42, 0.1);
-  --material-token-face: #0d9488;
+  --material-token-face: #0f766e;
   --material-token-highlight: rgba(255, 255, 255, 0.28);
   --material-token-shadow: rgba(15, 23, 42, 0.18);
   --material-rail-bg: #ffffff;
-  --material-focus-glow: rgba(13, 148, 136, 0.45);
+  --material-focus-glow: rgba(15, 118, 110, 0.45);
   --material-shadow: 0 8px 28px rgba(15, 23, 42, 0.1);
   --material-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.08);
 
@@ -250,8 +250,8 @@ body {
   color: #fff;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    0 2px 0 rgba(15, 118, 110, 0.45),
-    0 6px 14px rgba(13, 148, 136, 0.28);
+    0 2px 0 rgba(17, 94, 89, 0.5),
+    0 6px 14px rgba(15, 118, 110, 0.3);
   transition:
     transform var(--duration-settle) var(--ease-settle),
     box-shadow 160ms ease,

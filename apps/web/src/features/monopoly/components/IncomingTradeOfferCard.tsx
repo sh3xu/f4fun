@@ -19,7 +19,7 @@ function OfferSideVisual({
   goojfCards: number;
 }) {
   if (cash <= 0 && positions.length === 0 && goojfCards <= 0) {
-    return <span className="text-slate-400">Nothing</span>;
+    return <span className="text-slate-500">Nothing</span>;
   }
 
   return (
@@ -93,7 +93,7 @@ export function TradeOfferSummary({
         />
       </p>
       <p className="mt-1 text-slate-600">
-        <span className="text-amber-200">Asks:</span>{" "}
+        <span className="text-amber-700">Asks:</span>{" "}
         <OfferSideVisual
           cash={trade.request.cash}
           positions={trade.request.positions}

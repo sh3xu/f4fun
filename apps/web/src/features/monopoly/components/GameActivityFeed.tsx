@@ -23,7 +23,7 @@ export function GameActivityFeed({
 
   return (
     <div className={cn(MATERIAL_CARD, "flex flex-col gap-1 p-3", className)}>
-      <h2 className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+      <h2 className="text-[10px] font-bold tracking-widest text-slate-600 uppercase">
         Activity
       </h2>
       <ul className="max-h-40 space-y-1 overflow-y-auto text-xs text-slate-600">
@@ -32,7 +32,7 @@ export function GameActivityFeed({
             <span className="font-semibold text-teal-700">
               {entry.playerName}
             </span>
-            <span className="text-slate-400"> — </span>
+            <span className="text-slate-500"> — </span>
             {entry.message}
           </li>
         ))}

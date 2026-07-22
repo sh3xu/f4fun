@@ -203,7 +203,7 @@ export function BoardTile({
     return (
       <div
         key={player.id}
-        className="relative shrink-0 shadow-md transition-transform duration-150 hover:z-40 hover:scale-110"
+        className="relative shrink-0 shadow-md transition-transform duration-150 hover:!z-50 hover:scale-110"
         style={{ zIndex: index + 1 }}
         title={player.name}
       >

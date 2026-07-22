@@ -57,9 +57,10 @@ export function GameShell({
       <RailFrame
         as="aside"
         className={cn(
-          "relative z-[3] order-2 flex w-full shrink-0 flex-col gap-2 overflow-hidden p-2.5",
-          "max-h-[min(42dvh,20rem)]",
-          "md:z-[2] md:h-full md:max-h-none md:w-56 md:p-3 lg:w-64 xl:w-72",
+          "relative z-[3] order-2 flex w-full shrink-0 flex-col gap-2 p-2.5",
+          // NOTE: Scroll the dock itself on short phones so activity never clips off-screen.
+          "max-h-[min(42dvh,20rem)] min-h-0 overflow-y-auto",
+          "md:z-[2] md:h-full md:max-h-none md:overflow-hidden md:w-56 md:p-3 lg:w-64 xl:w-72",
         )}
         aria-label="Players and activity"
       >
@@ -77,14 +78,14 @@ export function GameShell({
           </div>
         </div>
 
-        <p className="hidden px-0.5 text-[10px] font-bold tracking-wider text-slate-400 uppercase md:block">
+        <p className="hidden px-0.5 text-[10px] font-bold tracking-wider text-slate-600 uppercase md:block">
           Players
         </p>
 
         <div
           className={cn(
-            "scrollbar-none flex gap-2 overflow-x-auto pb-0.5",
-            "md:min-h-0 md:flex-1 md:flex-col md:overflow-x-hidden md:overflow-y-auto",
+            "scrollbar-none flex min-h-0 shrink gap-2 overflow-x-auto pb-0.5",
+            "md:flex-1 md:flex-col md:overflow-x-hidden md:overflow-y-auto",
           )}
         >
           {hud}
