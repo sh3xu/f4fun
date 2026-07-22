@@ -1,0 +1,147 @@
+apps/web/src/components/ui/CashAmountSlider.tsx
+  s_2d4fed3272bee0::t_ac419ee1223487 39,43,45,59,63-64,71
+apps/web/src/components/ui/Card.tsx
+  s_2d4fed3272bee0::t_fde4342413695b 35
+apps/web/src/features/monopoly/components/GameActivityFeed.tsx
+  s_2d4fed3272bee0::t_6b6f3af0223a0c 26-27,29,32,35
+apps/web/src/features/monopoly/components/CardRevealOverlay.tsx
+  s_2d4fed3272bee0::t_f3947e4ccc5d54 74,94,102,121
+apps/web/src/features/monopoly/components/BoardTile.tsx
+  s_2d4fed3272bee0::t_9d0061dd7033c6 158
+  s_2d4fed3272bee0::t_d85a6a16d797b1 261,272,278,295,310-311
+  s_2d4fed3272bee0::t_cd3c021001864f 68,72,74,79,81,85,88
+  s_2d4fed3272bee0::t_db915e6d6b696a 172-200,206-207,212,214
+  s_2d4fed3272bee0::t_0efc9b021ac5e0 132
+  s_2d4fed3272bee0::t_d54f779bc78779 8
+  s_2d4fed3272bee0::t_aad0f47bcf2025 131
+  s_2d4fed3272bee0::t_1d81cec2abe294 14
+  s_2d4fed3272bee0::t_ebe6df26b53d22 355-358,361-362,366-368
+  s_2d4fed3272bee0::t_65c89e635e6903 377,380-385
+  s_2d4fed3272bee0::t_2c9b65a8eb6c27 246,250-254,256,262-265
+  s_2d4fed3272bee0::t_54f920892bb9ac 282-290,294,298-307
+apps/web/src/features/monopoly/components/Board.tsx
+  s_2d4fed3272bee0::t_f54e07098baf42 347-349,351,356
+apps/web/src/features/monopoly/components/GamePage.tsx
+  s_2d4fed3272bee0::t_4744b5f5c0f2c9 472
+  s_2d4fed3272bee0::t_83ae8ca92e2ae0 461,463-464,466-471,473-483,567-568,570
+  s_2d4fed3272bee0::t_4f1c24e5baf823 19
+  s_2d4fed3272bee0::t_a00354495cbee0 440,443,446,484-486,488,496,534-540,542-566,569,571-572
+apps/web/src/components/ui/LoadingSpinner.tsx
+  s_2d4fed3272bee0::t_514b76bf116fa1 23
+apps/web/src/features/monopoly/components/DiceTray.tsx
+  s_2d4fed3272bee0::t_ed034c5ff0342e 77,83,97
+apps/web/src/features/monopoly/components/PropertyPanel.tsx
+  s_2d4fed3272bee0::t_b0ad51a461bd00 10
+  s_2d4fed3272bee0::t_f3947e4ccc5d54 117,129,137,144,150,158,160-161,166-167,181,193,199,201,207,209,222-223,229-230,236-237,242-243,250-251,261,275,277-278,281
+  s_2d4fed3272bee0::t_61be3c092e839c 231,265,282,290
+  s_2d4fed3272bee0::t_251d86702bf87c 95
+  s_2d4fed3272bee0::t_4124c568575e89 83,94,96,98,101,103,106
+apps/web/src/features/monopoly/components/ActionCountdown.tsx
+  s_2d4fed3272bee0::t_f3947e4ccc5d54 30,33
+apps/web/src/components/ui/TableShell.tsx
+  s_2d4fed3272bee0::t_0962b5f9b99d28 13,24,32,35-36,40
+apps/web/src/components/ui/FeltSurface.tsx
+  s_2d4fed3272bee0::t_ea81f551d2eb71 10
+apps/web/src/features/monopoly/theme/board-theme.ts
+  s_2d4fed3272bee0::t_822adfce61decc 69-72,74-75,77-78,80,90
+  s_2d4fed3272bee0::t_54ec35f7fad704 104-106
+apps/web/src/features/monopoly/components/PlayerHUD.tsx
+  s_2d4fed3272bee0::t_467e63391e6bff 55-56
+  s_2d4fed3272bee0::t_200cb8c86e3bde 79,89
+  s_2d4fed3272bee0::t_b1644d1319dac0 26,42,62-78,80-88,90-97,100,117,130,145
+  s_2d4fed3272bee0::t_90198f2c4c06f4 49
+  s_2d4fed3272bee0::t_bc6510b7d2fd1a 47,103,108,119,121-122,134,147,154
+apps/web/src/features/monopoly/components/PropertySwatch.tsx
+  s_2d4fed3272bee0::t_f3947e4ccc5d54 21,36
+  s_2d4fed3272bee0::t_2cf1e39929e7af 40-42
+  s_2d4fed3272bee0::t_756409cc9ba4cb 5
+apps/web/src/features/room/components/HomePage.tsx
+  s_2d4fed3272bee0::t_4a659c3ae058e6 338
+  s_2d4fed3272bee0::t_78eb5b0ec0349e 179,193,195-196,202,211
+  s_2d4fed3272bee0::t_ed7225d100b443 156,278
+  s_2d4fed3272bee0::t_a1ddc8f13eb77d 174
+  s_2d4fed3272bee0::t_f98bda697bdb6c 256,263,266,269,293,298
+apps/web/src/features/monopoly/components/IncomingTradeOfferCard.tsx
+  s_2d4fed3272bee0::t_f3947e4ccc5d54 22,64,69,87-88,95,152
+apps/web/src/features/monopoly/components/CardPhotoBackdrop.tsx
+  s_2d4fed3272bee0::t_8ea041b8e026b5 1-7,11-13,16-19,22,25,47-49
+  s_2d4fed3272bee0::t_53945cec372327 10,15,21,26-29,36-39,45-46
+  s_2d4fed3272bee0::t_44fec0286daa4f 8-9
+  s_2d4fed3272bee0::t_6260d4ba603396 33,41
+  s_2d4fed3272bee0::t_f270ca3350232a 14,20,23-24,30-32,34-35,40,42-44
+apps/web/src/features/monopoly/components/TradeModal.tsx
+  s_2d4fed3272bee0::t_f3947e4ccc5d54 98,106,114,131,140-141,143,148-149,156,178,180,188,207-208,233
+apps/web/src/features/monopoly/components/TurnTimerRing.tsx
+  s_2d4fed3272bee0::t_2756b001544e2a 42-43,52,77,94
+apps/web/src/features/monopoly/components/AuctionPanel.tsx
+  s_2d4fed3272bee0::t_ea22d22e663d0f 10-11
+  s_2d4fed3272bee0::t_61be3c092e839c 74,130
+  s_2d4fed3272bee0::t_f3947e4ccc5d54 65,67-68,73,80-81,87-88,93-94,100-101,105,123,131,145,187
+  s_2d4fed3272bee0::t_df0f444c68bb18 50,56-61
+apps/web/src/components/ui/PlayerBadge.tsx
+  s_2d4fed3272bee0::t_f41d6bd7424c86 31-32,37-38,43,48
+apps/web/src/features/monopoly/components/RaiseCashBanner.tsx
+  s_2d4fed3272bee0::t_4744b5f5c0f2c9 26-28
+  s_2d4fed3272bee0::t_8a9acf22d559c9 22-23,30,35
+apps/web/src/features/room/components/LobbyPage.tsx
+  s_2d4fed3272bee0::t_f89abfb8a59bdf 234,237,252,254,257,265,273,278,287,311,348,354
+  s_2d4fed3272bee0::t_4744b5f5c0f2c9 288-289
+apps/web/src/components/ui/Button.tsx
+  s_2d4fed3272bee0::t_14a4b77c33b672 6,14,16,18,20,23-25,39
+apps/web/src/features/monopoly/components/GameShell.tsx
+  s_2d4fed3272bee0::t_90201e5924b7e2 93-95
+  s_2d4fed3272bee0::t_d6eb2eeb0fcdf5 1-9,12-18,20-22,25-59,61,63,65,91,96-124
+  s_2d4fed3272bee0::t_74dcf2dd33a08f 10-11,19,23-24,60,62,64,66-90,92
+apps/web/src/features/monopoly/components/PropertyActions.tsx
+  s_2d4fed3272bee0::t_4a56f4c088ed88 104
+  s_2d4fed3272bee0::t_733978c11245df 222
+  s_2d4fed3272bee0::t_030fb2f32e87ee 150
+  s_2d4fed3272bee0::t_e2aeb9464ee36e 235
+apps/web/src/components/ui/Avatar.tsx
+  s_2d4fed3272bee0::t_daae625e782b50 32-33,37-38,42-43,47-48,52-53,64,71,80
+  s_2d4fed3272bee0::t_384731ffef2bf3 9,12,20,25-29,66
+apps/web/src/app/layout.tsx
+  s_2d4fed3272bee0::t_0e4a3e9c73876d 5-6,10-11,35
+  s_2d4fed3272bee0::t_8da2b595de02a5 2,15-16,33
+  s_d71fd4fedd90ac::t_38b1321ca3f58f 12-14
+apps/web/src/app/globals.css
+  s_2d4fed3272bee0::t_e7062759ac9a4e 118-120
+  s_2d4fed3272bee0::t_4744b5f5c0f2c9 179-180,212,232
+  s_2d4fed3272bee0::t_e28780b682f889 4-8,10-13,16-32,38,44-45,48-51,79,89,92,115,123,131-133,136-139,144-145,155-157,163-166,172,175,177,185,189-190,192-193,199-201,206,210,213-214,220-222,226,230-231,233,235-236,241,243-250,252-254,262,266,268-270,276-277,283-287,295-297,312-313,320-321,324,326,331,335,339,343
+  s_2d4fed3272bee0::t_3cd9db2e1d5250 46
+  s_2d4fed3272bee0::t_a677ce34acd482 116-117
+apps/web/src/components/ui/GameCard.tsx
+  s_2d4fed3272bee0::t_d3028b2a603053 84
+  s_2d4fed3272bee0::t_c24060aed08f07 17,21-22,25-27,30-32,35-37,51
+  s_2d4fed3272bee0::t_5cb04e45a034cd 47-48,57,67,69-70,76-80,92
+apps/web/src/components/ui/Input.tsx
+  s_2d4fed3272bee0::t_d646ade2fa45dd 9,17,26-28,30,35
+apps/web/src/features/monopoly/components/WinScreen.tsx
+  s_2d4fed3272bee0::t_61be3c092e839c 36
+  s_2d4fed3272bee0::t_f3947e4ccc5d54 25,35,41-42,49,52,56
+  s_2d4fed3272bee0::t_4744b5f5c0f2c9 65-67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "9d8aa023fbedc3fb9e93432c0b40a1d08a054a9d",
+  "prompts": {},
+  "sessions": {
+    "s_2d4fed3272bee0": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "87ff053b-47bb-4050-8de8-43e8afd088c0",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    },
+    "s_d71fd4fedd90ac": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1dbe6e62-aa50-416d-a0d2-1c9714c7051e",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
