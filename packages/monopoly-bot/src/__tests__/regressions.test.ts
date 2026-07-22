@@ -188,7 +188,7 @@ describe("monopoly-bot regressions", () => {
     );
     expect(afterDrasticLow.action.type).toBe("PROPOSE_TRADE");
 
-    // Next turn (PRE_ROLL) clears locks — may offer again based on scoring.
+    // Next turn (PRE_ROLL) clears locks but must roll — no trade spam in dice phase.
     state.players.p2.cash = 1500;
     proposer.rememberRejectedTrade(
       fingerprint,
@@ -196,8 +196,21 @@ describe("monopoly-bot regressions", () => {
     );
     state.phase = "PRE_ROLL";
     state.doublesCount = 0;
-    const nextTurn = proposer.decide(state, "p1", [{ type: "END_TURN" }], rng);
-    expect(nextTurn.action.type).toBe("PROPOSE_TRADE");
+    const nextTurn = proposer.decide(state, "p1", [{ type: "ROLL_DICE" }], rng);
+    expect(nextTurn.action.type).toBe("ROLL_DICE");
+    expect(proposer.hasRejectedTrade(fingerprint, partnerCondition)).toBe(
+      false,
+    );
+
+    // After rolling window, END_TURN may re-offer the cleared deal.
+    state.phase = "END_TURN";
+    const afterRollWindow = proposer.decide(
+      state,
+      "p1",
+      [{ type: "END_TURN" }],
+      rng,
+    );
+    expect(afterRollWindow.action.type).toBe("PROPOSE_TRADE");
   });
 
   it("partner cash bands only change on drastic liquidity shifts", () => {
@@ -252,6 +265,35 @@ describe("monopoly-bot regressions", () => {
     }
 
     expect(proposer.hasRejectedTrade(fingerprint, partnerCondition)).toBe(true);
+  });
+
+  it("never offers trades during PRE_ROLL dice phase", () => {
+    const state = createState();
+    state.phase = "PRE_ROLL";
+    state.activePlayerIndex = 0;
+    state.doublesCount = 0;
+    state.ownership[1] = { ownerId: "p1", isMortgaged: false };
+    state.ownership[6] = { ownerId: "p1", isMortgaged: false };
+    state.ownership[3] = { ownerId: "p2", isMortgaged: false };
+    state.players.p1.ownedPositions = [1, 6];
+    state.players.p2.ownedPositions = [3];
+
+    const proposals = generateTradeProposals({
+      state,
+      actorId: "p1",
+      legalActions: [{ type: "ROLL_DICE" }],
+      rng: () => 0.5,
+    });
+    expect(proposals).toHaveLength(0);
+
+    const bot = new BotPlayer(expertStrategy);
+    const decision = bot.decide(
+      state,
+      "p1",
+      [{ type: "ROLL_DICE" }],
+      () => 0.5,
+    );
+    expect(decision.action.type).toBe("ROLL_DICE");
   });
 
   it("honors an expired turn deadline over proposing a trade", () => {

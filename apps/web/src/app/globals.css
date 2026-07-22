@@ -29,7 +29,6 @@
   --tex-felt: url("/materials/felt-grain.png");
   --tex-paper: url("/materials/paper-grain.png");
   --tex-rail: url("/materials/rail-wood.png");
-  --tex-noise: url("/materials/noise.png");
 
   /* Shared settle easing */
   --ease-settle: cubic-bezier(0.34, 1.45, 0.64, 1);
@@ -188,8 +187,6 @@ body {
 
 .material-tile {
   background-color: rgba(18, 26, 40, 0.48);
-  background-image: var(--tex-noise);
-  background-size: 80px 80px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.12),

@@ -1,4 +1,4 @@
-import { Hotel, House } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/cn";
 
 interface BuildingMarkerProps {
@@ -6,7 +6,7 @@ interface BuildingMarkerProps {
   title?: string;
 }
 
-/** Outlined black house glyph with optional count (Issue #53). */
+/** House glyph from public assets with optional count (Issue #53). */
 export function HouseMarker({
   count = 1,
   className,
@@ -23,9 +23,15 @@ export function HouseMarker({
         className,
       )}
     >
-      <House
+      <Image
+        src="/house.svg"
+        alt=""
+        width={10}
+        height={10}
+        unoptimized
         aria-hidden
-        className="h-2.5 w-2.5 fill-none stroke-black stroke-[1.75] drop-shadow-[0_1px_1px_rgba(255,255,255,0.35)]"
+        className="h-2.5 w-2.5 drop-shadow-[0_1px_1px_rgba(255,255,255,0.35)]"
+        draggable={false}
       />
       {count > 1 && (
         <span className="text-[8px] font-bold leading-none text-black drop-shadow-[0_1px_1px_rgba(255,255,255,0.45)]">
@@ -36,7 +42,7 @@ export function HouseMarker({
   );
 }
 
-/** Outlined black hotel glyph (Issue #53). */
+/** Hotel glyph from public assets (Issue #53). */
 export function HotelMarker({
   className,
   title = "Hotel",
@@ -48,9 +54,15 @@ export function HotelMarker({
       title={title}
       className={cn("inline-flex shrink-0 leading-none", className)}
     >
-      <Hotel
+      <Image
+        src="/hotel.svg"
+        alt=""
+        width={12}
+        height={12}
+        unoptimized
         aria-hidden
-        className="h-3 w-3 fill-none stroke-black stroke-[1.75] drop-shadow-[0_1px_1px_rgba(255,255,255,0.35)]"
+        className="h-3 w-3 drop-shadow-[0_1px_1px_rgba(255,255,255,0.35)]"
+        draggable={false}
       />
     </span>
   );

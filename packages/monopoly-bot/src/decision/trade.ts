@@ -55,6 +55,10 @@ export function generateTradeProposals(ctx: StrategyContext): GameAction[] {
   const { state, actorId, rng, rejectedTradeLocks } = ctx;
   const player = state.players[actorId];
   if (!player || player.isBankrupt) return [];
+  // NOTE: Dice-roll phase — roll first; trading waits for END_TURN / jail decision.
+  if (state.phase === "PRE_ROLL") {
+    return [];
+  }
   // NOTE: Issue #55 — no new deals once the turn deadline has elapsed.
   if (isActionDeadlineExpired(state)) {
     return [];
@@ -201,8 +205,11 @@ export function scoreTradeProposals(
   const options: { action: GameAction; score: number; reasoning: string }[] =
     [];
   const phase = state.phase;
-  const tradeWindow =
-    phase === "END_TURN" || phase === "JAIL_DECISION" || phase === "PRE_ROLL";
+  // NOTE: PRE_ROLL is roll-only for bots — no new trade offers during dice phase.
+  if (phase === "PRE_ROLL") {
+    return [];
+  }
+  const tradeWindow = phase === "END_TURN" || phase === "JAIL_DECISION";
 
   for (const action of proposals) {
     if (action.type !== "PROPOSE_TRADE") continue;
@@ -253,17 +260,14 @@ export function scoreTradeProposals(
     // makes the immediate net score flat — buildings unlock after.
     if (completesMonopoly && delta < -100) continue;
 
-    // NOTE: END_TURN/JAIL must beat END_TURN(600) / ROLL(500) or trades never fire.
+    // NOTE: END_TURN/JAIL must beat END_TURN(600) or trades never fire.
     let score: number;
     if (
       completesMonopoly &&
       (phase === "END_TURN" || phase === "JAIL_DECISION")
     ) {
       score = Math.min(650 + Math.floor(delta / 10), 900);
-    } else if (completesMonopoly && phase === "PRE_ROLL") {
-      // Prefer rolling unless the monopoly completion is exceptionally valuable.
-      score = delta > 400 ? 520 : Math.min(delta + 80, 450);
-    } else if (tradeWindow && phase !== "PRE_ROLL") {
+    } else if (tradeWindow) {
       score = Math.min(delta + 120, 640);
     } else {
       score = Math.min(delta + 50, 400);
