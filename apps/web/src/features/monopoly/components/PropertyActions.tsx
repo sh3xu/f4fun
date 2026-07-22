@@ -129,12 +129,20 @@ export function PropertyActions(props: PropertyActionsProps) {
     onClose,
   } = props;
 
-  const buildHotel = houses >= 4;
+  // NOTE: Engine clears houses when a hotel is placed — derive UI from hotels first.
+  const hotelBuilt = hotels > 0;
+  const buildHotel = !hotelBuilt && houses >= 4;
   const buildPrice = buildHotel ? hotelUpgradeCost(houseCost) : houseCost;
-  const sellHotel = hotels > 0;
+  const sellHotel = hotelBuilt;
   const sellPayout = sellHotel
     ? buildingSellPayout(hotelDevelopmentCost(houseCost))
     : buildingSellPayout(houseCost);
+
+  const buildAriaLabel = hotelBuilt
+    ? `Hotel already built on ${label}`
+    : buildHotel
+      ? `Build hotel on ${label} for $${buildPrice}`
+      : `Build house on ${label} for $${buildPrice}`;
 
   return (
     <div className="flex flex-col gap-[clamp(0.25rem,0.9cqmin,0.4rem)]">
@@ -149,22 +157,22 @@ export function PropertyActions(props: PropertyActionsProps) {
             <Button
               variant="token"
               size="sm"
-              disabled={loading || isMortgaged || hotels > 0}
+              disabled={loading || isMortgaged || hotelBuilt}
               onClick={onBuild}
               className={btnClass}
-              aria-label={
-                buildHotel
-                  ? `Build hotel on ${label} for $${buildPrice}`
-                  : `Build house on ${label} for $${buildPrice}`
-              }
+              aria-label={buildAriaLabel}
             >
               <span className="inline-flex items-center justify-center gap-1">
-                {buildHotel ? (
+                {hotelBuilt || buildHotel ? (
                   <Hotel className={iconClass} aria-hidden />
                 ) : (
                   <Home className={iconClass} aria-hidden />
                 )}
-                <span className={BOARD_MONEY_CLASS}>${buildPrice}</span>
+                {hotelBuilt ? (
+                  <span>Built</span>
+                ) : (
+                  <span className={BOARD_MONEY_CLASS}>${buildPrice}</span>
+                )}
               </span>
             </Button>
             <Button
