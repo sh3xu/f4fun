@@ -1,0 +1,42 @@
+apps/web/src/components/ui/CashAmountSlider.tsx
+  s_2d4fed3272bee0::t_1a10ce31451e2c 43,45,59,63-64,71
+apps/web/src/features/monopoly/components/IncomingTradeOfferCard.tsx
+  s_2d4fed3272bee0::t_6157d3c592e42c 22,96
+apps/web/src/features/monopoly/components/BoardTile.tsx
+  s_2d4fed3272bee0::t_f9193dd9487440 206
+apps/web/src/app/globals.css
+  s_2d4fed3272bee0::t_5c303fc075bea3 253-254
+  s_2d4fed3272bee0::t_cad20c4e1ebb9b 29
+  s_2d4fed3272bee0::t_71f38dc975c552 16-17
+  s_2d4fed3272bee0::t_27264c51ab70bc 25
+  s_2d4fed3272bee0::t_f1d0aece815ce4 11-13
+apps/web/src/features/monopoly/components/GameShell.tsx
+  s_2d4fed3272bee0::t_0ce62c3dde33a7 60-63,81,87-88
+apps/web/src/components/ui/GameCard.tsx
+  s_2d4fed3272bee0::t_915ce894dea73c 92-94
+apps/web/src/features/monopoly/components/TradeModal.tsx
+  s_2d4fed3272bee0::t_fc30a7c08b6256 157,283
+apps/web/src/features/monopoly/components/AuctionPanel.tsx
+  s_2d4fed3272bee0::t_eaec3ff2f02bce 74,101,105,130-131
+apps/web/src/features/monopoly/components/GameActivityFeed.tsx
+  s_2d4fed3272bee0::t_a30fd1c1225882 26,35
+apps/web/src/features/monopoly/components/WinScreen.tsx
+  s_2d4fed3272bee0::t_bd82471cd85241 52
+  s_2d4fed3272bee0::t_5d01c96c074df1 36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "5cab7a497cf20d9caf45509a82da1e38e2e98013",
+  "prompts": {},
+  "sessions": {
+    "s_2d4fed3272bee0": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "87ff053b-47bb-4050-8de8-43e8afd088c0",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
