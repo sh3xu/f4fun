@@ -1,0 +1,20 @@
+apps/web/src/features/monopoly/components/BuildingMarkers.tsx
+  s_fe0cceb6c0e430::t_4de635202e4062 1,26,29-31,57,60-62
+  s_fe0cceb6c0e430::t_45ea3718a62a6e 9,27-28,33-34,45,58-59,64-65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "9bc2245347707668f9bef1af35af3520129bb2a3",
+  "prompts": {},
+  "sessions": {
+    "s_fe0cceb6c0e430": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "40ec3a17-6a84-4afb-b777-642a9055f819",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
