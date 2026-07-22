@@ -51,6 +51,42 @@ describe("building", () => {
     const result = applyAction(state, { type: "SELL_HOUSE", position: 3 });
     expect(result.error).toBe("Must sell evenly across the color group");
   });
+
+  it("charges hotel upgrade at house cost and returns 4 houses to bank", () => {
+    const state = monopolyBrown();
+    const cost = 50;
+    state.players.p1.houses[1] = 4;
+    state.players.p1.houses[3] = 4;
+    state.bankHouses = 24;
+    state.bankHotels = 12;
+    const cashBefore = state.players.p1.cash;
+
+    const result = applyAction(state, { type: "BUILD_HOTEL", position: 1 });
+    expect(result.error).toBeUndefined();
+    expect(state.players.p1.cash).toBe(cashBefore - cost);
+    expect(state.players.p1.hotels[1]).toBe(1);
+    expect(state.players.p1.houses[1]).toBeUndefined();
+    expect(state.bankHouses).toBe(28);
+    expect(state.bankHotels).toBe(11);
+  });
+
+  it("sells hotel for development payout and leaves no houses", () => {
+    const state = monopolyBrown();
+    const cost = 50;
+    state.players.p1.hotels[1] = 1;
+    state.players.p1.hotels[3] = 1;
+    state.bankHotels = 10;
+    const cashBefore = state.players.p1.cash;
+
+    const result = applyAction(state, { type: "SELL_HOTEL", position: 1 });
+    expect(result.error).toBeUndefined();
+    expect(state.players.p1.hotels[1]).toBeUndefined();
+    expect(state.players.p1.houses[1]).toBeUndefined();
+    expect(state.players.p1.cash).toBe(
+      cashBefore + Math.floor(cost * 5 * HOUSE_SELL_RATE),
+    );
+    expect(state.bankHotels).toBe(11);
+  });
 });
 
 describe("mortgage", () => {
