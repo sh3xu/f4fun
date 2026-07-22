@@ -1,4 +1,5 @@
 import type { ColorGroup } from "./config/board.js";
+import { BANK_HOUSE_LIMIT, GO_SALARY } from "./config/board.js";
 
 export type RNG = () => number;
 
@@ -150,8 +151,8 @@ export interface GameConfig {
 
 export const DEFAULT_GAME_CONFIG: GameConfig = {
   startingCash: 1500,
-  goSalary: 200,
-  bankHouseLimit: 32,
+  goSalary: GO_SALARY,
+  bankHouseLimit: BANK_HOUSE_LIMIT,
   freeParkingJackpot: false,
   disconnectGraceSecs: 300,
   maxPlayers: 8,

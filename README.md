@@ -100,7 +100,7 @@ pnpm biome check --write .
 - Counter ticker animations for cash updates
 - Sonner toasts for game events
 - Responsive board layout
-- Disconnect grace period (60s reconnect window)
+- Disconnect grace period (5 min reconnect window)
 
 ## Tech Stack
 

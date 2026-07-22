@@ -105,6 +105,16 @@ describe("building", () => {
     expect(state.bankHotels).toBe(3);
     expect(state.config.bankHouseLimit).toBe(8);
   });
+
+  it("floors hotel supply for non step-8 house limits", () => {
+    const state = createInitialState(
+      "test",
+      [{ id: "p1", name: "Alice", token: "car" }],
+      { bankHouseLimit: 20 },
+    );
+    expect(state.bankHotels).toBe(7);
+    expect(Number.isInteger(state.bankHotels)).toBe(true);
+  });
 });
 
 describe("mortgage", () => {

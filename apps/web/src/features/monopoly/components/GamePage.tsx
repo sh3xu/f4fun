@@ -71,6 +71,7 @@ export function GamePage() {
   const cashToastTimeoutRef = useRef<number | null>(null);
   const lastDisplayCashRef = useRef<number | null>(null);
   const trackedGameIdRef = useRef<string | undefined>(undefined);
+  const trackedSnapshotRef = useRef(0);
   const myPlayerIdRef = useRef(myPlayerId);
   myPlayerIdRef.current = myPlayerId;
 
@@ -78,6 +79,7 @@ export function GamePage() {
     myPlayerId ? s.displayCash[myPlayerId] : undefined,
   );
   const gameId = useGameStore((s) => s.state?.gameId);
+  const snapshotRevision = useGameStore((s) => s.snapshotRevision);
 
   const showError = useCallback((message: string) => {
     if (actionErrorTimeoutRef.current !== null) {
@@ -171,6 +173,11 @@ export function GamePage() {
   ]);
 
   useEffect(() => {
+    // NOTE: Snapshots (join/rejoin) must not toast historical cash vs a stale baseline.
+    if (trackedSnapshotRef.current !== snapshotRevision) {
+      trackedSnapshotRef.current = snapshotRevision;
+      lastDisplayCashRef.current = null;
+    }
     if (trackedGameIdRef.current !== gameId) {
       trackedGameIdRef.current = gameId;
       lastDisplayCashRef.current = null;
@@ -183,7 +190,7 @@ export function GamePage() {
     const delta = myDisplayCash - lastDisplayCashRef.current;
     lastDisplayCashRef.current = myDisplayCash;
     if (delta !== 0) showCashToast(delta);
-  }, [gameId, myDisplayCash, showCashToast]);
+  }, [snapshotRevision, gameId, myDisplayCash, showCashToast]);
 
   const appendActivityFromEvents = useCallback(
     (nextState: GameState, events: GameEvent[]) => {

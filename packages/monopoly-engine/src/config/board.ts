@@ -422,9 +422,9 @@ export const BOARD_SIZE = 40;
 export const BANK_HOUSE_LIMIT = 32;
 export const BANK_HOTEL_LIMIT = 12;
 
-/** Official ratio: 32 houses : 12 hotels. Exact for step-8 house limits. */
+/** Official ratio: 32 houses : 12 hotels. Floor so non–step-8 limits stay whole hotels. */
 export function hotelsForHouseLimit(houseLimit: number): number {
-  return (houseLimit * 12) / 32;
+  return Math.floor((houseLimit * 12) / 32);
 }
 
 // NOTE: Sell houses/hotels back at half purchase price (official).

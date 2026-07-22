@@ -14,6 +14,7 @@ import { withRoomLock } from "../games/monopoly/roomMutex.js";
 import { cancelGrace, startGrace } from "../rooms/DisconnectGrace.js";
 import { destroyRoomIfAbandoned } from "../rooms/RoomCleanup.js";
 import {
+  getRoom,
   setPlayerConnected,
   verifyPlayerSession,
 } from "../rooms/RoomManager.js";
@@ -134,7 +135,20 @@ export function createSocketServer(httpServer: HttpServer): Server {
         isConnected: false,
       });
 
-      startGrace(roomId, playerId, DISCONNECT_GRACE_SECS, async () => {
+      let graceSecs = DISCONNECT_GRACE_SECS;
+      try {
+        const room = await getRoom(roomId);
+        if (room?.gameId) {
+          const state = await loadGame(room.gameId);
+          if (state?.config.disconnectGraceSecs != null) {
+            graceSecs = state.config.disconnectGraceSecs;
+          }
+        }
+      } catch (err) {
+        console.error("[Grace] Failed to resolve config graceSecs:", err);
+      }
+
+      startGrace(roomId, playerId, graceSecs, async () => {
         console.log(`[Grace] Expired for player=${playerId} room=${roomId}`);
         socket.to(roomId).emit("room:playerLeft", {
           playerId,

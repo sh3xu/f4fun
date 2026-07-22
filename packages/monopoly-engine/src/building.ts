@@ -243,7 +243,7 @@ export function buildHotel(
     return { error: "Bank has no hotels left", events: [] };
   }
 
-  // NOTE: Official deed — hotel cash price equals house cost; 4 houses return to bank.
+  // NOTE: House rule — hotel cash price is 2× house cost; 4 houses return to bank.
   const upgradeCost = hotelUpgradeCost(tile.houseCost);
   if (player.cash < upgradeCost) {
     return { error: "Insufficient funds", events: [] };
