@@ -1,0 +1,38 @@
+packages/monopoly-bot/src/decision/build.ts
+  s_79d52646c39d43::t_68e2b14dd3f75d 3
+  s_79d52646c39d43::t_6b13329dce652e 51
+packages/monopoly-engine/src/config/board.ts
+  s_79d52646c39d43::t_b2da68f366aebb 428-444
+packages/monopoly-engine/src/building.ts
+  s_79d52646c39d43::t_080fe4ae58f520 2-4
+  s_79d52646c39d43::t_0afff0c6733945 288-289,291-292
+  s_79d52646c39d43::t_9f68529512f307 247-249,253
+  s_79d52646c39d43::t_9c53fd268366d0 197
+apps/web/src/features/monopoly/components/PropertyActions.tsx
+  s_79d52646c39d43::t_7e9cd880a98f89 1-7,9,32,55-56,122,132-138,156-158,161-168,177-179,182-190
+packages/monopoly-engine/src/__tests__/building-mortgage.test.ts
+  s_79d52646c39d43::t_c9dc82e034883b 54-89
+packages/monopoly-engine/src/evaluateBoardState.ts
+  s_79d52646c39d43::t_1f0923495cafc7 1,46-48
+apps/web/src/features/monopoly/components/PropertyPanel.tsx
+  s_79d52646c39d43::t_b973f5627087a1 314
+  s_79d52646c39d43::t_7572981923acbb 9
+  s_79d52646c39d43::t_d4f313055e3111 3
+  s_79d52646c39d43::t_99c720af45afa4 163,239
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "d83c97af7ad6e36309c85197febb64373fca4b1b",
+  "prompts": {},
+  "sessions": {
+    "s_79d52646c39d43": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "8c237c6a-e4e1-4f2a-bcb7-decb609b8f74",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
