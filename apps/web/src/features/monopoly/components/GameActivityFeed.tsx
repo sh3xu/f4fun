@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import { getPlayerColor } from "@/lib/player-colors";
 import { MATERIAL_CARD } from "../theme/board-theme";
 
 export interface ActivityEntry {
@@ -12,11 +13,13 @@ export interface ActivityEntry {
 
 interface GameActivityFeedProps {
   entries: ActivityEntry[];
+  turnOrder: string[];
   className?: string;
 }
 
 export function GameActivityFeed({
   entries,
+  turnOrder,
   className,
 }: GameActivityFeedProps) {
   if (entries.length === 0) return null;
@@ -27,15 +30,23 @@ export function GameActivityFeed({
         Activity
       </h2>
       <ul className="max-h-40 space-y-1 overflow-y-auto text-xs text-slate-600">
-        {entries.map((entry) => (
-          <li key={entry.id} className="leading-snug">
-            <span className="font-semibold text-teal-700">
-              {entry.playerName}
-            </span>
-            <span className="text-slate-500"> — </span>
-            {entry.message}
-          </li>
-        ))}
+        {entries.map((entry) => {
+          const color = entry.playerId
+            ? getPlayerColor(entry.playerId, turnOrder)
+            : null;
+          return (
+            <li key={entry.id} className="leading-snug">
+              <span
+                className="font-semibold"
+                style={color ? { color: color.hex } : undefined}
+              >
+                {entry.playerName}
+              </span>
+              <span className="text-slate-500"> — </span>
+              {entry.message}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

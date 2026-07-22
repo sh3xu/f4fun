@@ -153,8 +153,8 @@ describe("evaluateBoardState", () => {
     const evaluation = evaluateBoardState(state, "p1");
 
     expect(evaluation.propertyValue).toBe(60);
-    expect(evaluation.buildingValue).toBe(350);
-    expect(evaluation.netWorth).toBe(1910);
+    expect(evaluation.buildingValue).toBe(400);
+    expect(evaluation.netWorth).toBe(1960);
   });
 });
 

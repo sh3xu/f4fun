@@ -422,20 +422,25 @@ export const BOARD_SIZE = 40;
 export const BANK_HOUSE_LIMIT = 32;
 export const BANK_HOTEL_LIMIT = 12;
 
-// NOTE: House rule — sell houses/hotels back to bank at 75% (official is 50%).
-export const HOUSE_SELL_RATE = 0.75;
-
-/**
- * Title-deed cash price to upgrade 4 houses → hotel.
- * Official Monopoly: hotel cost equals house cost (plus return 4 houses to the bank).
- */
-export function hotelUpgradeCost(houseCost: number): number {
-  return houseCost;
+/** Official ratio: 32 houses : 12 hotels. Exact for step-8 house limits. */
+export function hotelsForHouseLimit(houseLimit: number): number {
+  return (houseLimit * 12) / 32;
 }
 
-/** Total cash invested once a hotel stands (4 houses + upgrade). */
+// NOTE: Sell houses/hotels back at half purchase price (official).
+export const HOUSE_SELL_RATE = 0.5;
+
+/**
+ * Cash price to upgrade 4 houses → hotel (plus return 4 houses to the bank).
+ * House rule: hotel upgrade costs 2× house cost.
+ */
+export function hotelUpgradeCost(houseCost: number): number {
+  return houseCost * 2;
+}
+
+/** Total cash invested once a hotel stands (4 houses + 2× upgrade). */
 export function hotelDevelopmentCost(houseCost: number): number {
-  return houseCost * 5;
+  return houseCost * 6;
 }
 
 export function buildingSellPayout(purchaseCost: number): number {

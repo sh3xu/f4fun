@@ -256,19 +256,42 @@ export function registerRoomHandlers(
         }
 
         const gameId = generateGameId();
-        const playerConfigs = room.players
+        const seatedPlayers = room.players
           .filter((p) => p.isBot || p.isConnected)
           .map((p) => ({
             id: p.playerId,
             name: p.name,
             token: p.token,
           }));
-        if (playerConfigs.length < 2) {
+        if (seatedPlayers.length < 2) {
           callback("Need at least 2 players");
           return;
         }
 
-        const initialState = createInitialState(gameId, playerConfigs);
+        // NOTE: Randomize who goes first — seat order is not turn order.
+        const playerConfigs = [...seatedPlayers];
+        for (let i = playerConfigs.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const a = playerConfigs[i];
+          const b = playerConfigs[j];
+          if (a && b) {
+            playerConfigs[i] = b;
+            playerConfigs[j] = a;
+          }
+        }
+
+        const { options } = data;
+        const initialState = createInitialState(gameId, playerConfigs, {
+          ...(options?.startingCash !== undefined && {
+            startingCash: options.startingCash,
+          }),
+          ...(options?.goSalary !== undefined && {
+            goSalary: options.goSalary,
+          }),
+          ...(options?.bankHouseLimit !== undefined && {
+            bankHouseLimit: options.bankHouseLimit,
+          }),
+        });
         stampActionDeadline(initialState);
         console.log(
           `[Server] Created game ${gameId} with ${playerConfigs.length} players`,

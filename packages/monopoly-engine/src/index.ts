@@ -1,8 +1,7 @@
 import {
-  BANK_HOTEL_LIMIT,
-  BANK_HOUSE_LIMIT,
   CHANCE_CARDS,
   COMMUNITY_CHEST_CARDS,
+  hotelsForHouseLimit,
 } from "./config/board.js";
 import type {
   GameConfig,
@@ -63,8 +62,8 @@ export function createInitialState(
     allowDoublesReroll: true,
     doublesCount: 0,
     ownership: {},
-    bankHouses: BANK_HOUSE_LIMIT,
-    bankHotels: BANK_HOTEL_LIMIT,
+    bankHouses: finalConfig.bankHouseLimit,
+    bankHotels: hotelsForHouseLimit(finalConfig.bankHouseLimit),
     freeParkingPool: 0,
     chanceDeck: {
       drawPile: shuffleDeck(

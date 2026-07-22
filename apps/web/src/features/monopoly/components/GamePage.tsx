@@ -8,6 +8,7 @@ import { useRoomStore } from "@/features/room/store/roomStore";
 import { cn } from "@/lib/cn";
 import { emitWithCallback, getSocket } from "@/lib/socket";
 import { useDeferredGameEventToasts } from "../hooks/useDeferredGameEventToasts";
+import { formatCashDeltaToast } from "../lib/cashDeltaToast";
 import {
   activityEntriesFromEventLog,
   formatGameEvent,
@@ -61,10 +62,22 @@ export function GamePage() {
   const [activityEntries, setActivityEntries] = useState<ActivityEntry[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
   const [tradeOutcome, setTradeOutcome] = useState<string | null>(null);
+  const [cashToast, setCashToast] = useState<{
+    message: string;
+    positive: boolean;
+  } | null>(null);
   const actionErrorTimeoutRef = useRef<number | null>(null);
   const tradeOutcomeTimeoutRef = useRef<number | null>(null);
+  const cashToastTimeoutRef = useRef<number | null>(null);
+  const lastDisplayCashRef = useRef<number | null>(null);
+  const trackedGameIdRef = useRef<string | undefined>(undefined);
   const myPlayerIdRef = useRef(myPlayerId);
   myPlayerIdRef.current = myPlayerId;
+
+  const myDisplayCash = useGameStore((s) =>
+    myPlayerId ? s.displayCash[myPlayerId] : undefined,
+  );
+  const gameId = useGameStore((s) => s.state?.gameId);
 
   const showError = useCallback((message: string) => {
     if (actionErrorTimeoutRef.current !== null) {
@@ -85,6 +98,21 @@ export function GamePage() {
     tradeOutcomeTimeoutRef.current = window.setTimeout(() => {
       setTradeOutcome((current) => (current === message ? null : current));
       tradeOutcomeTimeoutRef.current = null;
+    }, 4000);
+  }, []);
+
+  const showCashToast = useCallback((delta: number) => {
+    if (delta === 0) return;
+    if (cashToastTimeoutRef.current !== null) {
+      window.clearTimeout(cashToastTimeoutRef.current);
+    }
+    const message = formatCashDeltaToast(delta);
+    setCashToast({ message, positive: delta > 0 });
+    cashToastTimeoutRef.current = window.setTimeout(() => {
+      setCashToast((current) =>
+        current?.message === message ? null : current,
+      );
+      cashToastTimeoutRef.current = null;
     }, 4000);
   }, []);
 
@@ -141,6 +169,21 @@ export function GamePage() {
     setMyPlayerId,
     setMyPlayerSecret,
   ]);
+
+  useEffect(() => {
+    if (trackedGameIdRef.current !== gameId) {
+      trackedGameIdRef.current = gameId;
+      lastDisplayCashRef.current = null;
+    }
+    if (myDisplayCash === undefined) return;
+    if (lastDisplayCashRef.current === null) {
+      lastDisplayCashRef.current = myDisplayCash;
+      return;
+    }
+    const delta = myDisplayCash - lastDisplayCashRef.current;
+    lastDisplayCashRef.current = myDisplayCash;
+    if (delta !== 0) showCashToast(delta);
+  }, [gameId, myDisplayCash, showCashToast]);
 
   const appendActivityFromEvents = useCallback(
     (nextState: GameState, events: GameEvent[]) => {
@@ -509,6 +552,24 @@ export function GamePage() {
         </div>
       )}
 
+      {cashToast && (
+        <div
+          className={cn(
+            "fixed left-3 z-50 max-w-xs rounded-xl px-3 py-2 text-xs font-bold shadow-md md:bottom-4",
+            cashToast.positive
+              ? "border border-teal-200 bg-teal-50 text-teal-900"
+              : "border border-rose-200 bg-rose-50 text-rose-800",
+            actionError && tradeOutcome
+              ? "bottom-[6.5rem]"
+              : actionError || tradeOutcome
+                ? "bottom-14"
+                : "bottom-3",
+          )}
+        >
+          {cashToast.message}
+        </div>
+      )}
+
       {winnerId && (
         <WinScreen
           gameState={state}
@@ -574,7 +635,11 @@ export function GamePage() {
         }
         hud={playerCards}
         activity={
-          <GameActivityFeed entries={activityEntries} className="w-full" />
+          <GameActivityFeed
+            entries={activityEntries}
+            turnOrder={state?.turnOrder ?? []}
+            className="w-full"
+          />
         }
       />
     </>

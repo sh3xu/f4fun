@@ -4,6 +4,7 @@ import {
   BOARD_TILES,
   buildingsBlockDeedAction,
   canSellEvenly,
+  getLegalActions,
   POST_LAND_CARD_PAUSE_MS,
   TILE_BY_POSITION,
 } from "@f4fun/monopoly-engine";
@@ -427,6 +428,16 @@ export function Board({
                         myPlayerId,
                         viewedPosition,
                       ) !== null
+                    }
+                    canBuild={
+                      state != null &&
+                      myPlayerId != null &&
+                      getLegalActions(state, myPlayerId).some(
+                        (a) =>
+                          (a.type === "BUILD_HOUSE" ||
+                            a.type === "BUILD_HOTEL") &&
+                          a.position === viewedPosition,
+                      )
                     }
                     canSellBuilding={
                       state != null &&

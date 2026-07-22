@@ -31,6 +31,20 @@ export const RoomJoinSchema = z.object({
 
 export const RoomStartGameSchema = z.object({
   roomCode: z.string().length(6),
+  options: z
+    .object({
+      startingCash: z.number().int().min(500).max(2000).multipleOf(100),
+      goSalary: z.number().int().min(50).max(500).multipleOf(50),
+      bankHouseLimit: z
+        .number()
+        .int()
+        .min(8)
+        .max(32)
+        .refine((n) => n % 8 === 0, {
+          message: "bankHouseLimit must be a multiple of 8",
+        }),
+    })
+    .optional(),
 });
 
 export const RoomAddBotPlayerSchema = z.object({

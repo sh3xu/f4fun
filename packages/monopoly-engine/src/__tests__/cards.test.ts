@@ -359,7 +359,7 @@ describe("GOOJF via full ROLL_DICE → ACKNOWLEDGE_CARD flow", () => {
 });
 
 describe("applyCardEffect — move_to (advance to Go)", () => {
-  it("moves player to target position and collects Go salary if applicable", () => {
+  it("moves player to GO and collects Go salary", () => {
     const state = createInitialState("g1", [
       { id: "p1", name: "Alice", token: "car" },
     ]);
@@ -375,8 +375,27 @@ describe("applyCardEffect — move_to (advance to Go)", () => {
     );
 
     expect(state.players.p1.position).toBe(0);
-    // Landed on GO itself, not "passed", so no $200 salary (setPlayerPosition excludes GO_POSITION)
-    expect(state.players.p1.cash).toBe(cashBefore);
+    expect(state.players.p1.cash).toBe(cashBefore + state.config.goSalary);
+  });
+
+  it("uses config.goSalary for Advance to Go", () => {
+    const state = createInitialState(
+      "g1",
+      [{ id: "p1", name: "Alice", token: "car" }],
+      { goSalary: 150 },
+    );
+    state.players.p1.position = 24;
+    const cashBefore = state.players.p1.cash;
+
+    applyCardEffect(
+      state,
+      "p1",
+      getCard("chance", "ch_advance_go"),
+      "chance",
+      fixedRng,
+    );
+
+    expect(state.players.p1.cash).toBe(cashBefore + 150);
   });
 });
 

@@ -170,7 +170,7 @@ packages/monopoly-engine/src/
 ```env
 PORT=3001
 MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/f4fun
-DISCONNECT_GRACE_SECS=60
+DISCONNECT_GRACE_SECS=300
 CORS_ORIGIN=http://localhost:3000
 ```
 

@@ -21,7 +21,7 @@ import type { SocketWithPlayer } from "./middleware.js";
 import { validatePayload } from "./middleware.js";
 import { registerRoomHandlers } from "./room-handlers.js";
 
-const DISCONNECT_GRACE_SECS = Number(process.env.DISCONNECT_GRACE_SECS ?? 60);
+const DISCONNECT_GRACE_SECS = Number(process.env.DISCONNECT_GRACE_SECS ?? 300);
 
 function parseCorsOrigins(value: string | undefined): string[] {
   return (value || "http://localhost:3000")

@@ -127,6 +127,10 @@ export interface PendingTrade {
 
 export interface GameConfig {
   startingCash: number;
+  /** Cash awarded when landing on or passing GO. */
+  goSalary: number;
+  /** Initial bank house supply; hotels derived via hotelsForHouseLimit. */
+  bankHouseLimit: number;
   freeParkingJackpot: boolean;
   disconnectGraceSecs: number;
   maxPlayers: number;
@@ -146,8 +150,10 @@ export interface GameConfig {
 
 export const DEFAULT_GAME_CONFIG: GameConfig = {
   startingCash: 1500,
+  goSalary: 200,
+  bankHouseLimit: 32,
   freeParkingJackpot: false,
-  disconnectGraceSecs: 60,
+  disconnectGraceSecs: 300,
   maxPlayers: 8,
   shortTimeoutSecs: 10,
   longTimeoutSecs: 30,

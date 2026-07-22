@@ -1,6 +1,5 @@
 import {
   buildingSellPayout,
-  hotelDevelopmentCost,
   hotelUpgradeCost,
   POSITIONS_BY_COLOR,
   TILE_BY_POSITION,
@@ -285,11 +284,10 @@ export function sellHotel(
     return { error: "Must sell evenly across the color group", events: [] };
   }
 
-  // NOTE: Hotel is its own identity — sell removes it entirely (no houses left).
-  // Payout is HOUSE_SELL_RATE of full development cost (4 houses + upgrade).
+  // NOTE: Hotel sell → empty (not 4 houses); payout is half of upgrade cost only.
   delete player.hotels[position];
   delete player.houses[position];
-  player.cash += buildingSellPayout(hotelDevelopmentCost(cost));
+  player.cash += buildingSellPayout(hotelUpgradeCost(cost));
   state.bankHotels += 1;
 
   return {

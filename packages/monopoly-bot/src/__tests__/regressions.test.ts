@@ -475,4 +475,40 @@ describe("monopoly-bot regressions", () => {
       expect(action.offer.positions).not.toContain(3);
     }
   });
+
+  it("omits BUILD_HOUSE from legal actions and bot decisions when bank is empty", () => {
+    const state = createState();
+    state.phase = "END_TURN";
+    state.players.p1.ownedPositions = [1, 3];
+    state.ownership[1] = { ownerId: "p1", isMortgaged: false };
+    state.ownership[3] = { ownerId: "p1", isMortgaged: false };
+    state.bankHouses = 0;
+
+    const legal = getLegalActions(state, "p1");
+    expect(legal.some((a) => a.type === "BUILD_HOUSE")).toBe(false);
+    expect(legal.some((a) => a.type === "BUILD_HOTEL")).toBe(false);
+
+    const bot = new BotPlayer(expertStrategy);
+    const decision = bot.decide(state, "p1", legal, () => 0.5);
+    expect(decision.action.type).not.toBe("BUILD_HOUSE");
+    expect(decision.action.type).not.toBe("BUILD_HOTEL");
+  });
+
+  it("omits BUILD_HOTEL when bank has no hotels", () => {
+    const state = createState();
+    state.phase = "END_TURN";
+    state.players.p1.ownedPositions = [1, 3];
+    state.ownership[1] = { ownerId: "p1", isMortgaged: false };
+    state.ownership[3] = { ownerId: "p1", isMortgaged: false };
+    state.players.p1.houses[1] = 4;
+    state.players.p1.houses[3] = 4;
+    state.bankHotels = 0;
+
+    const legal = getLegalActions(state, "p1");
+    expect(legal.some((a) => a.type === "BUILD_HOTEL")).toBe(false);
+
+    const bot = new BotPlayer(expertStrategy);
+    const decision = bot.decide(state, "p1", legal, () => 0.5);
+    expect(decision.action.type).not.toBe("BUILD_HOTEL");
+  });
 });

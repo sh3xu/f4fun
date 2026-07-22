@@ -19,6 +19,11 @@ import { cn } from "@/lib/cn";
 import { loadPlayer, loadRoom, saveRoom } from "@/lib/player-storage";
 import { connectSocket, emitWithCallback, getSocket } from "@/lib/socket";
 import { useRoomStore } from "../store/roomStore";
+import {
+  DEFAULT_HOST_GAME_OPTIONS,
+  HostGameOptions,
+  type HostGameOptionsValue,
+} from "./HostGameOptions";
 
 function resolvePlayerAvatar(
   player: { id: string; token: string },
@@ -57,6 +62,9 @@ export function LobbyPage() {
   const [syncing, setSyncing] = useState(true);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [hostOptions, setHostOptions] = useState<HostGameOptionsValue>(
+    DEFAULT_HOST_GAME_OPTIONS,
+  );
 
   const activeRoomCode = roomCode || codeFromUrl;
   const isHost = players.find((p) => p.id === myPlayerId)?.isHost ?? false;
@@ -215,7 +223,10 @@ export function LobbyPage() {
     setError("");
 
     try {
-      await emitWithCallback("room:startGame", { roomCode: activeRoomCode });
+      await emitWithCallback("room:startGame", {
+        roomCode: activeRoomCode,
+        options: hostOptions,
+      });
     } catch (err) {
       setError((err as Error).message);
       setLoading(false);
@@ -323,6 +334,14 @@ export function LobbyPage() {
               <Bot className="h-4 w-4" />
               {addingBot ? "Adding AI..." : "Add AI Player"}
             </Button>
+          )}
+
+          {isHost && (
+            <HostGameOptions
+              value={hostOptions}
+              onChange={setHostOptions}
+              disabled={lobbyActionPending}
+            />
           )}
 
           {isHost && (
