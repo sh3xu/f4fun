@@ -1,0 +1,25 @@
+server/src/socket/bootstrap.ts
+  s_374d5a64007a8c::t_a443edd17f0ebe 14-18
+  s_374d5a64007a8c::t_1418b74b4d1922 142,150-169
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "00e0a4dad58f6b9bab45c520b37caa1225f1a9bc",
+  "prompts": {},
+  "humans": {
+    "h_54cccc4af8e4fc": {
+      "author": "sh3xu <s43khu@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_374d5a64007a8c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "8093b169-76f9-4c1f-8d46-f00545b03a1d",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
