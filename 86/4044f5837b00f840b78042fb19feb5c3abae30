@@ -1,0 +1,20 @@
+apps/web/src/features/monopoly/components/PropertyActions.tsx
+  s_79d52646c39d43::t_39f456795e3893 132-134,136,141-146,160,163,166,171-174
+  s_79d52646c39d43::t_dafaea8f9f15f8 175
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "864044f5837b00f840b78042fb19feb5c3abae30",
+  "prompts": {},
+  "sessions": {
+    "s_79d52646c39d43": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "8c237c6a-e4e1-4f2a-bcb7-decb609b8f74",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
