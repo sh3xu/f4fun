@@ -1,4 +1,12 @@
 export {
+  adaptiveBidStep,
+  auctionStrategicPremium,
+  chooseAuctionTargetBid,
+  computeAuctionMaxBid,
+  isEngineLegalAuctionBid,
+  scoreAuctionOptions,
+} from "./decision/auction.js";
+export {
   type BotDecision,
   BotPlayer,
   createBotPlayer,
@@ -18,6 +26,12 @@ export {
 export { randomSeed, seededRng } from "./simulate/seededRng.js";
 export { baselineStrategy } from "./strategy/baselineStrategy.js";
 export { expertStrategy } from "./strategy/expertStrategy.js";
+export {
+  type BotPersonality,
+  type BotPersonalityId,
+  PERSONALITIES,
+  personalityFromPlayerId,
+} from "./strategy/personality.js";
 export type {
   ScoredOption,
   StrategyContext,

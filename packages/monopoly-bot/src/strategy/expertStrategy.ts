@@ -1,5 +1,8 @@
-import type { GameAction } from "@f4fun/monopoly-engine";
-import { scoreAuctionOptions } from "../decision/auction.js";
+import type { GameAction, GameState, PlayerId } from "@f4fun/monopoly-engine";
+import {
+  isEngineLegalAuctionBid,
+  scoreAuctionOptions,
+} from "../decision/auction.js";
 import { scoreBuildOptions, scoreEndTurn } from "../decision/build.js";
 import { scoreBuyOptions } from "../decision/buy.js";
 import { scoreJailOptions } from "../decision/jail.js";
@@ -96,9 +99,23 @@ export const expertStrategy: StrategyProfile = {
 export function pickBestOption(
   options: ScoredOption[],
   legalActions: GameAction[],
+  state?: GameState,
+  actorId?: PlayerId,
 ): ScoredOption | null {
   const legalKeys = new Set(legalActions.map((a) => JSON.stringify(a)));
-  const valid = options.filter((o) => legalKeys.has(JSON.stringify(o.action)));
+  const valid = options.filter((o) => {
+    if (legalKeys.has(JSON.stringify(o.action))) return true;
+    // NOTE: Bots may jump to any engine-legal integer; discrete legalActions is for UI ladders.
+    if (
+      o.action.type === "PLACE_BID" &&
+      state &&
+      actorId &&
+      isEngineLegalAuctionBid(state, actorId, o.action.amount)
+    ) {
+      return true;
+    }
+    return false;
+  });
   if (valid.length === 0) return null;
   return valid.reduce((best, cur) => (cur.score > best.score ? cur : best));
 }
