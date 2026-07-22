@@ -1,0 +1,39 @@
+packages/monopoly-engine/src/types.ts
+  s_374d5a64007a8c::t_a622841a30fa6d 154-155
+  s_374d5a64007a8c::t_9484a3773b6c5b 2
+packages/monopoly-engine/src/__tests__/building-mortgage.test.ts
+  s_374d5a64007a8c::t_c05625693d11db 108-117
+server/src/socket/bootstrap.ts
+  s_374d5a64007a8c::t_ceff8207761c85 138-151
+packages/monopoly-engine/src/building.ts
+  s_374d5a64007a8c::t_28665fd71fe9a7 246
+apps/web/src/features/monopoly/store/gameStore.ts
+  s_374d5a64007a8c::t_7d9550efef3a76 49-50
+  s_374d5a64007a8c::t_895226086de5a4 232,249
+  s_374d5a64007a8c::t_50d7fbb3e0e066 480
+packages/monopoly-engine/src/config/board.ts
+  s_374d5a64007a8c::t_0689ea3d48e1a8 425,427
+README.md
+  s_374d5a64007a8c::t_63c6a965aa5d63 103
+apps/web/src/features/monopoly/components/GamePage.tsx
+  s_374d5a64007a8c::t_288b2e68e0401b 177-180,193
+  s_374d5a64007a8c::t_7061a4f0804858 82
+  s_374d5a64007a8c::t_09053e09ca2ef9 176
+  s_374d5a64007a8c::t_3d783b02e71f44 74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "9df381205d0bdd73408c05f01d6cae73c5b7dc2a",
+  "prompts": {},
+  "sessions": {
+    "s_374d5a64007a8c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "8093b169-76f9-4c1f-8d46-f00545b03a1d",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
