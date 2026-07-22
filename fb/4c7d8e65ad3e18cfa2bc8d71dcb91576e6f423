@@ -1,0 +1,91 @@
+apps/web/src/features/monopoly/components/Board.tsx
+  s_374d5a64007a8c::t_4e2c403707a983 7
+  s_374d5a64007a8c::t_6ce29ec120f5d4 432-441
+apps/web/src/features/monopoly/lib/cashDeltaToast.test.ts
+  s_374d5a64007a8c::t_933fbbda52ec85 1,3-49
+  s_374d5a64007a8c::t_7a5a445b0e3877 2
+apps/web/src/lib/player-colors.ts
+  s_374d5a64007a8c::t_79846634e18300 52-65
+apps/web/src/features/monopoly/components/GameActivityFeed.tsx
+  s_374d5a64007a8c::t_b8a79ed41178b7 4
+  s_374d5a64007a8c::t_0b6aa4105c3d67 16,22,33-49
+apps/web/src/features/monopoly/components/PropertyPanel.tsx
+  s_374d5a64007a8c::t_55feb53283b75b 319
+  s_374d5a64007a8c::t_969125dfe897fa 33
+apps/web/src/features/monopoly/components/PropertyActions.tsx
+  s_374d5a64007a8c::t_d25e6824e3de9f 141
+  s_374d5a64007a8c::t_1821cef56548a0 30,79-90,123,144-148,158-213,217-218,220,222,224-248
+packages/monopoly-engine/src/__tests__/building-mortgage.test.ts
+  s_374d5a64007a8c::t_3b3cfe3d420f46 21
+  s_374d5a64007a8c::t_b1d0998af58ce0 55,66,73,86,90-107
+packages/monopoly-engine/src/__tests__/movement.test.ts
+  s_374d5a64007a8c::t_cb9c6ca48edd37 24,40-67,83-96
+  s_374d5a64007a8c::t_908502f1867015 97
+packages/monopoly-engine/src/movement.ts
+  s_374d5a64007a8c::t_139ca71f42a02b 1
+  s_374d5a64007a8c::t_7a5a445b0e3877 18
+  s_374d5a64007a8c::t_301b2df04bb274 19-30,44-47,65-68
+packages/monopoly-engine/src/types.ts
+  s_374d5a64007a8c::t_1db5969f47e86b 130-133,153-154
+  s_374d5a64007a8c::t_8df28fd6b54242 156
+packages/monopoly-engine/src/building.ts
+  s_374d5a64007a8c::t_bf901c24de6088 287,290
+packages/monopoly-engine/src/index.ts
+  s_374d5a64007a8c::t_466b44fcc35e72 65-66
+  s_374d5a64007a8c::t_3de8090a3a64fe 4
+server/src/socket/room-handlers.ts
+  s_374d5a64007a8c::t_7c9e83c5a4c832 259,266,271-280
+  s_374d5a64007a8c::t_f851969b4aa13c 283-294
+  s_374d5a64007a8c::t_ed7642c7965e9d 281-282
+apps/web/src/features/monopoly/components/GamePage.tsx
+  s_374d5a64007a8c::t_1a5e6269f7777d 11
+  s_374d5a64007a8c::t_c4c1aa6abfc340 173,178-185,187
+  s_374d5a64007a8c::t_c7f9942b39d5eb 176-177
+  s_374d5a64007a8c::t_ab0316583db419 555-572
+  s_374d5a64007a8c::t_0c5c5d30b7bf7b 73
+  s_374d5a64007a8c::t_06c1a16d36a8d4 174-175,186
+  s_374d5a64007a8c::t_a1a1a64acde79d 65-68,71-72,77-81,104-115
+  s_374d5a64007a8c::t_6d1caabf2bdc8d 638-642
+  s_374d5a64007a8c::t_b23f3b23af32d7 116-118
+apps/web/src/features/monopoly/lib/cashDeltaToast.ts
+  s_374d5a64007a8c::t_6c367b5b3264b9 2-7,29-33,36,93,102,111
+  s_374d5a64007a8c::t_21aa05ddeac200 1,8-28,34-35,37-92,94-101,103-110,112-127
+packages/shared-types/src/room-events.ts
+  s_374d5a64007a8c::t_0156a83108369f 34-47
+packages/monopoly-engine/src/__tests__/query-helpers.test.ts
+  s_374d5a64007a8c::t_0ce6956f740f05 156-157
+apps/web/src/features/room/components/LobbyPage.tsx
+  s_374d5a64007a8c::t_272b244f5ac1b9 340-346
+  s_374d5a64007a8c::t_7ac515df9853d0 65-67
+  s_374d5a64007a8c::t_fbab673760ba6f 226-229
+  s_374d5a64007a8c::t_39a9d12e79bb27 22-26
+  s_374d5a64007a8c::t_52e89016aa221b 339
+apps/web/src/features/room/components/HostGameOptions.tsx
+  s_374d5a64007a8c::t_8522bf89b158f0 1-95
+README.md
+  s_374d5a64007a8c::t_66ac94175005c1 173
+packages/monopoly-engine/src/__tests__/cards.test.ts
+  s_374d5a64007a8c::t_d992519335e55f 362,378-398
+packages/monopoly-engine/src/config/board.ts
+  s_374d5a64007a8c::t_bad28c6b9a9934 425-431,434-435,438,441,443
+packages/monopoly-bot/src/__tests__/regressions.test.ts
+  s_374d5a64007a8c::t_d6026258736722 478-513
+server/src/socket/bootstrap.ts
+  s_374d5a64007a8c::t_8eea7b5aba5165 24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "fb4c7d8e65ad3e18cfa2bc8d71dcb91576e6f423",
+  "prompts": {},
+  "sessions": {
+    "s_374d5a64007a8c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "8093b169-76f9-4c1f-8d46-f00545b03a1d",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
