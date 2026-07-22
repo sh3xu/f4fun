@@ -21,7 +21,10 @@ export interface BotPersonality {
   completionPremium: number;
 }
 
-export const PERSONALITIES: Record<BotPersonalityId, BotPersonality> = {
+/** NOTE: Mapped type keeps Record key and `id` field in lockstep. */
+export const PERSONALITIES: {
+  [K in BotPersonalityId]: BotPersonality & { id: K };
+} = {
   conservative: {
     id: "conservative",
     overpayMult: 0.9,

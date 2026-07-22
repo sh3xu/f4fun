@@ -27,7 +27,13 @@ export function isEngineLegalAuctionBid(
 ): boolean {
   const auction = state.auction;
   const player = state.players[actorId];
-  if (!auction || !player) return false;
+  // NOTE: Mirror placeBid actor/phase gates — amount alone is not enough to bypass legalActions.
+  if (state.phase !== "AUCTION" || !auction || !player) return false;
+  if (player.isBankrupt) return false;
+  if (auction.sellerId === actorId) return false;
+  if (auction.bidderOrder[auction.currentBidderIndex] !== actorId) {
+    return false;
+  }
   if (!Number.isInteger(amount)) return false;
   return amount >= auction.minNextBid && amount <= player.cash;
 }
@@ -77,6 +83,8 @@ export function auctionStrategicPremium(
 
   for (const opponentId of state.turnOrder) {
     if (opponentId === actorId) continue;
+    // NOTE: Owner-auction seller is losing the deed and cannot bid — not a denial target.
+    if (opponentId === state.auction?.sellerId) continue;
     const opponent = state.players[opponentId];
     if (!opponent || opponent.isBankrupt) continue;
     if (wouldCompleteOpponentMonopoly(state, opponentId, position)) {

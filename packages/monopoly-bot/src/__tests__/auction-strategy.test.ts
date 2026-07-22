@@ -7,6 +7,7 @@ import {
 import { describe, expect, it } from "vitest";
 import {
   adaptiveBidStep,
+  auctionStrategicPremium,
   chooseAuctionTargetBid,
   computeAuctionMaxBid,
   isEngineLegalAuctionBid,
@@ -14,7 +15,11 @@ import {
 } from "../decision/auction.js";
 import { BotPlayer } from "../decision/orchestrator.js";
 import { expertStrategy } from "../strategy/expertStrategy.js";
-import { PERSONALITIES } from "../strategy/personality.js";
+import {
+  type BotPersonality,
+  PERSONALITIES,
+  personalityFromPlayerId,
+} from "../strategy/personality.js";
 import type { StrategyContext } from "../strategy/types.js";
 
 function createAuctionState(position = 1) {
@@ -45,7 +50,7 @@ function requireAuction(state: GameState) {
 function ctxFor(
   state: ReturnType<typeof createAuctionState>,
   actorId: string,
-  personality = PERSONALITIES.balanced,
+  personality: BotPersonality = PERSONALITIES.balanced,
   rng: () => number = () => 0.5,
 ): StrategyContext {
   return {
@@ -200,5 +205,57 @@ describe("strategic auction bidding", () => {
     expect(adaptiveBidStep(80, 400)).toBe(25);
     expect(adaptiveBidStep(200, 800)).toBe(50);
     expect(adaptiveBidStep(500, 1200)).toBe(100);
+  });
+
+  it("rejects bids from non-current, bankrupt, or seller actors", () => {
+    const state = createAuctionState(1);
+    const auction = requireAuction(state);
+    const min = auction.minNextBid;
+
+    expect(isEngineLegalAuctionBid(state, "p1", min)).toBe(true);
+    expect(isEngineLegalAuctionBid(state, "p2", min)).toBe(false);
+
+    state.players.p1.isBankrupt = true;
+    expect(isEngineLegalAuctionBid(state, "p1", min)).toBe(false);
+    state.players.p1.isBankrupt = false;
+
+    auction.sellerId = "p1";
+    expect(isEngineLegalAuctionBid(state, "p1", min)).toBe(false);
+
+    state.phase = "END_TURN";
+    auction.sellerId = null;
+    expect(isEngineLegalAuctionBid(state, "p1", min)).toBe(false);
+  });
+
+  it("excludes owner-auction seller from denial premium", () => {
+    const state = createAuctionState(3);
+    state.ownership[1] = { ownerId: "p2", isMortgaged: false };
+    state.ownership[3] = { ownerId: "p2", isMortgaged: false };
+    state.players.p2.ownedPositions = [1, 3];
+    requireAuction(state).sellerId = "p2";
+
+    const withSeller = auctionStrategicPremium(
+      state,
+      "p1",
+      3,
+      PERSONALITIES.denial,
+    );
+    requireAuction(state).sellerId = null;
+    const withoutSeller = auctionStrategicPremium(
+      state,
+      "p1",
+      3,
+      PERSONALITIES.denial,
+    );
+
+    expect(withSeller).toBeLessThan(withoutSeller);
+  });
+
+  it("maps distinct player ids to varied headless personalities", () => {
+    const ids = ["sim-a", "sim-b", "sim-c", "sim-d", "sim-e"];
+    const personalities = new Set(
+      ids.map((id) => personalityFromPlayerId(id).id),
+    );
+    expect(personalities.size).toBeGreaterThan(1);
   });
 });
