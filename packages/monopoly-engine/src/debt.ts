@@ -62,6 +62,9 @@ export function enterRaiseCashAtTurnStart(
   const playerId = getActivePlayer(state);
   if (!playerId) return false;
 
+  const player = state.players[playerId];
+  if (!player || player.isBankrupt) return false;
+
   const resumePhase: PendingDebt["resumePhase"] =
     state.phase === "JAIL_DECISION" ? "JAIL_DECISION" : "PRE_ROLL";
 

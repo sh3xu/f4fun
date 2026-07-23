@@ -110,6 +110,25 @@ describe("debt and raise-cash", () => {
     expect(end.events.some((e) => e.type === "DEBT_RAISED")).toBe(true);
   });
 
+  it("does not reopen RAISE_CASH when advanceTurn no-ops with one solvent player", () => {
+    const state = createInitialState("test", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    state.activePlayerIndex = 0;
+    state.phase = "END_TURN";
+    state.players.p1.cash = -40;
+    state.players.p1.isBankrupt = true;
+    state.players.p2.cash = 1500;
+
+    const result = applyAction(state, { type: "END_TURN" }, Math.random, "p1");
+    expect(result.error).toBeUndefined();
+    expect(result.events.some((e) => e.type === "TURN_ADVANCED")).toBe(false);
+    expect(state.phase).toBe("END_TURN");
+    expect(state.pendingDebt).toBeNull();
+    expect(state.activePlayerIndex).toBe(0);
+  });
+
   it("restores PRE_ROLL after turn-start raise-cash resolves", () => {
     const state = createInitialState("test", [
       { id: "p1", name: "Alice", token: "car" },

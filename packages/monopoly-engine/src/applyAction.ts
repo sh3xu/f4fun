@@ -458,7 +458,11 @@ export function applyAction(
 
         const turnEvents = advanceTurn(state);
         events.push(...turnEvents);
-        enterRaiseCashAtTurnStart(state, events);
+        // NOTE: advanceTurn no-ops when ≤1 solvent player — do not reopen RAISE_CASH
+        // on the unchanged (possibly bankrupt) active player.
+        if (turnEvents.length > 0) {
+          enterRaiseCashAtTurnStart(state, events);
+        }
 
         return { state, events };
       }
