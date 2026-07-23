@@ -212,7 +212,7 @@ export function Board({
     !!currentPlayer;
   const showAuction =
     state?.phase === "AUCTION" && !!state.auction && animationsSettled;
-  // NOTE: During RAISE_CASH only the debtor may manage assets (may differ from activePlayer).
+  // NOTE: During RAISE_CASH the debtor is always the active player.
   const isDebtor =
     myPlayerId != null && state?.pendingDebt?.playerId === myPlayerId;
   const canManageProperties =

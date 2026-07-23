@@ -65,7 +65,7 @@ export function TradeModal({
   const outgoingPartner = outgoing ? state.players[outgoing.toPlayerId] : null;
   const activePlayerId = state.turnOrder[state.activePlayerIndex];
   const isMyTurn = activePlayerId === myPlayerId;
-  // NOTE: Debtor may trade during RAISE_CASH even if they are not the active player.
+  // NOTE: Debtor may trade during RAISE_CASH on their own turn.
   const isDebtor =
     state.phase === "RAISE_CASH" && state.pendingDebt?.playerId === myPlayerId;
   const canPropose =

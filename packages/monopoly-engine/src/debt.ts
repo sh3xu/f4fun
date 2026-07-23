@@ -3,19 +3,45 @@ import { autoLiquidateAssets } from "./liquidate.js";
 import { applyMove } from "./movement.js";
 import { phaseAfterDiceAction } from "./phase.js";
 import { resolveLanding } from "./resolveLanding.js";
-import type { GameEvent, GameState, PlayerId, RNG } from "./types.js";
+import { getActivePlayer } from "./turn.js";
+import type {
+  GameEvent,
+  GamePhase,
+  GameState,
+  PendingDebt,
+  PlayerId,
+  RNG,
+} from "./types.js";
 import { checkWinCondition } from "./win.js";
 
+export type EnterRaiseCashOptions = {
+  /** Restore this phase after debt clears (turn-start debt before roll/jail choice). */
+  resumePhase?: PendingDebt["resumePhase"];
+};
+
+/**
+ * Enter RAISE_CASH only for the active player.
+ * NOTE: Off-turn negative cash (e.g. birthday) is deferred until their turn starts.
+ */
 export function enterRaiseCashIfNeeded(
   state: GameState,
   playerId: PlayerId,
   creditorId: PlayerId | null,
   events: GameEvent[],
+  options?: EnterRaiseCashOptions,
 ): boolean {
   const player = state.players[playerId];
   if (!player || player.cash >= 0) return false;
 
-  state.pendingDebt = { playerId, creditorId };
+  if (playerId !== getActivePlayer(state)) {
+    return false;
+  }
+
+  state.pendingDebt = {
+    playerId,
+    creditorId,
+    ...(options?.resumePhase ? { resumePhase: options.resumePhase } : {}),
+  };
   state.phase = "RAISE_CASH";
   events.push({
     type: "DEBT_RAISED",
@@ -24,6 +50,38 @@ export function enterRaiseCashIfNeeded(
     amountNeeded: -player.cash,
   });
   return true;
+}
+
+/**
+ * After END_TURN advances, force the new active player to raise cash if negative.
+ */
+export function enterRaiseCashAtTurnStart(
+  state: GameState,
+  events: GameEvent[],
+): boolean {
+  const playerId = getActivePlayer(state);
+  if (!playerId) return false;
+
+  const player = state.players[playerId];
+  if (!player || player.isBankrupt) return false;
+
+  const resumePhase: PendingDebt["resumePhase"] =
+    state.phase === "JAIL_DECISION" ? "JAIL_DECISION" : "PRE_ROLL";
+
+  return enterRaiseCashIfNeeded(state, playerId, null, events, {
+    resumePhase,
+  });
+}
+
+function phaseAfterDebtCleared(
+  state: GameState,
+  playerId: PlayerId,
+  debt: PendingDebt,
+): GamePhase {
+  const player = state.players[playerId];
+  if (!player || player.isBankrupt) return "END_TURN";
+  if (debt.resumePhase) return debt.resumePhase;
+  return phaseAfterDiceAction(state);
 }
 
 function completePendingJailMove(
@@ -55,7 +113,8 @@ export function tryResolveRaiseCash(
 ): boolean {
   if (state.phase !== "RAISE_CASH" || !state.pendingDebt) return false;
 
-  const { playerId, pendingJailMove } = state.pendingDebt;
+  const debt = state.pendingDebt;
+  const { playerId, pendingJailMove } = debt;
   const player = state.players[playerId];
   if (!player || player.cash < 0) return false;
 
@@ -68,14 +127,9 @@ export function tryResolveRaiseCash(
     return true;
   }
 
-  if (player.isBankrupt) {
-    state.phase = "END_TURN";
-    return true;
-  }
-
   if (state.winnerId !== null) return true;
 
-  state.phase = phaseAfterDiceAction(state);
+  state.phase = phaseAfterDebtCleared(state, playerId, debt);
   return true;
 }
 
@@ -88,7 +142,8 @@ export function forceSettleDebt(
     return events;
   }
 
-  const { playerId, creditorId, pendingJailMove } = state.pendingDebt;
+  const debt = state.pendingDebt;
+  const { playerId, creditorId, pendingJailMove } = debt;
   const player = state.players[playerId];
   if (!player) {
     state.pendingDebt = null;
@@ -112,7 +167,7 @@ export function forceSettleDebt(
       return events;
     }
     if (state.winnerId !== null) return events;
-    state.phase = player.isBankrupt ? "END_TURN" : phaseAfterDiceAction(state);
+    state.phase = phaseAfterDebtCleared(state, playerId, debt);
     return events;
   }
 
@@ -121,7 +176,7 @@ export function forceSettleDebt(
 
   if (state.winnerId !== null) return events;
 
-  state.phase = player.isBankrupt ? "END_TURN" : phaseAfterDiceAction(state);
+  state.phase = phaseAfterDebtCleared(state, playerId, debt);
 
   return events;
 }

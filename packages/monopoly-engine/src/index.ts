@@ -121,6 +121,7 @@ export {
 export { cloneState } from "./cloneState.js";
 export * from "./config/board.js";
 export {
+  enterRaiseCashAtTurnStart,
   enterRaiseCashIfNeeded,
   forceSettleDebt,
   tryResolveRaiseCash,
