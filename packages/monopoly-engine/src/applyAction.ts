@@ -8,7 +8,11 @@ import { sellPropertyToBank } from "./bankSale.js";
 import { buildHotel, buildHouse, sellHotel, sellHouse } from "./building.js";
 import { applyCardEffect, lookupCard, MOVEMENT_EFFECT_KINDS } from "./cards.js";
 import { JAIL_POSITION } from "./config/board.js";
-import { forceSettleDebt, tryResolveRaiseCash } from "./debt.js";
+import {
+  enterRaiseCashAtTurnStart,
+  forceSettleDebt,
+  tryResolveRaiseCash,
+} from "./debt.js";
 import { diceSum, rollDice } from "./dice.js";
 import { payJailFine, rollForJail, spendGoojfCard } from "./jail.js";
 import { canManageAssets, isManagementPhase } from "./management.js";
@@ -454,6 +458,7 @@ export function applyAction(
 
         const turnEvents = advanceTurn(state);
         events.push(...turnEvents);
+        enterRaiseCashAtTurnStart(state, events);
 
         return { state, events };
       }

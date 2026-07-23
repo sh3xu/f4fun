@@ -46,6 +46,11 @@ export interface PendingDebt {
   creditorId: PlayerId | null;
   /** Complete jail exit move after debt is resolved (third failed roll + fine). */
   pendingJailMove?: { dice: [number, number]; spaces: number };
+  /**
+   * NOTE: Turn-start / deferred debt restores PRE_ROLL or JAIL_DECISION after settle
+   * instead of phaseAfterDiceAction (which uses stale lastDice).
+   */
+  resumePhase?: "PRE_ROLL" | "JAIL_DECISION";
 }
 
 export interface PropertyOwnership {

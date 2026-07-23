@@ -57,11 +57,11 @@ export const PLAYER_COLORS: PlayerColor[] = [
     ring: "ring-cyan-500",
   },
   {
-    name: "Orange",
-    hex: "#f97316",
-    bg: "bg-orange-500",
-    border: "border-orange-500",
-    ring: "ring-orange-500",
+    name: "Brown",
+    hex: "#78350f",
+    bg: "bg-amber-900",
+    border: "border-amber-900",
+    ring: "ring-amber-900",
   },
 ];
 

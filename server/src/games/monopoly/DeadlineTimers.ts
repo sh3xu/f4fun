@@ -200,7 +200,9 @@ async function afterGameStateCommitAsync(
     return;
   }
 
-  if (!botTurn) {
+  // NOTE: Keep raise-cash turn timers for bots so FORCE_SETTLE_DEBT still fires
+  // if the bot loop stalls mid-liquidation.
+  if (!botTurn || state.phase === "RAISE_CASH") {
     scheduleTurnTimer(io, roomId, state);
   } else {
     clearTurnTimer(roomId);

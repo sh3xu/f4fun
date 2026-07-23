@@ -1,5 +1,6 @@
 import { buildingsBlockDeedAction } from "./building.js";
 import { TILE_BY_POSITION } from "./config/board.js";
+import { phaseAfterDiceAction } from "./phase.js";
 import { pauseActionDeadline, resumeActionDeadline } from "./turnTimeout.js";
 import type {
   AuctionState,
@@ -23,8 +24,33 @@ function captureResumePhase(state: GameState): AuctionState["resumePhase"] {
   return "END_TURN";
 }
 
-function finishAuction(state: GameState, resume: GamePhase): void {
+/**
+ * NOTE: After a bank auction awards the deed, do not resume BUY_OR_DECLINE —
+ * the buy/skip/auction card would still show for an already-owned tile.
+ */
+function resumePhaseAfterAuction(
+  state: GameState,
+  resume: AuctionState["resumePhase"],
+  awarded: boolean,
+): GamePhase {
+  if (awarded && resume === "BUY_OR_DECLINE") {
+    return phaseAfterDiceAction(state);
+  }
+  return resume;
+}
+
+function finishAuction(
+  state: GameState,
+  resume: GamePhase,
+  options?: { restoreDeadline?: boolean },
+): void {
   state.phase = resume;
+  if (options?.restoreDeadline === false) {
+    // NOTE: Drop paused buy-phase timer so the server restamps for END_TURN / PRE_ROLL.
+    state.actionDeadlinePausedMs = null;
+    state.actionDeadlineAt = null;
+    return;
+  }
   resumeActionDeadline(state);
 }
 
@@ -137,7 +163,8 @@ function tryResolveAuction(state: GameState): GameEvent[] {
     const amount = auction.highBid;
     const sellerId = auction.sellerId;
     const preserveMortgage = auction.kind === "owner";
-    const resume = auction.resumePhase;
+    const storedResume = auction.resumePhase;
+    const resume = resumePhaseAfterAuction(state, storedResume, true);
 
     state.auction = null;
     events.push(
@@ -150,7 +177,9 @@ function tryResolveAuction(state: GameState): GameEvent[] {
         preserveMortgage,
       ),
     );
-    finishAuction(state, resume);
+    finishAuction(state, resume, {
+      restoreDeadline: storedResume === "BUY_OR_DECLINE" ? false : undefined,
+    });
     return events;
   }
 
@@ -177,7 +206,8 @@ function cancelOrAward(state: GameState, events: GameEvent[]): GameEvent[] {
     const amount = auction.highBid;
     const sellerId = auction.sellerId;
     const preserveMortgage = auction.kind === "owner";
-    const resume = auction.resumePhase;
+    const storedResume = auction.resumePhase;
+    const resume = resumePhaseAfterAuction(state, storedResume, true);
 
     state.auction = null;
     events.push(
@@ -190,7 +220,9 @@ function cancelOrAward(state: GameState, events: GameEvent[]): GameEvent[] {
         preserveMortgage,
       ),
     );
-    finishAuction(state, resume);
+    finishAuction(state, resume, {
+      restoreDeadline: storedResume === "BUY_OR_DECLINE" ? false : undefined,
+    });
     return events;
   }
 
