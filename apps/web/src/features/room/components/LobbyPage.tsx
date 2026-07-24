@@ -17,6 +17,7 @@ import { GameCard } from "@/components/ui/GameCard";
 import { GameLoader } from "@/components/ui/GameLoader";
 import { PlayerBadge } from "@/components/ui/PlayerBadge";
 import { TableShell } from "@/components/ui/TableShell";
+import { DevSeatsPanel } from "@/features/seven-wonders/components/DevSeatsPanel";
 import { GAME_TITLE as SEVEN_WONDERS_GAME_TITLE } from "@/features/seven-wonders/constants";
 import { cn } from "@/lib/cn";
 import { loadPlayer, loadRoom, saveRoom } from "@/lib/player-storage";
@@ -432,6 +433,17 @@ export function LobbyPage() {
               <Bot className="h-4 w-4" />
               {addingBot ? "Adding AI..." : "Add AI Player"}
             </Button>
+          )}
+
+          {isHost && gameType === "sevenWonders" && (
+            <DevSeatsPanel
+              roomCode={activeRoomCode}
+              playersCount={players.length}
+              disabled={lobbyActionPending}
+              onPlayersUpdated={(list) =>
+                setRoom(roomId || "", activeRoomCode, list, gameType)
+              }
+            />
           )}
 
           {isHost && (

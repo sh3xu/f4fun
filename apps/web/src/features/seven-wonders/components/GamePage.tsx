@@ -30,6 +30,7 @@ import {
   WonderBoard,
   WonderCard,
 } from "./CardViews";
+import { DevSeatSwitcher } from "./DevSeatSwitcher";
 import { TableSeats } from "./TableSeats";
 
 const AGE_NUMERALS = { 1: "I", 2: "II", 3: "III" } as const;
@@ -309,6 +310,10 @@ export function SevenWondersGamePage() {
 
   return (
     <div className="min-h-screen text-amber-50" style={TABLE_BACKGROUND}>
+      <DevSeatSwitcher
+        roomCode={codeFromUrl}
+        seatedPlayerIds={state.turnOrder}
+      />
       <AnimatePresence>
         {ageBanner && (
           <motion.div
