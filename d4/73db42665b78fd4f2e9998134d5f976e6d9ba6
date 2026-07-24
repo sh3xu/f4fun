@@ -1,0 +1,54 @@
+apps/web/src/features/seven-wonders/components/icons.tsx
+  s_cfe80250fdb7fa::t_a309992033c1cb 221
+  s_cfe80250fdb7fa::t_a9c43a16e9dcad 17
+  s_cfe80250fdb7fa::t_c4b361d7b9031e 1,3-16,18-220,222-230,232-252
+  s_cfe80250fdb7fa::t_54abf66020e78b 2
+  s_cfe80250fdb7fa::t_0169a92b2d4b45 231
+  s_cfe80250fdb7fa::t_31f195a24225e9 253-269
+apps/web/src/features/seven-wonders/components/GamePage.tsx
+  s_cfe80250fdb7fa::t_d5ac1c3767b76e 24
+  s_cfe80250fdb7fa::t_cbf6b52998219a 419-426
+  s_cfe80250fdb7fa::t_a97bd771ba5579 3,5-6,8,11-12,14,16-17,21,26-65,90-91,179-190,209,211,213-214,234,245,247-255,262-266,272-279,287-309,311-342,344-348,351-374,376-381,385-403,408-415,418,427-440,444-449,451-453,455,457-460,462-481,484-485,487-489,491,493-520,522,524-528,530,532-542,544,549-552,554-556,558-561,564-565,567-612,617
+  s_cfe80250fdb7fa::t_4b559c5926a1eb 613-616,618-632
+apps/web/src/features/room/components/LobbyPage.tsx
+  s_cfe80250fdb7fa::t_d962a3804bd0c1 20
+  s_cfe80250fdb7fa::t_d7a21be7090384 366
+  s_cfe80250fdb7fa::t_c6ec1c0802a05f 374-376
+  s_cfe80250fdb7fa::t_206f32fe772a81 481
+apps/web/src/features/seven-wonders/components/TableSeats.tsx
+  s_cfe80250fdb7fa::t_e4b1567e7998ba 1-113
+apps/web/src/features/seven-wonders/components/CardViews.tsx
+  s_cfe80250fdb7fa::t_f44215bb27240d 5,8,10,12-13,16-30,32-81,84-104,106-109,111-125,127-141,143-151,153-158,160-165,167-171,173-174,176,178,180,183-267,269,273-341,350,356,358,360,362,365,369-371,373-380,382-385,388-435,438-439,443-478,481,489,491-547
+  s_cfe80250fdb7fa::t_97353f08c55aa8 14
+  s_cfe80250fdb7fa::t_2932f3295b51ee 105
+  s_cfe80250fdb7fa::t_7301862641288e 110
+  s_cfe80250fdb7fa::t_6542a26d4693b4 9
+  s_cfe80250fdb7fa::t_ec55030f6c86ac 175
+  s_cfe80250fdb7fa::t_c62f5b77a64157 177
+  s_cfe80250fdb7fa::t_870e18edee8516 179
+  s_cfe80250fdb7fa::t_f75b077ef8cd79 181
+  s_cfe80250fdb7fa::t_3c3367c5f98cb7 381
+apps/web/src/features/seven-wonders/constants.ts
+  s_cfe80250fdb7fa::t_2d638acb30c732 1-3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "d473db42665b78fd4f2e9998134d5f976e6d9ba6",
+  "prompts": {},
+  "humans": {
+    "h_54cccc4af8e4fc": {
+      "author": "sh3xu <s43khu@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_cfe80250fdb7fa": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9b1e9248-76f4-4aa2-ad36-d6718bd9fd6c",
+        "model": "claude-fable-5"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
