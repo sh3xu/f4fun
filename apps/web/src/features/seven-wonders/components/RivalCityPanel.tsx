@@ -56,19 +56,28 @@ export function RivalCityPanel({
           </p>
 
           <div className="mb-4 flex flex-wrap items-center gap-3 text-sm font-bold text-amber-50">
-            <span className="inline-flex items-center gap-1">
+            <span
+              className="inline-flex items-center gap-1"
+              title="Coins — treasury"
+            >
               <CoinIcon className="h-4 w-4" />
               <CounterTicker value={player.coins} prefix="" />
             </span>
-            <span className="inline-flex items-center gap-1">
+            <span
+              className="inline-flex items-center gap-1"
+              title="Shields — military strength"
+            >
               <ShieldIcon className="h-4 w-4" />
               {getPlayerShields(player)}
             </span>
-            <span className="inline-flex items-center gap-1">
+            <span
+              className="inline-flex items-center gap-1"
+              title="War tokens — victory points from age battles"
+            >
               <LaurelIcon className="h-4 w-4" />
               {militaryScore(player.militaryTokens)}
             </span>
-            <span className="text-amber-100/45">
+            <span className="text-amber-100/45" title="Wonder stages built">
               Wonder {player.wonderStagesBuilt}/{wonder.stages.length}
             </span>
           </div>

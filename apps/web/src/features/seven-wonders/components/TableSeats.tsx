@@ -79,11 +79,17 @@ export function TableSeats({
                 {relation} · {wonder.name.replace(/^The /, "")}
               </p>
               <div className="mt-1 flex items-center gap-2.5 text-[11px] font-bold text-amber-50">
-                <span className="inline-flex items-center gap-0.5">
+                <span
+                  className="inline-flex items-center gap-0.5"
+                  title="Coins — treasury"
+                >
                   <CoinIcon className="h-3.5 w-3.5" />
                   <CounterTicker value={player.coins} prefix="" />
                 </span>
-                <span className="inline-flex items-center gap-0.5">
+                <span
+                  className="inline-flex items-center gap-0.5"
+                  title="Shields — military strength"
+                >
                   <ShieldIcon className="h-3.5 w-3.5" />
                   {getPlayerShields(player)}
                 </span>
@@ -92,6 +98,7 @@ export function TableSeats({
                     "inline-flex items-center gap-0.5",
                     militaryScore(player.militaryTokens) < 0 && "text-rose-300",
                   )}
+                  title="War tokens — victory points from age battles"
                 >
                   <LaurelIcon className="h-3.5 w-3.5" />
                   {militaryScore(player.militaryTokens)}

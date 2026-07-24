@@ -2,6 +2,7 @@
 
 import { OverlayPanel } from "@/components/ui/OverlayPanel";
 import { GAME_TITLE } from "../constants";
+import { IconLegend } from "./IconLegend";
 
 const SECTIONS: { title: string; body: string }[] = [
   {
@@ -49,6 +50,16 @@ export function HowToPlayOverlay({ open, onClose }: HowToPlayOverlayProps) {
           </section>
         ))}
       </div>
+
+      <div className="my-6 border-t border-white/10" />
+
+      <h3 className="mb-1 text-[11px] font-black uppercase tracking-[0.22em] text-amber-300/80">
+        Icon guide
+      </h3>
+      <p className="mb-4 text-sm leading-relaxed text-amber-50/85">
+        Every symbol on cards, seats, and wonders — what it is and what it does.
+      </p>
+      <IconLegend />
     </OverlayPanel>
   );
 }
