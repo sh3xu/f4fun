@@ -19,12 +19,11 @@ export default function Page() {
   useEffect(() => {
     const stored = loadRoom();
     const matchesRoute =
-      Boolean(stored?.roomCode) &&
-      stored.roomCode.toUpperCase() === codeFromUrl;
+      stored != null && stored.roomCode.toUpperCase() === codeFromUrl;
 
     // NOTE: Ignore stale f4fun_room from a different code so we don't mount the wrong game UI.
     if (matchesRoute) {
-      const next = stored?.gameType ?? gameType;
+      const next = stored.gameType ?? gameType;
       setGameType(next);
       setResolved(next);
       return;

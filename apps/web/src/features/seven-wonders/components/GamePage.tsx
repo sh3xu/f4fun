@@ -90,15 +90,16 @@ export function SevenWondersGamePage() {
       }
     }
 
-    const onSnapshot = (data: { state: typeof state }) => {
+    const onSnapshot = (data: { state: NonNullable<typeof state> }) => {
       if (data?.state) {
-        setFromSnapshot(data.state);
+        const nextState = data.state;
+        setFromSnapshot(nextState);
         // Preserve selection while the card remains in our hand (other seats submitting).
         setSelectedCardId((prev) => {
           if (!prev) return null;
           const pid = myPlayerId ?? storedPlayer?.playerId;
           if (!pid) return null;
-          const nextHand = data.state.hands[pid] ?? [];
+          const nextHand = nextState.hands[pid] ?? [];
           return nextHand.includes(prev) ? prev : null;
         });
       }
