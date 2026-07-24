@@ -1,0 +1,38 @@
+packages/monopoly-bot/src/decision/trade.ts
+  s_fe0cceb6c0e430::t_f227e3c661da93 4,58-65,111,210-211
+  s_fe0cceb6c0e430::t_c3980921fc7230 208-209
+  s_fe0cceb6c0e430::t_4928097a353b27 212
+apps/web/src/features/room/components/LobbyPage.tsx
+  s_389a80f85786d9::t_b8df67ecbb61fb 473
+server/src/socket/room-handlers.ts
+  s_389a80f85786d9::t_b41d6f0d877754 323,328,330
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "1a8636e0fa44ecb57cc8bad059bedfe339e5f419",
+  "prompts": {},
+  "humans": {
+    "h_54cccc4af8e4fc": {
+      "author": "sh3xu <s43khu@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_389a80f85786d9": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "e8b221ad-8cb6-4e29-b609-e4a1b87af20b",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    },
+    "s_fe0cceb6c0e430": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "40ec3a17-6a84-4afb-b777-642a9055f819",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
