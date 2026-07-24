@@ -17,6 +17,7 @@ import { GameCard } from "@/components/ui/GameCard";
 import { GameLoader } from "@/components/ui/GameLoader";
 import { PlayerBadge } from "@/components/ui/PlayerBadge";
 import { TableShell } from "@/components/ui/TableShell";
+import { GAME_TITLE as SEVEN_WONDERS_GAME_TITLE } from "@/features/seven-wonders/constants";
 import { cn } from "@/lib/cn";
 import { loadPlayer, loadRoom, saveRoom } from "@/lib/player-storage";
 import { connectSocket, emitWithCallback, getSocket } from "@/lib/socket";
@@ -362,7 +363,7 @@ export function LobbyPage() {
                       : "border-white/10 bg-black/20 text-gray-300 hover:border-white/20",
                   )}
                 >
-                  7 Wonders
+                  {SEVEN_WONDERS_GAME_TITLE}
                 </button>
               </div>
             </div>
@@ -370,7 +371,9 @@ export function LobbyPage() {
             <p className="rounded-md border border-white/10 bg-black/20 px-3 py-2 text-sm text-gray-400">
               Playing{" "}
               <span className="font-semibold text-gray-200">
-                {gameType === "sevenWonders" ? "7 Wonders" : "Monopoly"}
+                {gameType === "sevenWonders"
+                  ? SEVEN_WONDERS_GAME_TITLE
+                  : "Monopoly"}
               </span>
             </p>
           )}
@@ -475,7 +478,7 @@ export function LobbyPage() {
 
           {isHost && gameType === "sevenWonders" && !canStart && (
             <p className="text-center text-xs text-slate-500">
-              Seven Wonders needs 3–7 connected players
+              {SEVEN_WONDERS_GAME_TITLE} needs 3–7 connected players
             </p>
           )}
         </div>
