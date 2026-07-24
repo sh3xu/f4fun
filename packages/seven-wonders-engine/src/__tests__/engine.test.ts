@@ -249,6 +249,65 @@ describe("validatePick - affordability before all picks are in", () => {
   });
 });
 
+describe("TRADE_PAID events", () => {
+  it("emits TRADE_PAID when a player buys neighbor resources on resolve", () => {
+    const rng = seededRng();
+    let state = createInitialState("g1", THREE_PLAYERS, rng);
+
+    state.players.p1.wonderId = "rhodes";
+    state.players.p1.tableau = [];
+    state.players.p1.coins = 5;
+    state.players.p2.tableau = ["clay_pit_3p"];
+    state.players.p3.tableau = [];
+    state.hands.p1 = ["guard_tower_3p", ...state.hands.p1.slice(1)];
+
+    const p1Card = "guard_tower_3p";
+    const p2Card = state.hands.p2[0];
+    const p3Card = state.hands.p3[0];
+
+    ({ state } = applyAction(
+      state,
+      {
+        type: "SUBMIT_PICK",
+        playerId: "p1",
+        action: "PLAY",
+        cardId: p1Card,
+      },
+      rng,
+    ));
+    ({ state } = applyAction(
+      state,
+      {
+        type: "SUBMIT_PICK",
+        playerId: "p2",
+        action: "DISCARD",
+        cardId: p2Card,
+      },
+      rng,
+    ));
+    const { state: next, events } = applyAction(
+      state,
+      {
+        type: "SUBMIT_PICK",
+        playerId: "p3",
+        action: "DISCARD",
+        cardId: p3Card,
+      },
+      rng,
+    );
+
+    const tradeEvent = events.find((e) => e.type === "TRADE_PAID");
+    expect(tradeEvent).toBeDefined();
+    expect(tradeEvent?.playerId).toBe("p1");
+    expect(tradeEvent?.message).toMatch(/Alice paid 2 coins to neighbors/);
+    expect(tradeEvent?.message).toMatch(/for Guard Tower/);
+    expect(next.players.p1.tableau).toContain("guard_tower_3p");
+    expect(next.players.p1.coins).toBe(3);
+    // p2 started at 3, received 2 from trade, then discarded for +3.
+    expect(next.players.p2.coins).toBe(8);
+  });
+});
+
 describe("resolveWinnerId", () => {
   function gameWithCoins(coins: Record<string, number>): GameState {
     const state = createInitialState("g1", THREE_PLAYERS, seededRng());
@@ -622,5 +681,165 @@ describe("wonder special abilities", () => {
     expect(after.state.players.p1.tableau).toContain("baths_3p");
     expect(after.state.players.p1.pendingAbility).toBeNull();
     expect(after.state.discardPile).not.toContain("baths_3p");
+  });
+
+  it("grants playDiscarded when discard arrives later in the same turn", () => {
+    const rng = seededRng();
+    let state = createInitialState("g1", THREE_PLAYERS, rng);
+
+    // p1 is earlier in turnOrder than p2 — stage resolves before p2's discard.
+    state.players.p1.wonderId = "halicarnassus";
+    state.players.p1.wonderStagesBuilt = 1;
+    state.players.p1.tableau = ["ore_vein_3p", "ore_vein_4p", "forest_cave_5p"];
+    state.players.p1.coins = 0;
+    state.discardPile = [];
+
+    const stageCard = state.hands.p1[0];
+    const discardCard = state.hands.p2[0];
+
+    let result = applyAction(
+      state,
+      {
+        type: "SUBMIT_PICK",
+        playerId: "p1",
+        action: "STAGE_WONDER",
+        cardId: stageCard,
+      },
+      rng,
+    );
+    result = applyAction(
+      result.state,
+      {
+        type: "SUBMIT_PICK",
+        playerId: "p2",
+        action: "DISCARD",
+        cardId: discardCard,
+      },
+      rng,
+    );
+    result = applyAction(
+      result.state,
+      {
+        type: "SUBMIT_PICK",
+        playerId: "p3",
+        action: "DISCARD",
+        cardId: result.state.hands.p3[0],
+      },
+      rng,
+    );
+
+    state = result.state;
+    expect(state.phase).toBe("RESOLVING_ABILITY");
+    expect(state.players.p1.pendingAbility).toEqual({ type: "playDiscarded" });
+    expect(state.discardPile).toContain(discardCard);
+  });
+
+  it("wastes playDiscarded when the whole turn leaves discard empty", () => {
+    const rng = seededRng();
+    let state = createInitialState("g1", THREE_PLAYERS, rng);
+
+    state.players.p1.wonderId = "halicarnassus";
+    state.players.p1.wonderStagesBuilt = 1;
+    state.players.p1.tableau = ["ore_vein_3p", "ore_vein_4p", "forest_cave_5p"];
+    state.players.p1.coins = 0;
+    state.discardPile = [];
+    // Free Age I cards so p2/p3 can PLAY without trading or discarding.
+    state.hands.p2 = ["lumber_yard_3p", ...state.hands.p2.slice(1)];
+    state.hands.p3 = ["stone_pit_3p", ...state.hands.p3.slice(1)];
+
+    const stageCard = state.hands.p1[0];
+
+    let result = applyAction(
+      state,
+      {
+        type: "SUBMIT_PICK",
+        playerId: "p1",
+        action: "STAGE_WONDER",
+        cardId: stageCard,
+      },
+      rng,
+    );
+    result = applyAction(
+      result.state,
+      {
+        type: "SUBMIT_PICK",
+        playerId: "p2",
+        action: "PLAY",
+        cardId: "lumber_yard_3p",
+      },
+      rng,
+    );
+    result = applyAction(
+      result.state,
+      {
+        type: "SUBMIT_PICK",
+        playerId: "p3",
+        action: "PLAY",
+        cardId: "stone_pit_3p",
+      },
+      rng,
+    );
+
+    state = result.state;
+    expect(state.players.p1.pendingAbility).toBeNull();
+    expect(state.phase).not.toBe("RESOLVING_ABILITY");
+    expect(state.discardPile).toHaveLength(0);
+  });
+
+  it("clears playDiscarded when discard only has duplicate structures", () => {
+    const rng = seededRng();
+    let state = createInitialState("g1", THREE_PLAYERS, rng);
+
+    state.players.p1.wonderId = "halicarnassus";
+    state.players.p1.wonderStagesBuilt = 1;
+    // baths_7p shares the Baths name with baths_3p in the discard pile.
+    state.players.p1.tableau = [
+      "ore_vein_3p",
+      "ore_vein_4p",
+      "forest_cave_5p",
+      "baths_7p",
+    ];
+    state.players.p1.coins = 0;
+    state.discardPile = ["baths_3p"];
+    state.hands.p2 = ["lumber_yard_3p", ...state.hands.p2.slice(1)];
+    state.hands.p3 = ["stone_pit_3p", ...state.hands.p3.slice(1)];
+
+    const stageCard = state.hands.p1[0];
+
+    let result = applyAction(
+      state,
+      {
+        type: "SUBMIT_PICK",
+        playerId: "p1",
+        action: "STAGE_WONDER",
+        cardId: stageCard,
+      },
+      rng,
+    );
+    result = applyAction(
+      result.state,
+      {
+        type: "SUBMIT_PICK",
+        playerId: "p2",
+        action: "PLAY",
+        cardId: "lumber_yard_3p",
+      },
+      rng,
+    );
+    result = applyAction(
+      result.state,
+      {
+        type: "SUBMIT_PICK",
+        playerId: "p3",
+        action: "PLAY",
+        cardId: "stone_pit_3p",
+      },
+      rng,
+    );
+
+    state = result.state;
+    expect(state.discardPile).toEqual(["baths_3p"]);
+    expect(state.players.p1.pendingAbility).toBeNull();
+    expect(state.phase).not.toBe("RESOLVING_ABILITY");
   });
 });

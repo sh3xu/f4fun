@@ -328,6 +328,7 @@ function resolveTurn(
 
     switch (plan.action) {
       case "PLAY": {
+        const card = getCardById(plan.cardId);
         if (plan.useFreeBuild) {
           if (player.pendingAbility?.type !== "freeBuild") {
             throw new Error(`${player.id} has no pending freeBuild ability`);
@@ -339,11 +340,10 @@ function resolveTurn(
             message: `${player.name} used freeBuild`,
           });
         } else if (!plan.isFreeChain && plan.trade) {
-          applyTradePayment(state, player, plan.trade);
+          applyTradePayment(state, player, plan.trade, events, card.name);
         }
 
         player.tableau.push(plan.cardId);
-        const card = getCardById(plan.cardId);
         queueImmediateEffect(player, card.effect, deferredCoinEffects);
 
         events.push({
@@ -366,12 +366,19 @@ function resolveTurn(
         if (!plan.trade) {
           throw new Error(`${player.id} missing trade plan for wonder stage`);
         }
-        applyTradePayment(state, player, plan.trade);
+        const wonder = getWonderById(player.wonderId);
+        const nextStage = player.wonderStagesBuilt + 1;
+        applyTradePayment(
+          state,
+          player,
+          plan.trade,
+          events,
+          `wonder stage ${nextStage}`,
+        );
         player.wonderStagesBuilt++;
 
-        const wonder = getWonderById(player.wonderId);
         const stage = wonder.stages[player.wonderStagesBuilt - 1];
-        applyWonderStageEffect(state, player, stage.effect, events);
+        applyWonderStageEffect(player, stage.effect, events);
 
         events.push({
           type: "WONDER_STAGED",
@@ -412,6 +419,8 @@ function applyTradePayment(
   state: GameState,
   player: PlayerState,
   trade: TradeResult,
+  events: GameEvent[],
+  forWhat: string,
 ): void {
   player.coins -= trade.totalCoinCost;
 
@@ -423,6 +432,19 @@ function applyTradePayment(
     const [, rightId] = getNeighborIds(state, player.id);
     state.players[rightId].coins += trade.rightCost;
   }
+
+  if (trade.totalCoinCost <= 0) return;
+
+  const parts: string[] = [];
+  if (trade.leftCost > 0) parts.push(`${trade.leftCost} west`);
+  if (trade.rightCost > 0) parts.push(`${trade.rightCost} east`);
+  const neighborDetail = parts.length > 0 ? ` (${parts.join(" / ")})` : "";
+
+  events.push({
+    type: "TRADE_PAID",
+    playerId: player.id,
+    message: `${player.name} paid ${trade.totalCoinCost} coins to neighbors${neighborDetail} for ${forWhat}`,
+  });
 }
 
 function queueImmediateEffect(
@@ -469,7 +491,6 @@ function applyCoinsFromCards(
 }
 
 function applyWonderStageEffect(
-  state: GameState,
   player: PlayerState,
   effect: WonderStageEffect,
   events: GameEvent[],
@@ -487,21 +508,14 @@ function applyWonderStageEffect(
       });
       break;
     case "playDiscarded":
-      if (state.discardPile.length === 0) {
-        // NOTE: Official rules — empty discard means the ability is wasted.
-        events.push({
-          type: "ABILITY_GRANTED",
-          playerId: player.id,
-          message: `${player.name} playDiscarded wasted (empty discard)`,
-        });
-      } else {
-        player.pendingAbility = { type: "playDiscarded" };
-        events.push({
-          type: "ABILITY_GRANTED",
-          playerId: player.id,
-          message: `${player.name} gained playDiscarded`,
-        });
-      }
+      // NOTE: Always grant here — same-turn discards may still be pending later
+      // in turnOrder. clearUnusablePlayDiscarded runs after all plans resolve.
+      player.pendingAbility = { type: "playDiscarded" };
+      events.push({
+        type: "ABILITY_GRANTED",
+        playerId: player.id,
+        message: `${player.name} gained playDiscarded`,
+      });
       break;
     default:
       break;
@@ -514,21 +528,39 @@ function hasUnresolvedPlayDiscarded(state: GameState): boolean {
   );
 }
 
+function isPlayableFromDiscard(player: PlayerState, cardId: string): boolean {
+  const card = getCardById(cardId);
+  return !player.tableau.some((id) => getCardById(id).name === card.name);
+}
+
+function hasPlayableDiscardCard(
+  player: PlayerState,
+  discardPile: string[],
+): boolean {
+  return discardPile.some((cardId) => isPlayableFromDiscard(player, cardId));
+}
+
 function clearUnusablePlayDiscarded(
   state: GameState,
   events: GameEvent[],
 ): void {
-  if (state.discardPile.length > 0) return;
   for (const pid of state.turnOrder) {
     const player = state.players[pid];
-    if (player.pendingAbility?.type === "playDiscarded") {
-      player.pendingAbility = null;
-      events.push({
-        type: "ABILITY_GRANTED",
-        playerId: player.id,
-        message: `${player.name} playDiscarded wasted (empty discard)`,
-      });
-    }
+    if (player.pendingAbility?.type !== "playDiscarded") continue;
+
+    // NOTE: Official rules — empty discard wastes the ability. Also clear when
+    // every discarded structure is already in this player's city (name unique).
+    if (hasPlayableDiscardCard(player, state.discardPile)) continue;
+
+    player.pendingAbility = null;
+    events.push({
+      type: "ABILITY_GRANTED",
+      playerId: player.id,
+      message:
+        state.discardPile.length === 0
+          ? `${player.name} playDiscarded wasted (empty discard)`
+          : `${player.name} playDiscarded wasted (no legal card)`,
+    });
   }
 }
 

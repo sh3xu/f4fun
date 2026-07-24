@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, Outfit, Yanone_Kaffeesatz } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -34,6 +35,7 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col" suppressHydrationWarning>
         {children}
+        <Toaster position="bottom-left" richColors closeButton />
       </body>
     </html>
   );

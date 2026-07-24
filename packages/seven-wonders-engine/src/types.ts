@@ -168,6 +168,7 @@ export type GameEventType =
   | "CARD_PLAYED"
   | "CARD_DISCARDED"
   | "WONDER_STAGED"
+  | "TRADE_PAID"
   | "AGE_END"
   | "GAME_OVER"
   | "ABILITY_GRANTED"

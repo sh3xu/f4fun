@@ -2,6 +2,7 @@
 
 import type {
   GameType,
+  PlayerInfo,
   RoomAddBotPlayerResponsePayload,
   RoomGameStartedPayload,
   RoomGameTypeUpdatedPayload,
@@ -195,6 +196,9 @@ export function LobbyPage() {
 
     socket.on("room:gameTypeUpdated", (data: RoomGameTypeUpdatedPayload) => {
       setGameType(data.gameType);
+      if (data.players) {
+        setRoom(roomId || "", activeRoomCode, data.players, data.gameType);
+      }
     });
 
     socket.on("room:gameStarted", (data: RoomGameStartedPayload) => {
@@ -222,6 +226,7 @@ export function LobbyPage() {
     updatePlayerConnection,
     setGameId,
     setGameType,
+    setRoom,
     router,
   ]);
 
@@ -232,15 +237,26 @@ export function LobbyPage() {
     setError("");
 
     try {
-      await emitWithCallback("room:setGameType", {
+      const response = await emitWithCallback<{
+        gameType: GameType;
+        players?: PlayerInfo[];
+      }>("room:setGameType", {
         roomCode: activeRoomCode,
         gameType: next,
       });
-      setGameType(next);
+      setGameType(response.gameType);
+      if (response.players) {
+        setRoom(
+          roomId || "",
+          activeRoomCode,
+          response.players,
+          response.gameType,
+        );
+      }
       saveRoom({
         roomId: roomId || "",
         roomCode: activeRoomCode,
-        gameType: next,
+        gameType: response.gameType,
       });
     } catch (err) {
       setError((err as Error).message);

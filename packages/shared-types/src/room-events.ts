@@ -100,6 +100,7 @@ export const RoomGameStartedSchema = z.object({
 
 export const RoomGameTypeUpdatedSchema = z.object({
   gameType: GameTypeSchema,
+  players: z.array(PlayerInfoSchema).optional(),
 });
 
 export const RoomErrorSchema = z.object({

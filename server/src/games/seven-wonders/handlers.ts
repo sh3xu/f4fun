@@ -1,5 +1,6 @@
 import {
   applyAction,
+  type GameEvent,
   type GameState,
   getPublicStateForPlayer,
   ResolveTurnError,
@@ -25,9 +26,12 @@ export function emitPerPlayerSnapshots(
   io: Server,
   roomId: string,
   state: GameState,
+  events: readonly GameEvent[] = [],
 ): void {
   const sockets = io.sockets.adapter.rooms.get(roomId);
   if (!sockets) return;
+
+  const payloadEvents = events.length > 0 ? [...events] : undefined;
 
   for (const socketId of sockets) {
     const sock = io.sockets.sockets.get(socketId) as
@@ -37,6 +41,7 @@ export function emitPerPlayerSnapshots(
     if (!state.players[sock.playerId]) continue;
     sock.emit("sevenWonders:stateSnapshot", {
       state: getPublicStateForPlayer(state, sock.playerId),
+      ...(payloadEvents ? { events: payloadEvents } : {}),
     });
   }
 }
@@ -74,7 +79,7 @@ export function registerSevenWondersHandlers(
         }
 
         try {
-          const { state: next } = applyAction(state, {
+          const { state: next, events } = applyAction(state, {
             type: "SUBMIT_PICK",
             playerId,
             action: data.action,
@@ -94,7 +99,7 @@ export function registerSevenWondersHandlers(
             totalPlayers: next.turnOrder.length,
           });
 
-          emitPerPlayerSnapshots(io, roomId, next);
+          emitPerPlayerSnapshots(io, roomId, next, events);
           callback(null, { ok: true });
         } catch (err) {
           // NOTE: Persist cleared queue so a mid-resolve failure cannot deadlock the draft.
@@ -138,7 +143,7 @@ export function registerSevenWondersHandlers(
           return;
         }
 
-        const { state: next } = applyAction(state, {
+        const { state: next, events } = applyAction(state, {
           type: "PLAY_FROM_DISCARD",
           playerId,
           cardId: data.cardId,
@@ -148,7 +153,7 @@ export function registerSevenWondersHandlers(
           Object.keys(next.pendingPicks).length === 0 &&
           next.phase !== "RESOLVING_ABILITY";
         await saveGame(next.gameId, next, turnResolved ? 1 : 0);
-        emitPerPlayerSnapshots(io, roomId, next);
+        emitPerPlayerSnapshots(io, roomId, next, events);
         callback(null, { ok: true });
       });
     } catch (err) {

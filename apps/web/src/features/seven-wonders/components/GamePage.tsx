@@ -1,15 +1,29 @@
 "use client";
 
-import type { PickAction, ScoreBreakdown } from "@f4fun/seven-wonders-engine";
+import type {
+  GameEvent,
+  GameState,
+  PickAction,
+  ScoreBreakdown,
+} from "@f4fun/seven-wonders-engine";
 import {
   canAfford,
   getCardById,
   getWonderById,
   hasChainFrom,
 } from "@f4fun/seven-wonders-engine";
-import type { SevenWondersPickReceivedPayload } from "@f4fun/shared-types";
+import type {
+  SevenWondersPickReceivedPayload,
+  SevenWondersStateSnapshotPayload,
+} from "@f4fun/shared-types";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Crown } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CircleHelp,
+  Crown,
+  ScrollText,
+} from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -31,9 +45,20 @@ import {
   WonderCard,
 } from "./CardViews";
 import { DevSeatSwitcher } from "./DevSeatSwitcher";
+import { HOW_TO_PLAY_SEEN_KEY, HowToPlayOverlay } from "./HowToPlayOverlay";
+import { RivalCityPanel } from "./RivalCityPanel";
 import { TableSeats } from "./TableSeats";
+import { TurnChronicle } from "./TurnChronicle";
 
 const AGE_NUMERALS = { 1: "I", 2: "II", 3: "III" } as const;
+
+function toastActionError(message: string) {
+  if (/cannot afford|insufficient/i.test(message)) {
+    toast.error("Insufficient funds");
+    return;
+  }
+  toast.error(message);
+}
 
 const TABLE_BACKGROUND = {
   backgroundImage:
@@ -80,16 +105,44 @@ export function SevenWondersGamePage() {
   const state = useSevenWondersStore((s) => s.state);
   const submittedCount = useSevenWondersStore((s) => s.submittedCount);
   const totalPlayers = useSevenWondersStore((s) => s.totalPlayers);
-  const error = useSevenWondersStore((s) => s.error);
+  const lastTurnEvents = useSevenWondersStore((s) => s.lastTurnEvents);
+  const chronicle = useSevenWondersStore((s) => s.chronicle);
+  const chronicleOpen = useSevenWondersStore((s) => s.chronicleOpen);
+  const showLastTurnPanel = useSevenWondersStore((s) => s.showLastTurnPanel);
   const setFromSnapshot = useSevenWondersStore((s) => s.setFromSnapshot);
   const setPickProgress = useSevenWondersStore((s) => s.setPickProgress);
   const setError = useSevenWondersStore((s) => s.setError);
+  const setChronicleOpen = useSevenWondersStore((s) => s.setChronicleOpen);
+  const dismissLastTurnPanel = useSevenWondersStore(
+    (s) => s.dismissLastTurnPanel,
+  );
 
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [ready, setReady] = useState(false);
   const [ageBanner, setAgeBanner] = useState<1 | 2 | 3 | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [inspectPlayerId, setInspectPlayerId] = useState<string | null>(null);
   const prevAgeRef = useRef<1 | 2 | 3 | null>(null);
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(HOW_TO_PLAY_SEEN_KEY) !== "1") {
+        setHelpOpen(true);
+      }
+    } catch {
+      // NOTE: Private mode / blocked storage — skip auto-open.
+    }
+  }, []);
+
+  const closeHelp = () => {
+    setHelpOpen(false);
+    try {
+      localStorage.setItem(HOW_TO_PLAY_SEEN_KEY, "1");
+    } catch {
+      // ignore
+    }
+  };
 
   useEffect(() => {
     const storedPlayer = loadPlayer();
@@ -121,6 +174,7 @@ export function SevenWondersGamePage() {
     async function rejoin() {
       if (!activeRoomId || !playerId || !playerSecret) {
         setError("Missing session — rejoin from the lobby.");
+        toast.error("Missing session — rejoin from the lobby.");
         setReady(true);
         return;
       }
@@ -132,16 +186,18 @@ export function SevenWondersGamePage() {
           playerSecret,
         });
       } catch (err) {
-        setError((err as Error).message);
+        const message = (err as Error).message;
+        setError(message);
+        toast.error(message);
       } finally {
         setReady(true);
       }
     }
 
-    const onSnapshot = (data: { state: NonNullable<typeof state> }) => {
+    const onSnapshot = (data: SevenWondersStateSnapshotPayload) => {
       if (data?.state) {
-        const nextState = data.state;
-        setFromSnapshot(nextState);
+        const nextState = data.state as unknown as GameState;
+        setFromSnapshot(nextState, data.events as GameEvent[] | undefined);
         // Preserve selection while the card remains in our hand (other seats submitting).
         setSelectedCardId((prev) => {
           if (!prev) return null;
@@ -217,7 +273,7 @@ export function SevenWondersGamePage() {
     } catch (err) {
       const message = (err as Error).message;
       setError(message);
-      toast.error(message);
+      toastActionError(message);
     } finally {
       setSubmitting(false);
     }
@@ -237,7 +293,7 @@ export function SevenWondersGamePage() {
     } catch (err) {
       const message = (err as Error).message;
       setError(message);
-      toast.error(message);
+      toastActionError(message);
     } finally {
       setSubmitting(false);
     }
@@ -253,7 +309,6 @@ export function SevenWondersGamePage() {
         <p className="mt-4 text-sm font-semibold tracking-[0.3em] text-amber-200/70 uppercase">
           {GAME_TITLE}
         </p>
-        {error && <p className="mt-3 text-sm text-rose-300">{error}</p>}
       </div>
     );
   }
@@ -305,6 +360,16 @@ export function SevenWondersGamePage() {
   };
 
   const selectedCard = selectedCardId ? getCardById(selectedCardId) : null;
+  const selectedAffordability = selectedCardId
+    ? affordabilityFor(selectedCardId)
+    : null;
+  // NOTE: Sell and Raise wonder remain available; only PLAY is gated by cost/owned.
+  const canBuildSelected =
+    selectedAffordability != null &&
+    selectedAffordability.kind !== "owned" &&
+    selectedAffordability.kind !== "blocked";
+  const canFreeBuildSelected =
+    selectedAffordability != null && selectedAffordability.kind !== "owned";
   const fanCards = resolvingDiscard ? state.discardPile : hand;
   const fanMid = (fanCards.length - 1) / 2;
 
@@ -379,16 +444,39 @@ export function SevenWondersGamePage() {
             </span>
           </div>
 
-          <p className="text-xs font-bold text-amber-100/70">
-            {state.phase === "RESOLVING_ABILITY"
-              ? "Resolving a wonder's power"
-              : `Picks ${submittedCount}/${totalPlayers || state.turnOrder.length}`}
-          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setChronicleOpen(true)}
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-white/10 bg-black/30 px-2.5 text-[11px] font-bold uppercase tracking-wider text-amber-100/70 transition hover:border-amber-400/30 hover:text-amber-100"
+              aria-label="Open chronicle"
+            >
+              <ScrollText className="h-3.5 w-3.5" />
+              Chronicle
+            </button>
+            <button
+              type="button"
+              onClick={() => setHelpOpen(true)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-black/30 text-amber-100/70 transition hover:border-amber-400/30 hover:text-amber-100"
+              aria-label="How to play"
+            >
+              <CircleHelp className="h-4 w-4" />
+            </button>
+            <p className="text-xs font-bold text-amber-100/70">
+              {state.phase === "RESOLVING_ABILITY"
+                ? "Resolving a wonder's power"
+                : `Picks ${submittedCount}/${totalPlayers || state.turnOrder.length}`}
+            </p>
+          </div>
         </div>
       </header>
 
       <main className="mx-auto flex max-w-6xl flex-col gap-4 px-4 pb-44 pt-4">
-        <TableSeats state={state} myPlayerId={myPlayerId} />
+        <TableSeats
+          state={state}
+          myPlayerId={myPlayerId}
+          onSelectPlayer={setInspectPlayerId}
+        />
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
           <WonderBoard
@@ -402,12 +490,6 @@ export function SevenWondersGamePage() {
             <CityTableau tableau={me.tableau} />
           </section>
         </div>
-
-        {error && (
-          <div className="rounded-md border border-rose-400/25 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
-            {error}
-          </div>
-        )}
 
         <section>
           <h2 className="mb-3 text-center text-[10px] font-black uppercase tracking-[0.3em] text-amber-100/50">
@@ -509,7 +591,14 @@ export function SevenWondersGamePage() {
                 <Button
                   size="sm"
                   disabled={!selectedCardId || submitting}
-                  onClick={() => void submitPick("PLAY")}
+                  onClick={() => {
+                    if (selectedAffordability?.kind === "blocked") {
+                      toast.error("Insufficient funds");
+                      return;
+                    }
+                    if (!canBuildSelected) return;
+                    void submitPick("PLAY");
+                  }}
                 >
                   Build
                 </Button>
@@ -517,7 +606,9 @@ export function SevenWondersGamePage() {
                   <Button
                     size="sm"
                     variant="secondary"
-                    disabled={!selectedCardId || submitting}
+                    disabled={
+                      !selectedCardId || submitting || !canFreeBuildSelected
+                    }
                     onClick={() => void submitPick("PLAY", true)}
                   >
                     Build free
@@ -526,8 +617,14 @@ export function SevenWondersGamePage() {
                 <Button
                   size="sm"
                   variant="secondary"
-                  disabled={!selectedCardId || submitting || !stageAffordable}
-                  onClick={() => void submitPick("STAGE_WONDER")}
+                  disabled={!selectedCardId || submitting || !canStage}
+                  onClick={() => {
+                    if (!stageAffordable) {
+                      toast.error("Insufficient funds");
+                      return;
+                    }
+                    void submitPick("STAGE_WONDER");
+                  }}
                   title={
                     canStage ? undefined : "All wonder stages are already built"
                   }
@@ -547,6 +644,22 @@ export function SevenWondersGamePage() {
           </div>
         </div>
       </div>
+
+      <HowToPlayOverlay open={helpOpen} onClose={closeHelp} />
+      <TurnChronicle
+        lastTurnEvents={lastTurnEvents}
+        chronicle={chronicle}
+        showLastTurnPanel={showLastTurnPanel}
+        chronicleOpen={chronicleOpen}
+        onDismissLastTurn={dismissLastTurnPanel}
+        onCloseChronicle={() => setChronicleOpen(false)}
+      />
+      <RivalCityPanel
+        state={state}
+        playerId={inspectPlayerId}
+        myPlayerId={myPlayerId}
+        onClose={() => setInspectPlayerId(null)}
+      />
     </div>
   );
 }

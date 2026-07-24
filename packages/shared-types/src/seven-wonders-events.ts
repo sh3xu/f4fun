@@ -84,8 +84,27 @@ export const SevenWondersGameStateSchema = z
   })
   .passthrough();
 
+export const SevenWondersGameEventTypeSchema = z.enum([
+  "CARD_PLAYED",
+  "CARD_DISCARDED",
+  "WONDER_STAGED",
+  "TRADE_PAID",
+  "AGE_END",
+  "GAME_OVER",
+  "ABILITY_GRANTED",
+  "FREE_BUILD_USED",
+  "DISCARD_PLAYED",
+]);
+
+export const SevenWondersGameEventSchema = z.object({
+  type: SevenWondersGameEventTypeSchema,
+  playerId: z.string().optional(),
+  message: z.string(),
+});
+
 export const SevenWondersStateSnapshotSchema = z.object({
   state: SevenWondersGameStateSchema,
+  events: z.array(SevenWondersGameEventSchema).optional(),
 });
 
 export const SevenWondersPickReceivedSchema = z.object({
@@ -113,6 +132,7 @@ export type SevenWondersRejoinPayload = z.infer<
 export type SevenWondersStateSnapshotPayload = z.infer<
   typeof SevenWondersStateSnapshotSchema
 >;
+export type SevenWondersGameEvent = z.infer<typeof SevenWondersGameEventSchema>;
 export type SevenWondersPickReceivedPayload = z.infer<
   typeof SevenWondersPickReceivedSchema
 >;

@@ -72,9 +72,19 @@ export async function setRoomGameType(
   roomId: string,
   gameType: RoomGameType,
 ): Promise<Room> {
+  // NOTE: Seven Wonders has no bot support — drop AI seats when switching so
+  // the host is not stuck with an irreversible Monopoly-only lobby.
+  const update =
+    gameType === "sevenWonders"
+      ? {
+          $set: { gameType },
+          $pull: { players: { isBot: true } },
+        }
+      : { $set: { gameType } };
+
   const doc = await RoomModel.findOneAndUpdate(
     { roomId, status: "lobby" },
-    { $set: { gameType } },
+    update,
     { new: true },
   );
   if (!doc) throw new Error("Room not found or game already started");

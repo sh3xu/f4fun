@@ -213,21 +213,13 @@ export function registerRoomHandlers(
           return;
         }
 
-        if (
-          data.gameType === "sevenWonders" &&
-          room.players.some((p) => p.isBot)
-        ) {
-          callback(
-            "Remove AI players before switching to Seven Wonders (bots are not supported yet)",
-          );
-          return;
-        }
-
         const updated = await setRoomGameType(room.roomId, data.gameType);
+        const players = toPlayerInfoList(updated.players);
         io.to(room.roomId).emit("room:gameTypeUpdated", {
           gameType: updated.gameType,
+          players,
         });
-        callback(null, { gameType: updated.gameType });
+        callback(null, { gameType: updated.gameType, players });
       });
     } catch (err) {
       callback((err as Error).message);

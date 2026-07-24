@@ -19,9 +19,11 @@ function militaryScore(tokens: number[]): number {
 export function TableSeats({
   state,
   myPlayerId,
+  onSelectPlayer,
 }: {
   state: GameState;
   myPlayerId: string;
+  onSelectPlayer?: (playerId: string) => void;
 }) {
   const [westId, eastId] = getNeighborIds(state, myPlayerId);
 
@@ -41,13 +43,17 @@ export function TableSeats({
               : "Rival";
 
         return (
-          <div
+          <button
             key={pid}
+            type="button"
+            onClick={() => onSelectPlayer?.(pid)}
             className={cn(
-              "flex min-w-44 flex-1 items-center gap-2.5 rounded-lg border px-2.5 py-2",
+              "flex min-w-44 flex-1 items-center gap-2.5 rounded-lg border px-2.5 py-2 text-left transition",
               isMe
                 ? "border-amber-300/50 bg-amber-400/10"
-                : "border-white/10 bg-black/35",
+                : "border-white/10 bg-black/35 hover:border-amber-400/35 hover:bg-black/45",
+              onSelectPlayer &&
+                "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50",
             )}
           >
             <Avatar avatarId={player.token} size="sm" isActive={isMe} />
@@ -105,7 +111,7 @@ export function TableSeats({
                 </span>
               </div>
             </div>
-          </div>
+          </button>
         );
       })}
     </div>

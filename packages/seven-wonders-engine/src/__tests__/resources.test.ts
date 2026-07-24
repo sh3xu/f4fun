@@ -46,7 +46,7 @@ describe("neighbor choice resource trading", () => {
     expect(trade?.totalCoinCost).toBe(2);
   });
 
-  it("allows buying ore from the same Clay Pit instead of clay", () => {
+  it("uses own wonder production instead of trading for ore", () => {
     const state = createInitialState("g1", THREE_PLAYERS, seededRng());
 
     state.players.p1.wonderId = "rhodes";
