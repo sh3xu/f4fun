@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/Button";
 import { CashAmountSlider } from "@/components/ui/CashAmountSlider";
 import { GameCard } from "@/components/ui/GameCard";
 import { cn } from "@/lib/cn";
+import { PROPERTY_IMAGES } from "../lib/property-images";
+import { CardPhotoBackdrop } from "./CardPhotoBackdrop";
 import { getTileLabel } from "./tile-labels";
 
 interface AuctionPanelProps {
@@ -45,56 +47,62 @@ export function AuctionPanel({
   const currentBidderName = currentBidderId
     ? state.players[currentBidderId]?.name
     : null;
+  const coverSrc = PROPERTY_IMAGES[auction.position];
 
   return (
     <GameCard
       stock="auction"
       header={`Auction · ${tile ? getTileLabel(tile.name) : `Tile ${auction.position}`}`}
-      className="animate-card-deal w-full max-w-[28rem]"
+      className="w-full max-w-[28rem] animate-card-deal"
+      backdrop={
+        coverSrc ? (
+          <CardPhotoBackdrop src={coverSrc} veil="strong" />
+        ) : undefined
+      }
     >
       <div className="flex flex-col gap-[clamp(0.4rem,1.5cqmin,0.75rem)] p-[clamp(0.5rem,2cqmin,0.85rem)]">
         <div className="grid gap-2 sm:grid-cols-2">
-          <div className="space-y-1 rounded-md border border-white/[0.06] bg-white/[0.05] p-[clamp(0.5rem,1.8cqmin,0.9rem)] text-[length:var(--board-text-sm)]">
+          <div className="space-y-1 rounded-md border border-slate-200 bg-slate-50 p-[clamp(0.5rem,1.8cqmin,0.9rem)] text-[length:var(--board-text-sm)]">
             <div className="flex justify-between">
-              <span className="text-white/50">Type:</span>
-              <span className="font-bold text-white/90">
+              <span className="text-slate-500">Type:</span>
+              <span className="font-bold text-slate-800">
                 {auction.kind === "bank" ? "Bank" : "Owner sale"}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/50">High bid:</span>
-              <span className="font-bold text-emerald-400">
+              <span className="text-slate-500">High bid:</span>
+              <span className="font-bold text-emerald-700">
                 {auction.highBid > 0 ? `$${auction.highBid}` : "None yet"}
               </span>
             </div>
             {highBidderName && (
               <div className="flex justify-between">
-                <span className="text-white/50">Leader:</span>
-                <span className="font-bold text-white/90">
+                <span className="text-slate-500">Leader:</span>
+                <span className="font-bold text-slate-800">
                   {highBidderName}
                 </span>
               </div>
             )}
             <div className="flex justify-between">
-              <span className="text-white/50">Bidding:</span>
-              <span className="font-bold text-[#4fc3f7]">
+              <span className="text-slate-500">Bidding:</span>
+              <span className="font-bold text-teal-700">
                 {currentBidderName}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/50">Min next:</span>
-              <span className="font-bold text-white/90">
+              <span className="text-slate-500">Min next:</span>
+              <span className="font-bold text-slate-800">
                 ${auction.minNextBid}
               </span>
             </div>
           </div>
 
-          <div className="flex min-h-[6.5rem] flex-col rounded-md border border-white/[0.06] bg-white/[0.05] p-[clamp(0.5rem,1.8cqmin,0.9rem)]">
-            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40">
+          <div className="flex min-h-[6.5rem] flex-col rounded-md border border-slate-200 bg-slate-50 p-[clamp(0.5rem,1.8cqmin,0.9rem)]">
+            <p className="mb-1.5 text-[10px] font-bold tracking-wider text-slate-600 uppercase">
               Bid history
             </p>
             {bidHistory.length === 0 ? (
-              <p className="text-[length:var(--board-text-sm)] text-white/40">
+              <p className="text-[length:var(--board-text-sm)] text-slate-500">
                 No bids yet
               </p>
             ) : (
@@ -112,15 +120,15 @@ export function AuctionPanel({
                       key={`${entry.playerId}-${entry.kind}-${entry.amount}-${index}`}
                       className="flex justify-between gap-2 leading-snug"
                     >
-                      <span className="truncate font-semibold text-white/80">
+                      <span className="truncate font-semibold text-slate-700">
                         {name}
                       </span>
                       <span
                         className={cn(
                           "shrink-0 tabular-nums",
                           entry.kind === "bid"
-                            ? "font-bold text-emerald-400"
-                            : "text-white/45",
+                            ? "font-bold text-emerald-700"
+                            : "text-slate-500",
                         )}
                       >
                         {detail}
@@ -134,7 +142,7 @@ export function AuctionPanel({
         </div>
 
         {isSeller && (
-          <p className="text-[length:var(--board-text-sm)] text-white/60">
+          <p className="text-[length:var(--board-text-sm)] text-slate-500">
             You are selling — you cannot bid.
           </p>
         )}
@@ -176,7 +184,7 @@ export function AuctionPanel({
         )}
 
         {!isMyBidTurn && !isSeller && (
-          <p className="text-center text-[length:var(--board-text-sm)] text-white/50">
+          <p className="text-center text-[length:var(--board-text-sm)] text-slate-500">
             Waiting for {currentBidderName ?? "next bidder"}...
           </p>
         )}

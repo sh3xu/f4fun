@@ -10,7 +10,7 @@ interface TableShellProps {
   contentClassName?: string;
 }
 
-/** Shared felt table + rail header shell for landing and lobby. */
+/** Soft table wash + brand header for landing and lobby. */
 export function TableShell({
   children,
   title,
@@ -21,7 +21,7 @@ export function TableShell({
   return (
     <div
       className={cn(
-        "material-felt relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-4 font-sans text-slate-100 select-none",
+        "material-felt relative flex min-h-dvh flex-col items-center justify-center overflow-hidden p-4 font-sans text-slate-800 select-none",
         className,
       )}
     >
@@ -29,15 +29,15 @@ export function TableShell({
         {(title || subtitle) && (
           <RailFrame
             as="header"
-            className="mb-6 w-full px-5 py-4 text-center animate-fade-in"
+            className="mb-6 w-full px-5 py-5 text-center animate-fade-in"
           >
             {title && (
-              <h1 className="bg-gradient-to-r from-[#4fc3f7] via-[#29b6f6] to-[#26c6da] bg-clip-text text-3xl font-black tracking-tight text-transparent md:text-4xl">
-                {title}
+              <h1 className="text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
+                <span className="text-teal-700">{title}</span>
               </h1>
             )}
             {subtitle && (
-              <p className="mt-1.5 text-sm font-medium text-slate-400">
+              <p className="mt-1.5 text-sm font-medium text-slate-500">
                 {subtitle}
               </p>
             )}

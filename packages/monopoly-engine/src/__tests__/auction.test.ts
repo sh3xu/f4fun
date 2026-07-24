@@ -65,7 +65,8 @@ describe("auction", () => {
     expect(result.events.some((e) => e.type === "AUCTION_WON")).toBe(true);
     expect(state.ownership[1]?.ownerId).toBe("p1");
     expect(state.players.p1.cash).toBe(1500 - 40);
-    expect(state.phase).toBe("BUY_OR_DECLINE");
+    // NOTE: Awarded bank auctions must leave BUY_OR_DECLINE so the buy card does not reappear.
+    expect(state.phase).toBe("END_TURN");
     expect(state.auction).toBeNull();
   });
 
@@ -143,7 +144,7 @@ describe("auction", () => {
     );
   });
 
-  it("resumes paused turn timer after auction resolves", () => {
+  it("clears paused buy deadline after auction awards so phase can restamp", () => {
     const state = setupBuyOrDecline(1);
     state.actionDeadlineAt = "2026-01-01T00:00:30.000Z";
     applyAction(state, { type: "START_AUCTION" });
@@ -158,6 +159,21 @@ describe("auction", () => {
     );
 
     expect(result.error).toBeUndefined();
+    expect(state.phase).toBe("END_TURN");
+    expect(state.actionDeadlinePausedMs).toBeNull();
+    // NOTE: Server syncDeadlines restamps; engine leaves null so a fresh END_TURN clock applies.
+    expect(state.actionDeadlineAt).toBeNull();
+  });
+
+  it("restores BUY_OR_DECLINE deadline when auction cancels with no bids", () => {
+    const state = setupBuyOrDecline(1);
+    state.actionDeadlineAt = "2026-01-01T00:00:30.000Z";
+    applyAction(state, { type: "START_AUCTION" });
+
+    applyAction(state, { type: "PASS_AUCTION" }, Math.random, "p1");
+    applyAction(state, { type: "PASS_AUCTION" }, Math.random, "p2");
+    applyAction(state, { type: "PASS_AUCTION" }, Math.random, "p3");
+
     expect(state.phase).toBe("BUY_OR_DECLINE");
     expect(state.actionDeadlinePausedMs).toBeNull();
     expect(state.actionDeadlineAt).not.toBeNull();

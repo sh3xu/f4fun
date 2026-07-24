@@ -5,6 +5,7 @@ import type {
   PlayerId,
   RNG,
 } from "@f4fun/monopoly-engine";
+import type { BotPersonality } from "./personality.js";
 
 export interface ScoredOption {
   action: GameAction;
@@ -19,10 +20,12 @@ export interface StrategyContext {
   rng: RNG;
   /**
    * Rejected deal locks (`fingerprint::partnerCondition`).
-   * Blocks re-offer only while the partner's trade conditions are unchanged;
+   * Blocks re-offer while the partner's deeds + cash band are unchanged;
    * cleared at the start of the bot's next PRE_ROLL turn.
    */
   rejectedTradeLocks?: ReadonlySet<string>;
+  /** Auction / risk personality; defaults to balanced when omitted. */
+  personality?: BotPersonality;
 }
 
 export interface StrategyProfile {

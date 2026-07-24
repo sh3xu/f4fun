@@ -21,6 +21,11 @@ import { cn } from "@/lib/cn";
 import { loadPlayer, loadRoom, saveRoom } from "@/lib/player-storage";
 import { connectSocket, emitWithCallback, getSocket } from "@/lib/socket";
 import { useRoomStore } from "../store/roomStore";
+import {
+  DEFAULT_HOST_GAME_OPTIONS,
+  HostGameOptions,
+  type HostGameOptionsValue,
+} from "./HostGameOptions";
 
 function resolvePlayerAvatar(
   player: { id: string; token: string },
@@ -62,6 +67,9 @@ export function LobbyPage() {
   const [syncing, setSyncing] = useState(true);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [hostOptions, setHostOptions] = useState<HostGameOptionsValue>(
+    DEFAULT_HOST_GAME_OPTIONS,
+  );
 
   const activeRoomCode = roomCode || codeFromUrl;
   const isHost = players.find((p) => p.id === myPlayerId)?.isHost ?? false;
@@ -269,7 +277,10 @@ export function LobbyPage() {
     setError("");
 
     try {
-      await emitWithCallback("room:startGame", { roomCode: activeRoomCode });
+      await emitWithCallback("room:startGame", {
+        roomCode: activeRoomCode,
+        options: hostOptions,
+      });
     } catch (err) {
       setError((err as Error).message);
       setLoading(false);
@@ -285,10 +296,10 @@ export function LobbyPage() {
 
   if (syncing) {
     return (
-      <div className="material-felt flex min-h-screen flex-col items-center justify-center text-gray-100">
+      <div className="material-felt flex min-h-dvh flex-col items-center justify-center text-slate-800">
         <div className="relative z-[2] flex flex-col items-center">
           <GameLoader size="lg" label="Loading lobby" />
-          <p className="mt-4 text-sm text-gray-500">
+          <p className="mt-4 text-sm text-slate-500">
             Pulling up chairs at the table...
           </p>
         </div>
@@ -303,12 +314,12 @@ export function LobbyPage() {
     >
       <GameCard stock="property" dealIn className="w-full p-5">
         <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between rounded-md border border-white/10 bg-black/25 p-4">
+          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
+              <p className="text-xs font-semibold tracking-widest text-slate-500 uppercase">
                 Room code
               </p>
-              <p className="mt-0.5 font-mono text-2xl font-black tracking-widest text-[#4fc3f7]">
+              <p className="mt-0.5 font-mono text-2xl font-black tracking-widest text-teal-700">
                 {activeRoomCode}
               </p>
             </div>
@@ -316,7 +327,7 @@ export function LobbyPage() {
               variant="tokenGhost"
               size="sm"
               onClick={handleCopyCode}
-              className="gap-1.5"
+              className="min-h-11 gap-1.5"
             >
               <Copy className="h-3.5 w-3.5" />
               {copied ? "Copied" : "Copy"}
@@ -367,12 +378,12 @@ export function LobbyPage() {
           )}
 
           <div>
-            <p className="mb-2.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-gray-400">
+            <p className="mb-2.5 flex items-center gap-1.5 text-xs font-bold tracking-widest text-slate-500 uppercase">
               <Users className="h-3.5 w-3.5" />
               Seats ({players.length}/8)
             </p>
             {players.length === 0 ? (
-              <p className="rounded-md border border-dashed border-white/15 bg-black/20 px-3 py-6 text-center text-sm text-gray-500">
+              <p className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-3 py-6 text-center text-sm text-slate-500">
                 Pull up a chair — no one&apos;s here yet
               </p>
             ) : (
@@ -381,8 +392,9 @@ export function LobbyPage() {
                   <div
                     key={player.id}
                     className={cn(
-                      "animate-token-settle rounded-md border border-white/10 bg-black/20 p-2.5",
-                      player.id === myPlayerId && "border-[#4fc3f7]/35",
+                      "animate-token-settle rounded-xl border border-slate-200 bg-white p-2.5",
+                      player.id === myPlayerId &&
+                        "border-teal-400 bg-teal-50/60",
                     )}
                     style={{ animationDelay: `${index * 60}ms` }}
                   >
@@ -404,7 +416,7 @@ export function LobbyPage() {
           </div>
 
           {error && (
-            <div className="rounded-md border border-rose-400/20 bg-rose-500/10 p-3 text-xs font-semibold text-rose-300">
+            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-700">
               {error}
             </div>
           )}
@@ -419,6 +431,14 @@ export function LobbyPage() {
               <Bot className="h-4 w-4" />
               {addingBot ? "Adding AI..." : "Add AI Player"}
             </Button>
+          )}
+
+          {isHost && (
+            <HostGameOptions
+              value={hostOptions}
+              onChange={setHostOptions}
+              disabled={lobbyActionPending}
+            />
           )}
 
           {isHost && (
@@ -441,7 +461,7 @@ export function LobbyPage() {
           )}
 
           {!isHost && (
-            <p className="text-center text-sm font-medium text-gray-500">
+            <p className="text-center text-sm font-medium text-slate-500">
               Waiting for the host to start the game...
             </p>
           )}
@@ -450,13 +470,13 @@ export function LobbyPage() {
             gameType === "monopoly" &&
             !canStart &&
             players.length < 2 && (
-              <p className="text-center text-xs text-gray-600">
+              <p className="text-center text-xs text-slate-500">
                 Need at least 2 players at the table to start
               </p>
             )}
 
           {isHost && gameType === "sevenWonders" && !canStart && (
-            <p className="text-center text-xs text-gray-600">
+            <p className="text-center text-xs text-slate-500">
               Seven Wonders needs 3–7 connected players
             </p>
           )}

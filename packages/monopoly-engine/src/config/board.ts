@@ -422,8 +422,30 @@ export const BOARD_SIZE = 40;
 export const BANK_HOUSE_LIMIT = 32;
 export const BANK_HOTEL_LIMIT = 12;
 
-// NOTE: House rule — sell houses/hotels back to bank at 75% (official is 50%).
-export const HOUSE_SELL_RATE = 0.75;
+/** Official ratio: 32 houses : 12 hotels. Floor so non–step-8 limits stay whole hotels. */
+export function hotelsForHouseLimit(houseLimit: number): number {
+  return Math.floor((houseLimit * 12) / 32);
+}
+
+// NOTE: Sell houses/hotels back at half purchase price (official).
+export const HOUSE_SELL_RATE = 0.5;
+
+/**
+ * Cash price to upgrade 4 houses → hotel (plus return 4 houses to the bank).
+ * House rule: hotel upgrade costs 2× house cost.
+ */
+export function hotelUpgradeCost(houseCost: number): number {
+  return houseCost * 2;
+}
+
+/** Total cash invested once a hotel stands (4 houses + 2× upgrade). */
+export function hotelDevelopmentCost(houseCost: number): number {
+  return houseCost * 6;
+}
+
+export function buildingSellPayout(purchaseCost: number): number {
+  return Math.floor(purchaseCost * HOUSE_SELL_RATE);
+}
 
 export const RAILROAD_RENT = [0, 25, 50, 100, 200] as const;
 

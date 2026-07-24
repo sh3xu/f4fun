@@ -1,5 +1,6 @@
 import {
-  HOUSE_SELL_RATE,
+  buildingSellPayout,
+  hotelUpgradeCost,
   POSITIONS_BY_COLOR,
   TILE_BY_POSITION,
 } from "./config/board.js";
@@ -10,10 +11,6 @@ function houseCostAt(position: number): number | null {
   const tile = TILE_BY_POSITION.get(position);
   if (!tile || tile.type !== "property") return null;
   return tile.houseCost;
-}
-
-function sellPayout(houseCost: number): number {
-  return Math.floor(houseCost * HOUSE_SELL_RATE);
 }
 
 function buildingCount(
@@ -196,7 +193,7 @@ export function sellHouse(
   if (player.houses[position] === 0) {
     delete player.houses[position];
   }
-  player.cash += sellPayout(cost);
+  player.cash += buildingSellPayout(cost);
   state.bankHouses += 1;
 
   return {
@@ -246,11 +243,13 @@ export function buildHotel(
     return { error: "Bank has no hotels left", events: [] };
   }
 
-  if (player.cash < tile.houseCost) {
+  // NOTE: House rule — hotel cash price is 2× house cost; 4 houses return to bank.
+  const upgradeCost = hotelUpgradeCost(tile.houseCost);
+  if (player.cash < upgradeCost) {
     return { error: "Insufficient funds", events: [] };
   }
 
-  player.cash -= tile.houseCost;
+  player.cash -= upgradeCost;
   delete player.houses[position];
   player.hotels[position] = 1;
   state.bankHouses += 4;
@@ -285,9 +284,10 @@ export function sellHotel(
     return { error: "Must sell evenly across the color group", events: [] };
   }
 
-  // NOTE: House rule — hotel sells as 5 house-equivalents at HOUSE_SELL_RATE.
+  // NOTE: Hotel sell → empty (not 4 houses); payout is half of upgrade cost only.
   delete player.hotels[position];
-  player.cash += sellPayout(cost * 5);
+  delete player.houses[position];
+  player.cash += buildingSellPayout(hotelUpgradeCost(cost));
   state.bankHotels += 1;
 
   return {

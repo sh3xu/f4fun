@@ -13,6 +13,7 @@ import { scoreJailOptions } from "../decision/jail.js";
 import { BotPlayer } from "../decision/orchestrator.js";
 import { generateTradeProposals } from "../decision/trade.js";
 import {
+  partnerCashBand,
   partnerTradeConditionKey,
   pendingTradeFingerprint,
   rejectedDealLockKey,
@@ -101,7 +102,7 @@ describe("monopoly-bot regressions", () => {
     expect(tradeScore?.score).toBeGreaterThan(50);
   });
 
-  it("never re-offers the same rejected trade in a recursion loop", () => {
+  it("never re-offers a rejected trade in the same turn, but may retry next turn", () => {
     const state = createState();
     state.phase = "END_TURN";
     state.activePlayerIndex = 0;
@@ -166,25 +167,61 @@ describe("monopoly-bot regressions", () => {
     });
     expect(regenerations).toHaveLength(0);
 
-    // Partner conditions changed — same deal shape may be reconsidered.
+    // Small cash tick stays in the same band — must not unlock spam.
     state.players.p2.cash -= 50;
-    const afterPartnerChange = proposer.decide(
+    const afterSmallChange = proposer.decide(
       state,
       "p1",
       [{ type: "END_TURN" }],
       rng,
     );
-    expect(afterPartnerChange.action.type).toBe("PROPOSE_TRADE");
+    expect(afterSmallChange.action.type).not.toBe("PROPOSE_TRADE");
+    expect(afterSmallChange.action.type).toBe("END_TURN");
 
-    // Next turn (PRE_ROLL) clears locks — may offer again based on scoring.
-    state.players.p2.cash += 50;
+    // Drastic drop into low band — same deal shape may be reconsidered.
+    state.players.p2.cash = 150;
+    const afterDrasticLow = proposer.decide(
+      state,
+      "p1",
+      [{ type: "END_TURN" }],
+      rng,
+    );
+    expect(afterDrasticLow.action.type).toBe("PROPOSE_TRADE");
+
+    // Next turn (PRE_ROLL) clears locks but must roll — no trade spam in dice phase.
+    state.players.p2.cash = 1500;
     proposer.rememberRejectedTrade(
       fingerprint,
       partnerTradeConditionKey(state, "p2"),
     );
     state.phase = "PRE_ROLL";
-    const nextTurn = proposer.decide(state, "p1", [{ type: "END_TURN" }], rng);
-    expect(nextTurn.action.type).toBe("PROPOSE_TRADE");
+    state.doublesCount = 0;
+    const nextTurn = proposer.decide(state, "p1", [{ type: "ROLL_DICE" }], rng);
+    expect(nextTurn.action.type).toBe("ROLL_DICE");
+    expect(proposer.hasRejectedTrade(fingerprint, partnerCondition)).toBe(
+      false,
+    );
+
+    // After rolling window, END_TURN may re-offer the cleared deal.
+    state.phase = "END_TURN";
+    const afterRollWindow = proposer.decide(
+      state,
+      "p1",
+      [{ type: "END_TURN" }],
+      rng,
+    );
+    expect(afterRollWindow.action.type).toBe("PROPOSE_TRADE");
+  });
+
+  it("partner cash bands only change on drastic liquidity shifts", () => {
+    expect(partnerCashBand(1500)).toBe("flush");
+    expect(partnerCashBand(1450)).toBe("flush");
+    expect(partnerCashBand(800)).toBe("flush");
+    expect(partnerCashBand(799)).toBe("ok");
+    expect(partnerCashBand(300)).toBe("ok");
+    expect(partnerCashBand(299)).toBe("low");
+    expect(partnerCashBand(100)).toBe("low");
+    expect(partnerCashBand(99)).toBe("critical");
   });
 
   it("keeps rejection locks through doubles reroll PRE_ROLL in the same turn", () => {
@@ -228,6 +265,52 @@ describe("monopoly-bot regressions", () => {
     }
 
     expect(proposer.hasRejectedTrade(fingerprint, partnerCondition)).toBe(true);
+  });
+
+  it("never offers trades during PRE_ROLL dice phase", () => {
+    const state = createState();
+    state.phase = "PRE_ROLL";
+    state.activePlayerIndex = 0;
+    state.doublesCount = 0;
+    state.ownership[1] = { ownerId: "p1", isMortgaged: false };
+    state.ownership[6] = { ownerId: "p1", isMortgaged: false };
+    state.ownership[3] = { ownerId: "p2", isMortgaged: false };
+    state.players.p1.ownedPositions = [1, 6];
+    state.players.p2.ownedPositions = [3];
+
+    const proposals = generateTradeProposals({
+      state,
+      actorId: "p1",
+      legalActions: [{ type: "ROLL_DICE" }],
+      rng: () => 0.5,
+    });
+    expect(proposals).toHaveLength(0);
+
+    const bot = new BotPlayer(expertStrategy);
+    const decision = bot.decide(
+      state,
+      "p1",
+      [{ type: "ROLL_DICE" }],
+      () => 0.5,
+    );
+    expect(decision.action.type).toBe("ROLL_DICE");
+  });
+
+  it("honors an expired turn deadline over proposing a trade", () => {
+    const state = createState();
+    state.phase = "END_TURN";
+    state.activePlayerIndex = 0;
+    state.actionDeadlineAt = "2020-01-01T00:00:00.000Z";
+    state.ownership[1] = { ownerId: "p1", isMortgaged: false };
+    state.ownership[6] = { ownerId: "p1", isMortgaged: false };
+    state.ownership[3] = { ownerId: "p2", isMortgaged: false };
+    state.players.p1.ownedPositions = [1, 6];
+    state.players.p2.ownedPositions = [3];
+
+    const bot = new BotPlayer(expertStrategy);
+    const decision = bot.decide(state, "p1", [{ type: "END_TURN" }], () => 0.5);
+    expect(decision.action.type).toBe("END_TURN");
+    expect(decision.reasoning).toMatch(/Timer expired/i);
   });
 
   it("detects two-property color groups when blocking monopoly gifts", () => {
@@ -391,5 +474,41 @@ describe("monopoly-bot regressions", () => {
       expect(action.offer.positions).not.toContain(1);
       expect(action.offer.positions).not.toContain(3);
     }
+  });
+
+  it("omits BUILD_HOUSE from legal actions and bot decisions when bank is empty", () => {
+    const state = createState();
+    state.phase = "END_TURN";
+    state.players.p1.ownedPositions = [1, 3];
+    state.ownership[1] = { ownerId: "p1", isMortgaged: false };
+    state.ownership[3] = { ownerId: "p1", isMortgaged: false };
+    state.bankHouses = 0;
+
+    const legal = getLegalActions(state, "p1");
+    expect(legal.some((a) => a.type === "BUILD_HOUSE")).toBe(false);
+    expect(legal.some((a) => a.type === "BUILD_HOTEL")).toBe(false);
+
+    const bot = new BotPlayer(expertStrategy);
+    const decision = bot.decide(state, "p1", legal, () => 0.5);
+    expect(decision.action.type).not.toBe("BUILD_HOUSE");
+    expect(decision.action.type).not.toBe("BUILD_HOTEL");
+  });
+
+  it("omits BUILD_HOTEL when bank has no hotels", () => {
+    const state = createState();
+    state.phase = "END_TURN";
+    state.players.p1.ownedPositions = [1, 3];
+    state.ownership[1] = { ownerId: "p1", isMortgaged: false };
+    state.ownership[3] = { ownerId: "p1", isMortgaged: false };
+    state.players.p1.houses[1] = 4;
+    state.players.p1.houses[3] = 4;
+    state.bankHotels = 0;
+
+    const legal = getLegalActions(state, "p1");
+    expect(legal.some((a) => a.type === "BUILD_HOTEL")).toBe(false);
+
+    const bot = new BotPlayer(expertStrategy);
+    const decision = bot.decide(state, "p1", legal, () => 0.5);
+    expect(decision.action.type).not.toBe("BUILD_HOTEL");
   });
 });

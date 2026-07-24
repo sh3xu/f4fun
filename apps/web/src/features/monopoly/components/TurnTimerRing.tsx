@@ -39,8 +39,8 @@ export function TurnTimerRing({
   const progress =
     remainingMs == null || totalMs == null ? 1 : clamp01(remainingMs / totalMs);
   const color = ringColor(progress);
-  const size = 28;
-  const stroke = 2.5;
+  const size = 20;
+  const stroke = 2;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const dashOffset = circumference * (1 - progress);
@@ -49,7 +49,7 @@ export function TurnTimerRing({
   return (
     <span
       className={cn(
-        "relative inline-flex shrink-0 items-center justify-center align-middle",
+        "relative inline-flex shrink-0 items-center justify-center rounded-full bg-white/90 shadow-sm",
         className,
       )}
       style={{ width: size, height: size }}
@@ -74,7 +74,7 @@ export function TurnTimerRing({
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="rgba(255,255,255,0.12)"
+          stroke="rgba(15, 23, 42, 0.12)"
           strokeWidth={stroke}
         />
         <circle
@@ -91,7 +91,7 @@ export function TurnTimerRing({
         />
       </svg>
       <Clock
-        className="absolute h-3 w-3"
+        className="absolute h-2.5 w-2.5"
         style={{ color }}
         strokeWidth={2.5}
         aria-hidden

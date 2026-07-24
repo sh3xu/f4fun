@@ -20,6 +20,7 @@ import {
   partnerTradeConditionKey,
   pendingTradeFingerprint,
 } from "../decision/tradeFingerprint.js";
+import { personalityFromPlayerId } from "../strategy/personality.js";
 import type { StrategyProfile } from "../strategy/types.js";
 
 export interface HeadlessGameResult {
@@ -87,7 +88,7 @@ export function runHeadlessGame(
 ): HeadlessGameResult {
   const bots = new Map<PlayerId, BotPlayer>();
   for (const [id, strategy] of strategies) {
-    bots.set(id, new BotPlayer(strategy));
+    bots.set(id, new BotPlayer(strategy, personalityFromPlayerId(id)));
   }
 
   let state = createInitialState(gameId, players, {}, rng);
@@ -153,14 +154,12 @@ export function runHeadlessGame(
         (t) => t.tradeId === rejectAction.tradeId,
       );
       if (trade) {
-        const fingerprint = pendingTradeFingerprint(trade);
-        const partnerCondition = partnerTradeConditionKey(
-          state,
-          trade.toPlayerId,
-        );
         bots
           .get(trade.fromPlayerId)
-          ?.rememberRejectedTrade(fingerprint, partnerCondition);
+          ?.rememberRejectedTrade(
+            pendingTradeFingerprint(trade),
+            partnerTradeConditionKey(state, trade.toPlayerId),
+          );
       }
     }
 

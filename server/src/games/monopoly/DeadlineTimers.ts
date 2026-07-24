@@ -1,4 +1,8 @@
-import { resolveActorId } from "@f4fun/monopoly-bot";
+import {
+  partnerTradeConditionKey,
+  pendingTradeFingerprint,
+  resolveActorId,
+} from "@f4fun/monopoly-bot";
 import {
   applyAction,
   DEFAULT_GAME_CONFIG,
@@ -12,6 +16,7 @@ import {
 } from "@f4fun/monopoly-engine";
 import type { Server } from "socket.io";
 import { isBotActor, scheduleBotActions } from "./bot-runtime/BotScheduler.js";
+import { rememberRejectedDealForProposer } from "./bot-runtime/botMemory.js";
 import { logGameAction } from "./GameEventLogger.js";
 import { loadGameByRoomId, saveGame } from "./GameStore.js";
 import { withRoomLock } from "./roomMutex.js";
@@ -195,7 +200,9 @@ async function afterGameStateCommitAsync(
     return;
   }
 
-  if (!botTurn) {
+  // NOTE: Keep raise-cash turn timers for bots so FORCE_SETTLE_DEBT still fires
+  // if the bot loop stalls mid-liquidation.
+  if (!botTurn || state.phase === "RAISE_CASH") {
     scheduleTurnTimer(io, roomId, state);
   } else {
     clearTurnTimer(roomId);
@@ -316,12 +323,21 @@ async function onTradeTimeout(
         return;
       }
 
+      // NOTE: Issue #55 — capture fingerprint before reject clears pendingTrades.
+      const fingerprint = pendingTradeFingerprint(trade);
+      const partnerCondition = partnerTradeConditionKey(
+        state,
+        trade.toPlayerId,
+      );
+      const fromPlayerId = trade.fromPlayerId;
+      const toPlayerId = trade.toPlayerId;
+
       const stateBefore = JSON.parse(JSON.stringify(state)) as GameState;
       const result = applyAction(
         state,
         { type: "REJECT_TRADE", tradeId },
         Math.random,
-        trade.toPlayerId,
+        toPlayerId,
       );
       if (result.error) {
         console.error("[TradeTimer] Auto-reject failed:", result.error);
@@ -334,11 +350,19 @@ async function onTradeTimeout(
       });
       if (!saved) return;
 
+      // NOTE: Only lock after persist — a failed conditional save must not
+      // suppress re-offers of a trade that is still pending.
+      rememberRejectedDealForProposer(
+        fromPlayerId,
+        fingerprint,
+        partnerCondition,
+      );
+
       try {
         await logGameAction(
           result.state.gameId,
           roomId,
-          trade.toPlayerId,
+          toPlayerId,
           "TIMEOUT_REJECT_TRADE",
           stateBefore,
           result.state,

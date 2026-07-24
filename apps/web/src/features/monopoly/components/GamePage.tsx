@@ -3,13 +3,12 @@
 import type { GameEvent, GameState, TradeOffer } from "@f4fun/monopoly-engine";
 import { timeoutSecsForPhase } from "@f4fun/monopoly-engine";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/Button";
 import { GameLoader } from "@/components/ui/GameLoader";
-import { RailFrame } from "@/components/ui/RailFrame";
 import { useRoomStore } from "@/features/room/store/roomStore";
 import { cn } from "@/lib/cn";
 import { emitWithCallback, getSocket } from "@/lib/socket";
 import { useDeferredGameEventToasts } from "../hooks/useDeferredGameEventToasts";
+import { formatCashDeltaToast } from "../lib/cashDeltaToast";
 import {
   activityEntriesFromEventLog,
   formatGameEvent,
@@ -18,6 +17,7 @@ import {
 import { useGameStore } from "../store/gameStore";
 import { Board } from "./Board";
 import { type ActivityEntry, GameActivityFeed } from "./GameActivityFeed";
+import { GameShell, GameShellTradeButton } from "./GameShell";
 import { IncomingTradeOfferCard } from "./IncomingTradeOfferCard";
 import { PlayerHUD } from "./PlayerHUD";
 import { TradeModal } from "./TradeModal";
@@ -25,6 +25,14 @@ import { WinScreen } from "./WinScreen";
 
 const SESSION_KEY = "monopoly_session";
 const ACTIVITY_CAP = 500;
+
+/** Monotonic suffix so activity rows stay unique across same-ms batches. */
+let activityIdSeq = 0;
+
+function nextActivityId(eventType: string): string {
+  activityIdSeq += 1;
+  return `${eventType}-${Date.now()}-${activityIdSeq}`;
+}
 
 interface SessionData {
   roomId: string;
@@ -54,10 +62,24 @@ export function GamePage() {
   const [activityEntries, setActivityEntries] = useState<ActivityEntry[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
   const [tradeOutcome, setTradeOutcome] = useState<string | null>(null);
+  const [cashToast, setCashToast] = useState<{
+    message: string;
+    positive: boolean;
+  } | null>(null);
   const actionErrorTimeoutRef = useRef<number | null>(null);
   const tradeOutcomeTimeoutRef = useRef<number | null>(null);
+  const cashToastTimeoutRef = useRef<number | null>(null);
+  const lastDisplayCashRef = useRef<number | null>(null);
+  const trackedGameIdRef = useRef<string | undefined>(undefined);
+  const trackedSnapshotRef = useRef(0);
   const myPlayerIdRef = useRef(myPlayerId);
   myPlayerIdRef.current = myPlayerId;
+
+  const myDisplayCash = useGameStore((s) =>
+    myPlayerId ? s.displayCash[myPlayerId] : undefined,
+  );
+  const gameId = useGameStore((s) => s.state?.gameId);
+  const snapshotRevision = useGameStore((s) => s.snapshotRevision);
 
   const showError = useCallback((message: string) => {
     if (actionErrorTimeoutRef.current !== null) {
@@ -78,6 +100,21 @@ export function GamePage() {
     tradeOutcomeTimeoutRef.current = window.setTimeout(() => {
       setTradeOutcome((current) => (current === message ? null : current));
       tradeOutcomeTimeoutRef.current = null;
+    }, 4000);
+  }, []);
+
+  const showCashToast = useCallback((delta: number) => {
+    if (delta === 0) return;
+    if (cashToastTimeoutRef.current !== null) {
+      window.clearTimeout(cashToastTimeoutRef.current);
+    }
+    const message = formatCashDeltaToast(delta);
+    setCashToast({ message, positive: delta > 0 });
+    cashToastTimeoutRef.current = window.setTimeout(() => {
+      setCashToast((current) =>
+        current?.message === message ? null : current,
+      );
+      cashToastTimeoutRef.current = null;
     }, 4000);
   }, []);
 
@@ -135,6 +172,26 @@ export function GamePage() {
     setMyPlayerSecret,
   ]);
 
+  useEffect(() => {
+    // NOTE: Snapshots (join/rejoin) must not toast historical cash vs a stale baseline.
+    if (trackedSnapshotRef.current !== snapshotRevision) {
+      trackedSnapshotRef.current = snapshotRevision;
+      lastDisplayCashRef.current = null;
+    }
+    if (trackedGameIdRef.current !== gameId) {
+      trackedGameIdRef.current = gameId;
+      lastDisplayCashRef.current = null;
+    }
+    if (myDisplayCash === undefined) return;
+    if (lastDisplayCashRef.current === null) {
+      lastDisplayCashRef.current = myDisplayCash;
+      return;
+    }
+    const delta = myDisplayCash - lastDisplayCashRef.current;
+    lastDisplayCashRef.current = myDisplayCash;
+    if (delta !== 0) showCashToast(delta);
+  }, [snapshotRevision, gameId, myDisplayCash, showCashToast]);
+
   const appendActivityFromEvents = useCallback(
     (nextState: GameState, events: GameEvent[]) => {
       const me = myPlayerIdRef.current;
@@ -177,7 +234,7 @@ export function GamePage() {
         const formatted = formatGameEvent(nextState, event);
         if (!formatted) continue;
         fresh.push({
-          id: `${event.type}-${Date.now()}-${fresh.length}`,
+          id: nextActivityId(event.type),
           playerId: formatted.playerId,
           playerName: formatted.playerName,
           message: formatted.message,
@@ -189,10 +246,10 @@ export function GamePage() {
     [showTradeOutcome],
   );
 
-  useDeferredGameEventToasts((event) => {
+  useDeferredGameEventToasts((events) => {
     const nextState = useGameStore.getState().state;
     if (!nextState) return;
-    appendActivityFromEvents(nextState, [event]);
+    appendActivityFromEvents(nextState, events);
   });
 
   useEffect(() => {
@@ -438,13 +495,13 @@ export function GamePage() {
 
   if (initializing || !state) {
     return (
-      <div className="material-felt flex min-h-screen flex-col items-center justify-center text-gray-100">
+      <div className="material-felt flex min-h-dvh flex-col items-center justify-center text-slate-800">
         <div className="relative z-[2] flex flex-col items-center">
           <GameLoader size="lg" label="Loading table" />
-          <p className="mt-4 text-xl font-bold tracking-wide text-gray-200">
+          <p className="mt-4 text-xl font-bold tracking-wide text-slate-800">
             Setting up the table...
           </p>
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-slate-500">
             Connecting to your game room
           </p>
         </div>
@@ -459,16 +516,34 @@ export function GamePage() {
       : (state.pendingTrades?.filter((t) => t.toPlayerId === myPlayerId)
           .length ?? 0);
 
-  return (
+  const playerCards = state.turnOrder.map((playerId) => (
     <div
-      className={cn(
-        "material-felt flex h-dvh max-h-dvh flex-col overflow-hidden font-sans text-gray-100 select-none",
-        "lg:flex-row",
-        "gap-3 p-2.5 sm:p-3 lg:gap-4 lg:p-4",
-      )}
+      key={playerId}
+      className="w-[min(11.5rem,72vw)] shrink-0 md:w-full md:min-w-0"
     >
+      <PlayerHUD
+        player={state.players[playerId]}
+        isActive={playerId === activePlayerId}
+        isMe={playerId === myPlayerId}
+        isBot={roomPlayers.find((p) => p.id === playerId)?.isBot ?? false}
+        turnOrder={state.turnOrder}
+        deadlineAt={playerId === activePlayerId ? state.actionDeadlineAt : null}
+        deadlinePausedMs={
+          playerId === activePlayerId ? state.actionDeadlinePausedMs : null
+        }
+        timerDurationSecs={
+          playerId === activePlayerId
+            ? timeoutSecsForPhase(state.phase, state.config)
+            : null
+        }
+      />
+    </div>
+  ));
+
+  return (
+    <>
       {actionError && (
-        <div className="fixed bottom-3 left-3 z-50 max-w-xs rounded-md border border-rose-400/30 bg-rose-950/90 px-3 py-2 text-xs text-rose-100">
+        <div className="fixed bottom-3 left-3 z-50 max-w-xs rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-800 shadow-md md:bottom-4">
           {actionError}
         </div>
       )}
@@ -476,11 +551,29 @@ export function GamePage() {
       {tradeOutcome && (
         <div
           className={cn(
-            "fixed left-3 z-50 max-w-xs rounded-md border border-[#4fc3f7]/35 bg-[#0b1a24]/95 px-3 py-2 text-xs text-[#b3e5fc]",
+            "fixed left-3 z-50 max-w-xs rounded-xl border border-teal-200 bg-teal-50 px-3 py-2 text-xs text-teal-900 shadow-md md:bottom-4",
             actionError ? "bottom-14" : "bottom-3",
           )}
         >
           {tradeOutcome}
+        </div>
+      )}
+
+      {cashToast && (
+        <div
+          className={cn(
+            "fixed left-3 z-50 max-w-xs rounded-xl px-3 py-2 text-xs font-bold shadow-md md:bottom-4",
+            cashToast.positive
+              ? "border border-teal-200 bg-teal-50 text-teal-900"
+              : "border border-rose-200 bg-rose-50 text-rose-800",
+            actionError && tradeOutcome
+              ? "bottom-[6.5rem]"
+              : actionError || tradeOutcome
+                ? "bottom-14"
+                : "bottom-3",
+          )}
+        >
+          {cashToast.message}
         </div>
       )}
 
@@ -514,115 +607,48 @@ export function GamePage() {
         />
       )}
 
-      {/* NOTE: container-type:size enables cqi/cqb so the board fills the frame as a square without clipping. */}
-      <main className="relative z-[2] order-1 min-h-[min(100vw,calc(100dvh-14rem))] min-w-0 flex-1 [container-type:size] lg:min-h-0">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div
-            className="aspect-square max-h-full max-w-full"
-            style={{
-              width: "min(100cqi, 100cqb)",
-              height: "min(100cqi, 100cqb)",
-            }}
-          >
-            <Board
-              onRoll={handleRoll}
-              onBuy={handleBuy}
-              onDecline={handleDecline}
-              onAuction={handleAuction}
-              onEndTurn={handleEndTurn}
-              onPlaceBid={handlePlaceBid}
-              onPassAuction={handlePassAuction}
-              onPayJailFine={handlePayJailFine}
-              onUseGoojfCard={handleUseGoojfCard}
-              onRollForJail={handleRollForJail}
-              onAcknowledgeCard={handleAcknowledgeCard}
-              onBuildHouse={handleBuildHouse}
-              onSellHouse={handleSellHouse}
-              onBuildHotel={handleBuildHotel}
-              onSellHotel={handleSellHotel}
-              onMortgage={handleMortgage}
-              onUnmortgage={handleUnmortgage}
-              onOwnerAuction={handleOwnerAuction}
-              onSellToBank={handleSellToBank}
+      <GameShell
+        roomCode={roomCode}
+        tradeButton={
+          myPlayerId ? (
+            <GameShellTradeButton
+              pendingCount={pendingTradeCount}
+              onClick={() => setTradeOpen(true)}
             />
-          </div>
-        </div>
-      </main>
-
-      <RailFrame
-        as="aside"
-        className={cn(
-          "relative z-[2] order-2 flex w-full shrink-0 flex-col gap-2 overflow-y-auto p-2.5 lg:overflow-hidden",
-          "max-h-[16rem] lg:max-h-none lg:h-full lg:w-48 xl:w-56",
-        )}
-      >
-        <div className="flex shrink-0 items-center justify-between border-b border-white/[0.08] px-0.5 pb-2">
-          <span className="bg-gradient-to-r from-[#4fc3f7] to-[#26c6da] bg-clip-text text-sm font-black tracking-widest text-transparent">
-            f4fun
-          </span>
-          {roomCode && (
-            <div className="rounded-md border border-white/10 bg-black/25 px-1.5 py-0.5 text-[9px] font-medium text-gray-500">
-              <span className="font-mono font-bold text-[#4fc3f7]">
-                {roomCode}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {myPlayerId && (
-          <Button
-            type="button"
-            variant={pendingTradeCount > 0 ? "token" : "tokenGhost"}
-            onClick={() => setTradeOpen(true)}
-            className="relative h-auto w-full py-1 text-[11px]"
-          >
-            Trade
-            {pendingTradeCount > 0 && (
-              <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#4fc3f7] px-1 text-[10px] font-bold text-[#0b0f17]">
-                {pendingTradeCount}
-              </span>
-            )}
-          </Button>
-        )}
-
-        <p className="px-0.5 text-[9px] font-semibold uppercase tracking-wider text-white/35">
-          The ledger
-        </p>
-
-        <div className="grid w-full shrink-0 grid-cols-2 gap-1.5 overflow-x-hidden lg:min-h-0 lg:flex lg:flex-1 lg:flex-col lg:overflow-y-auto">
-          {state.turnOrder.map((playerId) => (
-            <div key={playerId} className="w-full lg:min-w-0">
-              <PlayerHUD
-                player={state.players[playerId]}
-                isActive={playerId === activePlayerId}
-                isMe={playerId === myPlayerId}
-                isBot={
-                  roomPlayers.find((p) => p.id === playerId)?.isBot ?? false
-                }
-                turnOrder={state.turnOrder}
-                deadlineAt={
-                  playerId === activePlayerId ? state.actionDeadlineAt : null
-                }
-                deadlinePausedMs={
-                  playerId === activePlayerId
-                    ? state.actionDeadlinePausedMs
-                    : null
-                }
-                timerDurationSecs={
-                  playerId === activePlayerId
-                    ? timeoutSecsForPhase(state.phase, state.config)
-                    : null
-                }
-              />
-            </div>
-          ))}
-        </div>
-
-        <GameActivityFeed
-          entries={activityEntries}
-          className="mt-1 w-full shrink-0"
-        />
-      </RailFrame>
-    </div>
+          ) : undefined
+        }
+        board={
+          <Board
+            onRoll={handleRoll}
+            onBuy={handleBuy}
+            onDecline={handleDecline}
+            onAuction={handleAuction}
+            onEndTurn={handleEndTurn}
+            onPlaceBid={handlePlaceBid}
+            onPassAuction={handlePassAuction}
+            onPayJailFine={handlePayJailFine}
+            onUseGoojfCard={handleUseGoojfCard}
+            onRollForJail={handleRollForJail}
+            onAcknowledgeCard={handleAcknowledgeCard}
+            onBuildHouse={handleBuildHouse}
+            onSellHouse={handleSellHouse}
+            onBuildHotel={handleBuildHotel}
+            onSellHotel={handleSellHotel}
+            onMortgage={handleMortgage}
+            onUnmortgage={handleUnmortgage}
+            onOwnerAuction={handleOwnerAuction}
+            onSellToBank={handleSellToBank}
+          />
+        }
+        hud={playerCards}
+        activity={
+          <GameActivityFeed
+            entries={activityEntries}
+            turnOrder={state?.turnOrder ?? []}
+            className="w-full"
+          />
+        }
+      />
+    </>
   );
 }

@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   cloneState,
   createInitialState,
+  enterRaiseCashAtTurnStart,
   evaluateBoardState,
   getLegalActions,
   simulateAction,
 } from "../index.js";
+import type { GameEvent } from "../types.js";
 
 describe("simulateAction", () => {
   it("does not mutate the original state", () => {
@@ -83,17 +85,31 @@ describe("getLegalActions", () => {
     );
   });
 
-  it("lets an off-turn debtor manage assets in raise-cash", () => {
+  it("defers raise-cash until the debtor is active", () => {
     const state = createInitialState("test", [
       { id: "p1", name: "Alice", token: "memo_1" },
       { id: "p2", name: "Bob", token: "memo_2" },
     ]);
     state.activePlayerIndex = 1;
-    state.phase = "RAISE_CASH";
-    state.pendingDebt = { playerId: "p1", creditorId: "p2" };
+    state.phase = "END_TURN";
     state.players.p1.cash = -20;
     state.players.p1.ownedPositions = [1];
     state.ownership[1] = { ownerId: "p1", isMortgaged: false };
+
+    // Off-turn negative cash: no RAISE_CASH phase, so p1 cannot liquidate yet.
+    expect(
+      getLegalActions(state, "p1").some(
+        (a) => a.type === "SELL_PROPERTY_TO_BANK",
+      ),
+    ).toBe(false);
+
+    // When p1 becomes active with negative cash, RAISE_CASH starts.
+    state.activePlayerIndex = 0;
+    state.phase = "PRE_ROLL";
+    const events: GameEvent[] = [];
+    expect(enterRaiseCashAtTurnStart(state, events)).toBe(true);
+    expect(state.phase).toBe("RAISE_CASH");
+    expect(state.pendingDebt?.playerId).toBe("p1");
 
     const actions = getLegalActions(state, "p1");
     const sellToBank = actions.find(
@@ -153,8 +169,8 @@ describe("evaluateBoardState", () => {
     const evaluation = evaluateBoardState(state, "p1");
 
     expect(evaluation.propertyValue).toBe(60);
-    expect(evaluation.buildingValue).toBe(350);
-    expect(evaluation.netWorth).toBe(1910);
+    expect(evaluation.buildingValue).toBe(400);
+    expect(evaluation.netWorth).toBe(1960);
   });
 });
 

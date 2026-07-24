@@ -18,7 +18,7 @@ describe("building", () => {
     return state;
   }
 
-  it("builds houses evenly and sells at 75%", () => {
+  it("builds houses evenly and sells at 50%", () => {
     const state = monopolyBrown();
     const cost = 50; // brown houseCost
 
@@ -50,6 +50,70 @@ describe("building", () => {
     // Counts are 2-1; selling from the lower tile breaks evenness.
     const result = applyAction(state, { type: "SELL_HOUSE", position: 3 });
     expect(result.error).toBe("Must sell evenly across the color group");
+  });
+
+  it("charges hotel upgrade at 2x house cost and returns 4 houses to bank", () => {
+    const state = monopolyBrown();
+    const cost = 50;
+    state.players.p1.houses[1] = 4;
+    state.players.p1.houses[3] = 4;
+    state.bankHouses = 24;
+    state.bankHotels = 12;
+    const cashBefore = state.players.p1.cash;
+
+    const result = applyAction(state, { type: "BUILD_HOTEL", position: 1 });
+    expect(result.error).toBeUndefined();
+    expect(state.players.p1.cash).toBe(cashBefore - cost * 2);
+    expect(state.players.p1.hotels[1]).toBe(1);
+    expect(state.players.p1.houses[1]).toBeUndefined();
+    expect(state.bankHouses).toBe(28);
+    expect(state.bankHotels).toBe(11);
+  });
+
+  it("sells hotel for half upgrade cost and leaves no houses", () => {
+    const state = monopolyBrown();
+    const cost = 50;
+    state.players.p1.hotels[1] = 1;
+    state.players.p1.hotels[3] = 1;
+    state.bankHotels = 10;
+    const cashBefore = state.players.p1.cash;
+
+    const result = applyAction(state, { type: "SELL_HOTEL", position: 1 });
+    expect(result.error).toBeUndefined();
+    expect(state.players.p1.hotels[1]).toBeUndefined();
+    expect(state.players.p1.houses[1]).toBeUndefined();
+    expect(state.players.p1.cash).toBe(
+      cashBefore + Math.floor(cost * 2 * HOUSE_SELL_RATE),
+    );
+    expect(state.bankHotels).toBe(11);
+  });
+
+  it("blocks building when bank has no houses", () => {
+    const state = monopolyBrown();
+    state.bankHouses = 0;
+    const result = applyAction(state, { type: "BUILD_HOUSE", position: 1 });
+    expect(result.error).toBe("Bank has no houses left");
+  });
+
+  it("applies custom bankHouseLimit and proportional hotels", () => {
+    const state = createInitialState(
+      "test",
+      [{ id: "p1", name: "Alice", token: "car" }],
+      { bankHouseLimit: 8 },
+    );
+    expect(state.bankHouses).toBe(8);
+    expect(state.bankHotels).toBe(3);
+    expect(state.config.bankHouseLimit).toBe(8);
+  });
+
+  it("floors hotel supply for non step-8 house limits", () => {
+    const state = createInitialState(
+      "test",
+      [{ id: "p1", name: "Alice", token: "car" }],
+      { bankHouseLimit: 20 },
+    );
+    expect(state.bankHotels).toBe(7);
+    expect(Number.isInteger(state.bankHotels)).toBe(true);
   });
 });
 

@@ -7,7 +7,7 @@ interface FeltSurfaceProps extends HTMLAttributes<HTMLDivElement> {
   style?: CSSProperties;
 }
 
-/** Full-bleed felt table surface with optional beveled board frame. */
+/** Soft table wash with optional elevated board frame. */
 export function FeltSurface({
   framed = false,
   className,

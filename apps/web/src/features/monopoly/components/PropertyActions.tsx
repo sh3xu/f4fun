@@ -1,5 +1,11 @@
-import { COLOR_GROUP_BUILDINGS_CLEAR_ERROR } from "@f4fun/monopoly-engine";
+import {
+  buildingSellPayout,
+  COLOR_GROUP_BUILDINGS_CLEAR_ERROR,
+  hotelUpgradeCost,
+} from "@f4fun/monopoly-engine";
+import { Home, Hotel, Minus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { BOARD_MONEY_CLASS } from "../theme/board-theme";
 
 interface BuyActionsProps {
   mode: "buy";
@@ -21,7 +27,9 @@ interface ManageActionsProps {
   hotels: number;
   /** Issue #52 — true when monopoly color-group still has buildings. */
   deedTransferBlocked: boolean;
+  canBuild: boolean;
   canSellBuilding: boolean;
+  houseCost: number;
   onBuild: () => void;
   onSell: () => void;
   onMortgage: () => void;
@@ -43,6 +51,8 @@ export type PropertyActionsProps =
 
 const btnClass =
   "h-auto flex-1 py-[clamp(0.25rem,1cqmin,0.45rem)] text-[length:var(--board-text-xs)] font-bold";
+
+const iconClass = "h-[1.1em] w-[1.1em] shrink-0";
 
 /** Buy / manage / view-only action row for the center property card. */
 export function PropertyActions(props: PropertyActionsProps) {
@@ -66,16 +76,18 @@ export function PropertyActions(props: PropertyActionsProps) {
     const { label, canAfford, loading, onBuy, onDecline, onAuction } = props;
     return (
       <div className="flex gap-[clamp(0.25rem,0.9cqmin,0.4rem)]">
-        <Button
-          variant="token"
-          onClick={onBuy}
-          disabled={loading || !canAfford}
-          size="sm"
-          className={btnClass}
-          aria-label={`Buy ${label}`}
-        >
-          {canAfford ? "Buy" : "Can't Afford"}
-        </Button>
+        {canAfford && (
+          <Button
+            variant="token"
+            onClick={onBuy}
+            disabled={loading}
+            size="sm"
+            className={btnClass}
+            aria-label={`Buy ${label}`}
+          >
+            Buy
+          </Button>
+        )}
         <Button
           variant="tokenGhost"
           onClick={onDecline}
@@ -91,7 +103,7 @@ export function PropertyActions(props: PropertyActionsProps) {
           onClick={onAuction}
           disabled={loading}
           size="sm"
-          className={`${btnClass} border-amber-400/30 text-amber-200`}
+          className={`${btnClass} border-amber-300 text-amber-800`}
           aria-label={`Auction ${label}`}
         >
           Auction
@@ -108,7 +120,9 @@ export function PropertyActions(props: PropertyActionsProps) {
     houses,
     hotels,
     deedTransferBlocked,
+    canBuild,
     canSellBuilding,
+    houseCost,
     onBuild,
     onSell,
     onMortgage,
@@ -118,85 +132,121 @@ export function PropertyActions(props: PropertyActionsProps) {
     onClose,
   } = props;
 
+  // NOTE: Engine clears houses when a hotel is placed — derive UI from hotels first.
+  const hotelBuilt = hotels > 0;
+  const buildHotel = !hotelBuilt && houses >= 4;
+  const buildPrice = buildHotel ? hotelUpgradeCost(houseCost) : houseCost;
+  const sellHotel = hotelBuilt;
+  const sellPayout = sellHotel
+    ? buildingSellPayout(hotelUpgradeCost(houseCost))
+    : buildingSellPayout(houseCost);
+
+  const buildAriaLabel = buildHotel
+    ? `Build hotel on ${label} for $${buildPrice}`
+    : `Build house on ${label} for $${buildPrice}`;
+
+  const showDeedTransfer = !deedTransferBlocked;
+
   return (
     <div className="flex flex-col gap-[clamp(0.25rem,0.9cqmin,0.4rem)]">
       {deedTransferBlocked && (
-        <p className="text-[length:var(--board-text-xs)] leading-snug text-amber-200/90">
+        <p className="text-[length:var(--board-text-xs)] leading-snug text-amber-800">
           {COLOR_GROUP_BUILDINGS_CLEAR_ERROR}
         </p>
       )}
       <div className="grid grid-cols-2 gap-[clamp(0.25rem,0.9cqmin,0.4rem)]">
-        {isProperty && (
-          <>
-            <Button
-              variant="token"
-              size="sm"
-              disabled={loading || isMortgaged || hotels > 0}
-              onClick={onBuild}
-              className={btnClass}
-              aria-label={
-                houses >= 4
-                  ? `Build hotel on ${label}`
-                  : `Build house on ${label}`
-              }
-            >
-              Build
-            </Button>
+        {isProperty && canBuild && (
+          <Button
+            variant="token"
+            size="sm"
+            disabled={loading}
+            onClick={onBuild}
+            className={btnClass}
+            aria-label={buildAriaLabel}
+          >
+            <span className="inline-flex items-center justify-center gap-1">
+              {buildHotel ? (
+                <Hotel className={iconClass} aria-hidden />
+              ) : (
+                <Home className={iconClass} aria-hidden />
+              )}
+              <span className={BOARD_MONEY_CLASS}>${buildPrice}</span>
+            </span>
+          </Button>
+        )}
+        {isProperty && canSellBuilding && (
+          <Button
+            variant="tokenGhost"
+            size="sm"
+            disabled={loading}
+            onClick={onSell}
+            className={btnClass}
+            aria-label={
+              sellHotel
+                ? `Sell hotel on ${label} for $${sellPayout}`
+                : `Sell house on ${label} for $${sellPayout}`
+            }
+          >
+            <span className="inline-flex items-center justify-center gap-1">
+              <Minus className={iconClass} aria-hidden />
+              {sellHotel ? (
+                <Hotel className={iconClass} aria-hidden />
+              ) : (
+                <Home className={iconClass} aria-hidden />
+              )}
+              <span className={BOARD_MONEY_CLASS}>${sellPayout}</span>
+            </span>
+          </Button>
+        )}
+        {isMortgaged ? (
+          <Button
+            variant="tokenGhost"
+            size="sm"
+            disabled={loading}
+            onClick={onUnmortgage}
+            className={btnClass}
+            aria-label={`Unmortgage ${label}`}
+          >
+            Unmortgage
+          </Button>
+        ) : (
+          showDeedTransfer && (
             <Button
               variant="tokenGhost"
               size="sm"
-              disabled={loading || !canSellBuilding}
-              onClick={onSell}
+              disabled={loading}
+              onClick={onMortgage}
               className={btnClass}
-              aria-label={
-                hotels > 0 ? `Sell hotel on ${label}` : `Sell house on ${label}`
-              }
+              aria-label={`Mortgage ${label}`}
             >
-              Sell
+              Mortgage
             </Button>
-          </>
+          )
         )}
-        <Button
-          variant="tokenGhost"
-          size="sm"
-          disabled={loading || (!isMortgaged && deedTransferBlocked)}
-          onClick={isMortgaged ? onUnmortgage : onMortgage}
-          className={btnClass}
-          title={
-            !isMortgaged && deedTransferBlocked
-              ? COLOR_GROUP_BUILDINGS_CLEAR_ERROR
-              : undefined
-          }
-          aria-label={isMortgaged ? `Unmortgage ${label}` : `Mortgage ${label}`}
-        >
-          {isMortgaged ? "Unmortgage" : "Mortgage"}
-        </Button>
-        <Button
-          variant="tokenGhost"
-          size="sm"
-          disabled={loading || deedTransferBlocked}
-          onClick={onOwnerAuction}
-          className={`${btnClass} border-amber-400/30 text-amber-200`}
-          title={
-            deedTransferBlocked ? COLOR_GROUP_BUILDINGS_CLEAR_ERROR : undefined
-          }
-          aria-label={`Auction ${label}`}
-        >
-          Auction
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          disabled={loading || deedTransferBlocked}
-          onClick={onSellToBank}
-          className={`${btnClass} border-rose-400/30 text-rose-200`}
-          title={
-            deedTransferBlocked ? COLOR_GROUP_BUILDINGS_CLEAR_ERROR : undefined
-          }
-          aria-label={`Sell ${label} to bank`}
-        >
-          Sell to Bank
-        </Button>
+        {showDeedTransfer && (
+          <Button
+            variant="tokenGhost"
+            size="sm"
+            disabled={loading}
+            onClick={onOwnerAuction}
+            className={`${btnClass} border-amber-300 text-amber-800`}
+            aria-label={`Auction ${label}`}
+          >
+            Auction
+          </Button>
+        )}
+        {showDeedTransfer && (
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={loading}
+            onClick={onSellToBank}
+            className={`${btnClass} border-rose-300 text-rose-700`}
+            aria-label={`Sell ${label} to bank`}
+          >
+            Sell to Bank
+          </Button>
+        )}
       </div>
       {onClose && (
         <Button

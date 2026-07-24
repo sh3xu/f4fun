@@ -49,6 +49,20 @@ export const PLAYER_COLORS: PlayerColor[] = [
     border: "border-pink-500",
     ring: "ring-pink-500",
   },
+  {
+    name: "Cyan",
+    hex: "#06b6d4",
+    bg: "bg-cyan-500",
+    border: "border-cyan-500",
+    ring: "ring-cyan-500",
+  },
+  {
+    name: "Brown",
+    hex: "#78350f",
+    bg: "bg-amber-900",
+    border: "border-amber-900",
+    ring: "ring-amber-900",
+  },
 ];
 
 export function getPlayerColor(

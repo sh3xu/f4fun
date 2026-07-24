@@ -66,17 +66,18 @@ export const PROPERTY_COLORS: Record<string, PropertyColorStyle> = {
   },
 };
 
-export const GAME_BG = "#0b0f17";
-export const BOARD_CENTER_BG = "#111827";
-export const SIDEBAR_BG = "#131a27";
+export const GAME_BG = "#e8f2f4";
+export const BOARD_CENTER_BG = "#f0f7f8";
+export const SIDEBAR_BG = "#ffffff";
+export const ACCENT = "#0d9488";
 
-/** Slotted tile surface — no backdrop-blur (blur smears across adjacent grid cells). */
-export const MATERIAL_TILE = "material-tile rounded-md";
+/** Slotted tile surface — cream face, no backdrop-blur across grid cells. */
+export const MATERIAL_TILE = "material-tile rounded-sm";
 
-/** Rail / ledger panel for sidebar and scoreboard frames. */
-export const MATERIAL_PANEL = "material-rail rounded-xl overflow-hidden";
+/** HUD / scoreboard panel frame. */
+export const MATERIAL_PANEL = "material-rail overflow-hidden";
 
-/** Printed cardstock surface for overlays and HUD cards. */
+/** White elevated card for overlays and HUD. */
 export const MATERIAL_CARD = "material-cardstock";
 
 /** @deprecated Prefer MATERIAL_TILE */
@@ -86,7 +87,7 @@ export const GLASS_PANEL = MATERIAL_PANEL;
 /** @deprecated Prefer MATERIAL_CARD */
 export const GLASS_CARD = MATERIAL_CARD;
 
-/** NOTE: Board-level text tokens — cqmin here tracks the full board, not individual tiles. */
+/** NOTE: Board-level text tokens — cqmin tracks the full board, not individual tiles. */
 export const BOARD_TEXT_VARS: Record<string, string> = {
   "--board-text-xs": "clamp(7px, 1.15cqmin, 14px)",
   "--board-text-sm": "clamp(9px, 1.45cqmin, 18px)",
@@ -100,10 +101,8 @@ export const BOARD_TEXT_VARS: Record<string, string> = {
 export const BOARD_MONEY_CLASS =
   "font-mono tabular-nums tracking-tight font-semibold";
 
-/** Full hotel development cost (5 house-equivalents), matching engine valuation. */
-export function propertyHotelCost(houseCost: number): number {
-  return houseCost * 5;
-}
+/** Condensed display face for tile names and deed/card headers. */
+export const BOARD_LABEL_CLASS = "font-card-label";
 
 /**
  * Buy / auction overlay — width tracks board cqmin so the card scales with the board.

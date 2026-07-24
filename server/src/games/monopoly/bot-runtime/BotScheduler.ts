@@ -65,7 +65,18 @@ export function clearAllBotTimers(roomId: string): void {
 }
 
 function stateKey(state: GameState, actorId: string): string {
-  return `${state.phase}:${actorId}:${state.pendingTrades.map((t) => t.tradeId).join(",")}`;
+  const player = state.players[actorId];
+  const debt = state.pendingDebt;
+  // NOTE: Include cash/assets so multi-step RAISE_CASH liquidation keeps scheduling.
+  return [
+    state.phase,
+    actorId,
+    player?.cash ?? "",
+    player?.ownedPositions.join(",") ?? "",
+    player?.mortgaged.join(",") ?? "",
+    debt ? `${debt.playerId}:${debt.creditorId ?? ""}` : "",
+    state.pendingTrades.map((t) => t.tradeId).join(","),
+  ].join(":");
 }
 
 function intentOptionsFor(action: GameAction): ExecuteIntentOptions {
@@ -79,6 +90,13 @@ function intentOptionsFor(action: GameAction): ExecuteIntentOptions {
     case "PASS_AUCTION":
     case "ACCEPT_TRADE":
     case "REJECT_TRADE":
+    case "FORCE_SETTLE_DEBT":
+    case "MORTGAGE_PROPERTY":
+    case "UNMORTGAGE_PROPERTY":
+    case "SELL_PROPERTY_TO_BANK":
+    case "SELL_HOUSE":
+    case "SELL_HOTEL":
+    case "START_OWNER_AUCTION":
       return { ...base, requireActiveTurn: false };
     case "END_TURN":
       return { ...base, turnCountDelta: 1 };
@@ -254,7 +272,20 @@ async function runBotTurn(
   let decision: { action: GameAction; reasoning: string };
   try {
     decision = bot.decide(state, actorId, legal);
-  } catch {
+  } catch (err) {
+    console.error("[BotRuntime] decide failed:", err);
+    if (
+      state.phase === "RAISE_CASH" &&
+      state.pendingDebt?.playerId === actorId
+    ) {
+      await executeGameIntent(
+        io,
+        roomId,
+        actorId,
+        { type: "FORCE_SETTLE_DEBT" },
+        intentOptionsFor({ type: "FORCE_SETTLE_DEBT" }),
+      );
+    }
     return;
   }
 
@@ -273,5 +304,20 @@ async function runBotTurn(
 
   if (!result.ok) {
     console.error("[BotRuntime] Action failed:", result.error, decision.action);
+    // NOTE: Failed raise-cash steps used to strand bots with no reschedule.
+    if (
+      state.phase === "RAISE_CASH" &&
+      state.pendingDebt?.playerId === actorId
+    ) {
+      if (decision.action.type !== "FORCE_SETTLE_DEBT") {
+        await executeGameIntent(
+          io,
+          roomId,
+          actorId,
+          { type: "FORCE_SETTLE_DEBT" },
+          intentOptionsFor({ type: "FORCE_SETTLE_DEBT" }),
+        );
+      }
+    }
   }
 }

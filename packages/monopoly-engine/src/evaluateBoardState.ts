@@ -1,4 +1,4 @@
-import { TILE_BY_POSITION } from "./config/board.js";
+import { hotelDevelopmentCost, TILE_BY_POSITION } from "./config/board.js";
 import { calculateRent, ownsColorGroup } from "./rent.js";
 import type { GameState, PlayerId } from "./types.js";
 
@@ -43,7 +43,9 @@ function buildingValueAt(
   const player = state.players[playerId];
   const houses = player?.houses[position] ?? 0;
   const hotels = player?.hotels[position] ?? 0;
-  return houses * tile.houseCost + hotels * tile.houseCost * 5;
+  return (
+    houses * tile.houseCost + hotels * hotelDevelopmentCost(tile.houseCost)
+  );
 }
 
 function countMonopolies(state: GameState, playerId: PlayerId): number {

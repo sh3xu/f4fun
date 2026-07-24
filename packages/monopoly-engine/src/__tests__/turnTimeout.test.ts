@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createInitialState } from "../index.js";
 import {
   healStuckRaiseCash,
+  isActionDeadlineExpired,
   pauseActionDeadline,
   resumeActionDeadline,
   stampActionDeadline,
@@ -160,5 +161,22 @@ describe("turnTimeout", () => {
     resumeActionDeadline(state, t2);
     expect(state.actionDeadlinePausedMs).toBeNull();
     expect(state.actionDeadlineAt).toBe("2026-01-01T00:00:40.000Z");
+  });
+
+  it("reports expired when deadline is in the past", () => {
+    const state = createInitialState("g1", [
+      { id: "p1", name: "Alice", token: "car" },
+      { id: "p2", name: "Bob", token: "hat" },
+    ]);
+    state.phase = "END_TURN";
+    state.actionDeadlineAt = "2020-01-01T00:00:00.000Z";
+    expect(isActionDeadlineExpired(state)).toBe(true);
+
+    state.actionDeadlineAt = null;
+    state.actionDeadlinePausedMs = 0;
+    expect(isActionDeadlineExpired(state)).toBe(true);
+
+    state.actionDeadlinePausedMs = 5000;
+    expect(isActionDeadlineExpired(state)).toBe(false);
   });
 });

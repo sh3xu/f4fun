@@ -1,5 +1,6 @@
 import {
   type GameAction,
+  hotelUpgradeCost,
   ownsColorGroup,
   TILE_BY_POSITION,
 } from "@f4fun/monopoly-engine";
@@ -47,7 +48,7 @@ export function scoreBuildOptions(ctx: StrategyContext): {
     if (action.type === "BUILD_HOTEL") {
       const tile = TILE_BY_POSITION.get(action.position);
       if (tile?.type !== "property") continue;
-      const cashAfter = player.cash - tile.houseCost;
+      const cashAfter = player.cash - hotelUpgradeCost(tile.houseCost);
       const score = postActionCashOk(ctx, cashAfter)
         ? tile.rentLevels[5] * 2
         : -300;
