@@ -30,15 +30,7 @@ describe("science scoring", () => {
 
   it("scores 2 wilds optimally", () => {
     const score = computeScienceScore(1, 1, 1, 2);
-    // Best: (3,1,1)=18, (1,3,1)=18, (1,1,3)=18, (2,2,1)=16, etc.
-    // Or (2,1,2)=16, (1,2,2)=16
-    // Best is (2,2,1)=4+4+1+7=16? No wait (3,1,1)=9+1+1+7=18
-    // Actually best is (2,2,1) with 7 = 16 or (3,1,1) = 18
-    // But what about (2,1,2) = 16 too
-    // But also try (1,2,2) = 16
-    // So 18 is best from assigning both to same
-    // Wait: what about (2,2,1)=16? Or (1,1,3)=18?
-    // Best: 18
+    // Best assignment puts both wilds on one symbol: (3,1,1) = 18
     expect(score).toBe(18);
   });
 

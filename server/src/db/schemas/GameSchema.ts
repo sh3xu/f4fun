@@ -1,6 +1,7 @@
+import { GAME_TYPES, type GameType } from "@f4fun/shared-types";
 import { type Document, model, Schema } from "mongoose";
 
-export type StoredGameType = "monopoly" | "sevenWonders";
+export type StoredGameType = GameType;
 
 export interface IGame extends Document {
   gameId: string;
@@ -20,7 +21,7 @@ const GameSchema = new Schema<IGame>(
     roomId: { type: String, required: true, index: true },
     gameType: {
       type: String,
-      enum: ["monopoly", "sevenWonders"],
+      enum: [...GAME_TYPES],
       default: "monopoly",
       index: true,
     },

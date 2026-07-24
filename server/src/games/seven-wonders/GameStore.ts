@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import type { GameState } from "@f4fun/seven-wonders-engine";
+import { type GameState, resolveWinnerId } from "@f4fun/seven-wonders-engine";
 import { GameModel } from "../../db/index.js";
 
 export function generateGameId(): string {
@@ -46,13 +46,9 @@ export async function saveGame(
     state: state as unknown as Record<string, unknown>,
   };
   if (state.phase === "GAME_OVER" && state.finalScores) {
-    const winner = Object.entries(state.finalScores).sort(
-      (a, b) => b[1].total - a[1].total,
-    )[0];
-    if (winner) {
-      update.finishedAt = new Date();
-      update.winnerId = winner[0];
-    }
+    update.finishedAt = new Date();
+    // NOTE: null when VP + treasury coins still tie (shared victory).
+    update.winnerId = resolveWinnerId(state, state.finalScores);
   }
 
   if (turnCountDelta > 0) {

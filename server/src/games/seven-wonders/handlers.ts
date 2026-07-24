@@ -2,8 +2,10 @@ import {
   applyAction,
   type GameState,
   getPublicStateForPlayer,
+  ResolveTurnError,
 } from "@f4fun/seven-wonders-engine";
 import {
+  SevenWondersPlayFromDiscardSchema,
   SevenWondersRejoinSchema,
   SevenWondersSubmitPickSchema,
 } from "@f4fun/shared-types";
@@ -71,23 +73,81 @@ export function registerSevenWondersHandlers(
           return;
         }
 
+        try {
+          const { state: next } = applyAction(state, {
+            type: "SUBMIT_PICK",
+            playerId,
+            action: data.action,
+            cardId: data.cardId,
+            ...(data.useFreeBuild ? { useFreeBuild: true } : {}),
+          });
+
+          const turnResolved =
+            Object.keys(next.pendingPicks).length === 0 &&
+            next.phase !== "RESOLVING_ABILITY";
+          await saveGame(next.gameId, next, turnResolved ? 1 : 0);
+
+          const submittedCount = Object.keys(next.pendingPicks).length;
+          io.to(roomId).emit("sevenWonders:pickReceived", {
+            playerId,
+            submittedCount,
+            totalPlayers: next.turnOrder.length,
+          });
+
+          emitPerPlayerSnapshots(io, roomId, next);
+          callback(null, { ok: true });
+        } catch (err) {
+          // NOTE: Persist cleared queue so a mid-resolve failure cannot deadlock the draft.
+          if (err instanceof ResolveTurnError) {
+            await saveGame(err.clearedState.gameId, err.clearedState);
+            emitPerPlayerSnapshots(io, roomId, err.clearedState);
+          }
+          throw err;
+        }
+      });
+    } catch (err) {
+      callback((err as Error).message);
+    }
+  });
+
+  socket.on("sevenWonders:playFromDiscard", async (payload, callback) => {
+    const data = validatePayload(SevenWondersPlayFromDiscardSchema)(
+      payload,
+      callback,
+    );
+    if (!data) return;
+
+    try {
+      const roomId = data.roomId;
+      const playerId = socket.playerId;
+      if (!playerId) {
+        callback("Not authenticated");
+        return;
+      }
+
+      await withRoomLock(roomId, async () => {
+        const room = await getRoom(roomId);
+        if (!room || room.gameType !== "sevenWonders" || !room.gameId) {
+          callback("Seven Wonders game not found");
+          return;
+        }
+
+        const state = await loadGame(room.gameId);
+        if (!state) {
+          callback("Game state not found");
+          return;
+        }
+
         const { state: next } = applyAction(state, {
-          type: "SUBMIT_PICK",
+          type: "PLAY_FROM_DISCARD",
           playerId,
-          action: data.action,
           cardId: data.cardId,
         });
 
-        const turnResolved = Object.keys(next.pendingPicks).length === 0;
+        const turnResolved =
+          Object.keys(next.pendingPicks).length === 0 &&
+          next.phase !== "RESOLVING_ABILITY";
         await saveGame(next.gameId, next, turnResolved ? 1 : 0);
-
-        const submittedCount = Object.keys(next.pendingPicks).length;
-        io.to(roomId).emit("sevenWonders:pickReceived", {
-          playerId,
-          submittedCount,
-          totalPlayers: next.turnOrder.length,
-        });
-
         emitPerPlayerSnapshots(io, roomId, next);
         callback(null, { ok: true });
       });

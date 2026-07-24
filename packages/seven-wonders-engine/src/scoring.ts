@@ -19,6 +19,31 @@ export function computeFinalScores(
   return scores;
 }
 
+/**
+ * Official tie-break: highest VP, then most treasury coins.
+ * Remaining ties return null (shared victory).
+ */
+export function resolveWinnerId(
+  state: GameState,
+  scores: Record<string, ScoreBreakdown> = state.finalScores ??
+    computeFinalScores(state),
+): string | null {
+  const entries = Object.entries(scores);
+  if (entries.length === 0) return null;
+
+  const maxTotal = Math.max(...entries.map(([, s]) => s.total));
+  const byVp = entries.filter(([, s]) => s.total === maxTotal);
+  if (byVp.length === 1) return byVp[0][0];
+
+  const maxCoins = Math.max(
+    ...byVp.map(([id]) => state.players[id]?.coins ?? 0),
+  );
+  const byCoins = byVp.filter(
+    ([id]) => (state.players[id]?.coins ?? 0) === maxCoins,
+  );
+  return byCoins.length === 1 ? byCoins[0][0] : null;
+}
+
 function scorePlayer(state: GameState, playerId: string): ScoreBreakdown {
   const player = state.players[playerId];
   const [leftId, rightId] = getNeighborIds(state, playerId);
@@ -29,7 +54,7 @@ function scorePlayer(state: GameState, playerId: string): ScoreBreakdown {
   const coins = Math.floor(player.coins / 3);
   const wonder = scoreWonderPoints(player);
   const civilian = scoreCivilian(player);
-  const science = scoreScience(state, player, leftPlayer, rightPlayer);
+  const science = scoreScience(player);
   const commerce = scoreCommerce(player, leftPlayer, rightPlayer);
   const guild = scoreGuilds(player, leftPlayer, rightPlayer);
 
@@ -102,13 +127,8 @@ function assignWilds(
   assignWilds(compass, tablet, gear + 1, remaining - 1, callback);
 }
 
-function scoreScience(
-  state: GameState,
-  player: PlayerState,
-  leftPlayer: PlayerState,
-  rightPlayer: PlayerState,
-): number {
-  const counts = collectScienceSymbols(state, player, leftPlayer, rightPlayer);
+function scoreScience(player: PlayerState): number {
+  const counts = collectScienceSymbols(player);
   return computeScienceScore(
     counts.compass,
     counts.tablet,
@@ -117,12 +137,12 @@ function scoreScience(
   );
 }
 
-function collectScienceSymbols(
-  _state: GameState,
-  player: PlayerState,
-  _leftPlayer: PlayerState,
-  _rightPlayer: PlayerState,
-): { compass: number; tablet: number; gear: number; wilds: number } {
+function collectScienceSymbols(player: PlayerState): {
+  compass: number;
+  tablet: number;
+  gear: number;
+  wilds: number;
+} {
   let compass = 0;
   let tablet = 0;
   let gear = 0;

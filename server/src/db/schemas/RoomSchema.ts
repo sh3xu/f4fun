@@ -1,3 +1,4 @@
+import { GAME_TYPES, type GameType } from "@f4fun/shared-types";
 import { type Document, model, Schema } from "mongoose";
 
 export type RoomStatus = "lobby" | "playing" | "finished";
@@ -13,7 +14,7 @@ export interface IRoomPlayer {
   joinedAt: Date;
 }
 
-export type RoomGameType = "monopoly" | "sevenWonders";
+export type RoomGameType = GameType;
 
 export interface IRoom extends Document {
   roomId: string;
@@ -55,7 +56,7 @@ const RoomSchema = new Schema<IRoom>(
     gameId: { type: String, default: null },
     gameType: {
       type: String,
-      enum: ["monopoly", "sevenWonders"],
+      enum: [...GAME_TYPES],
       default: "monopoly",
     },
   },

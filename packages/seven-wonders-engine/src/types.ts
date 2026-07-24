@@ -18,7 +18,7 @@ export type CardColour =
   | "green"
   | "purple";
 
-export type Phase = "DRAFTING" | "GAME_OVER";
+export type Phase = "DRAFTING" | "RESOLVING_ABILITY" | "GAME_OVER";
 
 export type PickAction = "PLAY" | "DISCARD" | "STAGE_WONDER";
 
@@ -35,6 +35,8 @@ export interface PlayerConfig {
   token: string;
 }
 
+export type PendingAbility = { type: "freeBuild" } | { type: "playDiscarded" };
+
 export interface PlayerState {
   id: string;
   name: string;
@@ -44,6 +46,11 @@ export interface PlayerState {
   wonderStagesBuilt: number;
   tableau: string[];
   militaryTokens: number[];
+  // NOTE: freeBuild is granted once when Olympia stage 2 is built and refreshed
+  // at each new age while that stage remains built. Official "once per age"
+  // timing during draft is approximated by consuming via SUBMIT_PICK.useFreeBuild.
+  // playDiscarded must be resolved via PLAY_FROM_DISCARD before drafting continues.
+  pendingAbility: PendingAbility | null;
 }
 
 export interface ScoreBreakdown {
@@ -66,17 +73,27 @@ export interface GameState {
   players: Record<string, PlayerState>;
   hands: Record<string, string[]>;
   discardPile: string[];
-  pendingPicks: Record<string, { action: PickAction; cardId: string }>;
+  pendingPicks: Record<
+    string,
+    { action: PickAction; cardId: string; useFreeBuild?: boolean }
+  >;
   ageDecks: [string[], string[], string[]];
   finalScores?: Record<string, ScoreBreakdown>;
 }
 
-export interface GameAction {
-  type: "SUBMIT_PICK";
-  playerId: string;
-  action: PickAction;
-  cardId: string;
-}
+export type GameAction =
+  | {
+      type: "SUBMIT_PICK";
+      playerId: string;
+      action: PickAction;
+      cardId: string;
+      useFreeBuild?: boolean;
+    }
+  | {
+      type: "PLAY_FROM_DISCARD";
+      playerId: string;
+      cardId: string;
+    };
 
 export type ResourceCost = Partial<Record<Resource, number>>;
 
@@ -147,8 +164,18 @@ export interface WonderDef {
   stages: WonderStage[];
 }
 
+export type GameEventType =
+  | "CARD_PLAYED"
+  | "CARD_DISCARDED"
+  | "WONDER_STAGED"
+  | "AGE_END"
+  | "GAME_OVER"
+  | "ABILITY_GRANTED"
+  | "FREE_BUILD_USED"
+  | "DISCARD_PLAYED";
+
 export interface GameEvent {
-  type: string;
+  type: GameEventType;
   playerId?: string;
   message: string;
 }

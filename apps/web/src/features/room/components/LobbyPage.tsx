@@ -76,10 +76,8 @@ export function LobbyPage() {
   const connectedCount = players.filter((p) => p.isConnected || p.isBot).length;
   const canStartMonopoly =
     players.length >= 2 && players.every((p) => p.isConnected || p.isBot);
-  const canStartSevenWonders =
-    connectedCount >= 3 &&
-    connectedCount <= 7 &&
-    players.every((p) => p.isConnected || p.isBot);
+  // NOTE: Match server seatedPlayers filter — disconnected seats are excluded, not blockers.
+  const canStartSevenWonders = connectedCount >= 3 && connectedCount <= 7;
   const canStart =
     gameType === "sevenWonders" ? canStartSevenWonders : canStartMonopoly;
   const lobbyActionPending = addingBot || loading || settingGameType;

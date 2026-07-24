@@ -213,6 +213,16 @@ export function registerRoomHandlers(
           return;
         }
 
+        if (
+          data.gameType === "sevenWonders" &&
+          room.players.some((p) => p.isBot)
+        ) {
+          callback(
+            "Remove AI players before switching to Seven Wonders (bots are not supported yet)",
+          );
+          return;
+        }
+
         const updated = await setRoomGameType(room.roomId, data.gameType);
         io.to(room.roomId).emit("room:gameTypeUpdated", {
           gameType: updated.gameType,
@@ -320,6 +330,13 @@ export function registerRoomHandlers(
             token: p.token,
           }));
         if (room.gameType === "sevenWonders") {
+          if (room.players.some((p) => p.isBot)) {
+            callback(
+              "AI players are not available for Seven Wonders yet — remove bots before starting",
+            );
+            return;
+          }
+
           if (seatedPlayers.length < SW_MIN || seatedPlayers.length > SW_MAX) {
             callback(`Seven Wonders needs ${SW_MIN}-${SW_MAX} players`);
             return;

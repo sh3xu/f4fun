@@ -37,12 +37,41 @@ function effectLabel(card: CardDef): string {
       return e.symbol;
     case "tradingPost":
       return `Trade ${e.kind} (${e.direction}) @1`;
-    case "coinsFromCards":
-      return `Coins from ${e.colour}`;
-    case "endGamePoints":
-      return `VP from ${e.colour}`;
-    case "guild":
-      return "Guild";
+    case "coinsFromCards": {
+      const parts: string[] = [];
+      if (e.self > 0) {
+        parts.push(`+${e.self}$/own ${e.colour}`);
+      }
+      if (e.neighbors > 0) {
+        parts.push(`+${e.neighbors}$/neighbor ${e.colour}`);
+      }
+      return parts.join(" · ") || `Coins from ${e.colour}`;
+    }
+    case "endGamePoints": {
+      const parts: string[] = [];
+      if (e.self > 0) {
+        parts.push(`${e.self} VP/own ${e.colour}`);
+      }
+      if (e.neighbors > 0) {
+        parts.push(`${e.neighbors} VP/neighbor ${e.colour}`);
+      }
+      return parts.join(" · ") || `VP from ${e.colour}`;
+    }
+    case "guild": {
+      const s = e.scoring;
+      switch (s.kind) {
+        case "countNeighbourCards":
+          return `${s.perCard} VP/neighbor ${s.colour}`;
+        case "countNeighbourWonderStages":
+          return `${s.perStage} VP/neighbor stage`;
+        case "countOwnCards":
+          return `${s.perCard} VP/own ${s.colours.join("+")}`;
+        case "scienceWild":
+          return "Science wild";
+        default:
+          return "Guild";
+      }
+    }
     default:
       return "";
   }

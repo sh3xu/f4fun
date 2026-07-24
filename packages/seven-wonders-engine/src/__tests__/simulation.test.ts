@@ -130,28 +130,26 @@ describe("complete game simulation", () => {
     for (const pid of state.turnOrder) {
       const score = state.finalScores?.[pid];
       expect(score).toBeDefined();
-      if (!score) continue;
 
-      expect(score.total).toBeGreaterThanOrEqual(0);
-      expect(score.military).toEqual(
+      expect(score?.total).toBeGreaterThanOrEqual(0);
+      expect(score?.military).toEqual(
         state.players[pid].militaryTokens.reduce((a, b) => a + b, 0),
       );
-      expect(score.coins).toBe(Math.floor(state.players[pid].coins / 3));
+      expect(score?.coins).toBe(Math.floor(state.players[pid].coins / 3));
       expect(
-        score.military +
-          score.coins +
-          score.wonder +
-          score.civilian +
-          score.science +
-          score.commerce +
-          score.guild,
-      ).toBe(score.total);
+        (score?.military ?? 0) +
+          (score?.coins ?? 0) +
+          (score?.wonder ?? 0) +
+          (score?.civilian ?? 0) +
+          (score?.science ?? 0) +
+          (score?.commerce ?? 0) +
+          (score?.guild ?? 0),
+      ).toBe(score?.total);
     }
 
     // Each seat fights both neighbors each age; ties add no token (0–6 total).
     for (const pid of state.turnOrder) {
       const tokens = state.players[pid].militaryTokens;
-      expect(tokens.length).toBeGreaterThanOrEqual(0);
       expect(tokens.length).toBeLessThanOrEqual(6);
     }
   });

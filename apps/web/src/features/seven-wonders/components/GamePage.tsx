@@ -93,7 +93,14 @@ export function SevenWondersGamePage() {
     const onSnapshot = (data: { state: typeof state }) => {
       if (data?.state) {
         setFromSnapshot(data.state);
-        setSelectedCardId(null);
+        // Preserve selection while the card remains in our hand (other seats submitting).
+        setSelectedCardId((prev) => {
+          if (!prev) return null;
+          const pid = myPlayerId ?? storedPlayer?.playerId;
+          if (!pid) return null;
+          const nextHand = data.state.hands[pid] ?? [];
+          return nextHand.includes(prev) ? prev : null;
+        });
       }
     };
 
@@ -139,7 +146,7 @@ export function SevenWondersGamePage() {
         })()
       : null;
 
-  const submitPick = async (action: PickAction) => {
+  const submitPick = async (action: PickAction, useFreeBuild = false) => {
     if (!selectedCardId || !roomId || submitting || alreadyPicked) return;
 
     setSubmitting(true);
@@ -149,14 +156,37 @@ export function SevenWondersGamePage() {
         roomId,
         action,
         cardId: selectedCardId,
+        ...(useFreeBuild ? { useFreeBuild: true } : {}),
       });
       toast.success(
-        action === "PLAY"
-          ? "Card played"
-          : action === "DISCARD"
-            ? "Discarded for 3 coins"
-            : "Wonder stage built",
+        useFreeBuild
+          ? "Played free (Olympia)"
+          : action === "PLAY"
+            ? "Card played"
+            : action === "DISCARD"
+              ? "Discarded for 3 coins"
+              : "Wonder stage built",
       );
+    } catch (err) {
+      const message = (err as Error).message;
+      setError(message);
+      toast.error(message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const playFromDiscard = async () => {
+    if (!selectedCardId || !roomId || submitting) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      await emitWithCallback("sevenWonders:playFromDiscard", {
+        roomId,
+        cardId: selectedCardId,
+      });
+      toast.success("Played from discard");
+      setSelectedCardId(null);
     } catch (err) {
       const message = (err as Error).message;
       setError(message);
@@ -206,6 +236,12 @@ export function SevenWondersGamePage() {
 
   const wonder = getWonderById(me.wonderId);
   const canStage = me.wonderStagesBuilt < wonder.stages.length;
+  const canFreeBuild = me.pendingAbility?.type === "freeBuild";
+  const resolvingDiscard =
+    state.phase === "RESOLVING_ABILITY" &&
+    me.pendingAbility?.type === "playDiscarded";
+  const waitingOnDiscardAbility =
+    state.phase === "RESOLVING_ABILITY" && !resolvingDiscard;
 
   return (
     <div className="min-h-screen bg-[#1a1410] text-amber-50">
@@ -221,7 +257,9 @@ export function SevenWondersGamePage() {
           <div className="text-right text-sm">
             <p className="font-bold">{me.coins} coins</p>
             <p className="text-xs text-amber-100/55">
-              Waiting {submittedCount}/{totalPlayers || state.turnOrder.length}
+              {state.phase === "RESOLVING_ABILITY"
+                ? "Resolving wonder ability"
+                : `Waiting ${submittedCount}/${totalPlayers || state.turnOrder.length}`}
             </p>
           </div>
         </div>
@@ -278,27 +316,52 @@ export function SevenWondersGamePage() {
           )}
         </section>
 
-        <section>
-          <h2 className="mb-2 text-xs font-bold uppercase tracking-widest text-amber-100/50">
-            Your hand
-          </h2>
-          <motion.div
-            className="flex flex-wrap gap-2"
-            initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: reduceMotion ? 0 : 0.25 }}
-          >
-            {hand.map((cardId) => (
-              <WonderCard
-                key={cardId}
-                cardId={cardId}
-                selected={selectedCardId === cardId}
-                disabled={alreadyPicked || submitting}
-                onSelect={() => setSelectedCardId(cardId)}
-              />
-            ))}
-          </motion.div>
-        </section>
+        {resolvingDiscard ? (
+          <section>
+            <h2 className="mb-2 text-xs font-bold uppercase tracking-widest text-amber-100/50">
+              Play one card from the discard pile
+            </h2>
+            {state.discardPile.length === 0 ? (
+              <p className="text-sm text-amber-100/40">Discard pile is empty</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {state.discardPile.map((cardId) => (
+                  <WonderCard
+                    key={cardId}
+                    cardId={cardId}
+                    selected={selectedCardId === cardId}
+                    disabled={submitting}
+                    onSelect={() => setSelectedCardId(cardId)}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        ) : (
+          <section>
+            <h2 className="mb-2 text-xs font-bold uppercase tracking-widest text-amber-100/50">
+              Your hand
+            </h2>
+            <motion.div
+              className="flex flex-wrap gap-2"
+              initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: reduceMotion ? 0 : 0.25 }}
+            >
+              {hand.map((cardId) => (
+                <WonderCard
+                  key={cardId}
+                  cardId={cardId}
+                  selected={selectedCardId === cardId}
+                  disabled={
+                    alreadyPicked || submitting || waitingOnDiscardAbility
+                  }
+                  onSelect={() => setSelectedCardId(cardId)}
+                />
+              ))}
+            </motion.div>
+          </section>
+        )}
 
         {error && (
           <div className="rounded-md border border-rose-400/25 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
@@ -307,32 +370,56 @@ export function SevenWondersGamePage() {
         )}
 
         <div className="flex flex-wrap gap-2 border-t border-amber-500/15 pt-4">
-          <Button
-            disabled={!selectedCardId || alreadyPicked || submitting}
-            onClick={() => submitPick("PLAY")}
-          >
-            Play card
-          </Button>
-          <Button
-            variant="tokenGhost"
-            disabled={!selectedCardId || alreadyPicked || submitting}
-            onClick={() => submitPick("DISCARD")}
-          >
-            Discard (+3)
-          </Button>
-          <Button
-            variant="secondary"
-            disabled={
-              !selectedCardId || alreadyPicked || submitting || !canStage
-            }
-            onClick={() => submitPick("STAGE_WONDER")}
-          >
-            Build wonder stage
-          </Button>
-          {alreadyPicked && (
+          {resolvingDiscard ? (
+            <Button
+              disabled={!selectedCardId || submitting}
+              onClick={() => void playFromDiscard()}
+            >
+              Play from discard
+            </Button>
+          ) : waitingOnDiscardAbility ? (
             <p className="flex items-center text-sm text-amber-100/50">
-              Pick submitted — waiting for others
+              Waiting for a player to resolve their wonder ability
             </p>
+          ) : (
+            <>
+              <Button
+                disabled={!selectedCardId || alreadyPicked || submitting}
+                onClick={() => void submitPick("PLAY")}
+              >
+                Play card
+              </Button>
+              {canFreeBuild && (
+                <Button
+                  variant="secondary"
+                  disabled={!selectedCardId || alreadyPicked || submitting}
+                  onClick={() => void submitPick("PLAY", true)}
+                >
+                  Play free (Olympia)
+                </Button>
+              )}
+              <Button
+                variant="tokenGhost"
+                disabled={!selectedCardId || alreadyPicked || submitting}
+                onClick={() => void submitPick("DISCARD")}
+              >
+                Discard (+3)
+              </Button>
+              <Button
+                variant="secondary"
+                disabled={
+                  !selectedCardId || alreadyPicked || submitting || !canStage
+                }
+                onClick={() => void submitPick("STAGE_WONDER")}
+              >
+                Build wonder stage
+              </Button>
+              {alreadyPicked && (
+                <p className="flex items-center text-sm text-amber-100/50">
+                  Pick submitted — waiting for others
+                </p>
+              )}
+            </>
           )}
         </div>
       </main>

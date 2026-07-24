@@ -23,6 +23,7 @@ export function isRawResource(r: Resource): boolean {
 
 export interface ProductionSource {
   fixed: ResourceCost;
+  /** Each entry is one producer: pick at most one resource from the alternatives. */
   choices: Resource[][];
 }
 
@@ -41,7 +42,7 @@ export function getPlayerProduction(player: PlayerState): ProductionSource {
   for (let i = 0; i < player.wonderStagesBuilt; i++) {
     const stage = wonder.stages[i];
     if (stage.effect.type === "produce") {
-      choices.push(...stage.effect.options);
+      choices.push(flattenProduceOptions(stage.effect.options));
     } else if (stage.effect.type === "produceAll") {
       for (const [r, amt] of Object.entries(stage.effect.resources)) {
         fixed[r] = (fixed[r] ?? 0) + (amt ?? 0);
@@ -50,6 +51,19 @@ export function getPlayerProduction(player: PlayerState): ProductionSource {
   }
 
   return { fixed: fixed as ResourceCost, choices };
+}
+
+function flattenProduceOptions(options: Resource[][]): Resource[] {
+  // NOTE: Base-game choice producers are always single-resource alternatives
+  // (e.g. Clay Pit: clay OR ore). Multi-resource option bundles are unsupported.
+  return options.map((opt) => {
+    if (opt.length !== 1) {
+      throw new Error(
+        `Unsupported multi-resource produce option: [${opt.join(",")}]`,
+      );
+    }
+    return opt[0];
+  });
 }
 
 function addEffectProduction(
@@ -66,7 +80,7 @@ function addEffectProduction(
       const r = effect.options[0][0];
       fixed[r] = (fixed[r] ?? 0) + 1;
     } else {
-      choices.push(...effect.options);
+      choices.push(flattenProduceOptions(effect.options));
     }
   }
 }
@@ -108,7 +122,7 @@ function tradeCostPerResource(
   return hasTradingPost(buyer, direction, kind) ? 1 : 2;
 }
 
-interface TradeResult {
+export interface TradeResult {
   totalCoinCost: number;
   leftCost: number;
   rightCost: number;
@@ -186,6 +200,7 @@ function findCheapestTrade(
 
     const options = choiceOptions[choiceIdx];
 
+    // Leave this producer unused for the cost.
     tryChoiceCombinations(choiceIdx + 1, rem);
 
     for (const resource of options) {
@@ -200,6 +215,39 @@ function findCheapestTrade(
 
   tryChoiceCombinations(0, remaining);
   return bestResult;
+}
+
+function expandChoiceAvailability(
+  prod: ProductionSource,
+  onAvailable: (available: Record<string, number>) => void,
+): void {
+  const base: Record<string, number> = {};
+  for (const [r, amt] of Object.entries(prod.fixed)) {
+    base[r] = amt ?? 0;
+  }
+
+  const tryChoices = (
+    choiceIdx: number,
+    available: Record<string, number>,
+  ): void => {
+    if (choiceIdx >= prod.choices.length) {
+      onAvailable(available);
+      return;
+    }
+
+    const options = prod.choices[choiceIdx];
+
+    // Neighbor choice unused for this trade.
+    tryChoices(choiceIdx + 1, available);
+
+    for (const resource of options) {
+      const next = { ...available };
+      next[resource] = (next[resource] ?? 0) + 1;
+      tryChoices(choiceIdx + 1, next);
+    }
+  };
+
+  tryChoices(0, base);
 }
 
 function computeNeighborTrade(
@@ -219,58 +267,57 @@ function computeNeighborTrade(
     return null;
   }
 
-  const leftAvailable = getTradeableResources(leftProd);
-  const rightAvailable = getTradeableResources(rightProd);
-
   let bestResult: TradeResult | null = null;
 
-  const searchTrade = (
-    resIdx: number,
-    leftUsed: Record<string, number>,
-    rightUsed: Record<string, number>,
-    leftCost: number,
-    rightCost: number,
-  ): void => {
-    if (resIdx >= resourcesNeeded.length) {
-      const total = coinCost + leftCost + rightCost;
-      if (total <= buyer.coins) {
-        if (!bestResult || total < bestResult.totalCoinCost) {
-          bestResult = { totalCoinCost: total, leftCost, rightCost };
+  expandChoiceAvailability(leftProd, (leftAvailable) => {
+    expandChoiceAvailability(rightProd, (rightAvailable) => {
+      const searchTrade = (
+        resIdx: number,
+        leftUsed: Record<string, number>,
+        rightUsed: Record<string, number>,
+        leftCost: number,
+        rightCost: number,
+      ): void => {
+        if (resIdx >= resourcesNeeded.length) {
+          const total = coinCost + leftCost + rightCost;
+          if (total <= buyer.coins) {
+            if (!bestResult || total < bestResult.totalCoinCost) {
+              bestResult = { totalCoinCost: total, leftCost, rightCost };
+            }
+          }
+          return;
         }
-      }
-      return;
-    }
 
-    const [resource, amount] = resourcesNeeded[resIdx];
-    const r = resource as Resource;
+        const [resource, amount] = resourcesNeeded[resIdx];
+        const r = resource as Resource;
 
-    distributeTrade(
-      r,
-      amount,
-      0,
-      leftAvailable,
-      rightAvailable,
-      leftUsed,
-      rightUsed,
-      leftCost,
-      rightCost,
-      buyer,
-      resIdx,
-      resourcesNeeded,
-      coinCost,
-      bestResult,
-      searchTrade,
-    );
-  };
+        distributeTrade(
+          r,
+          amount,
+          leftAvailable,
+          rightAvailable,
+          leftUsed,
+          rightUsed,
+          leftCost,
+          rightCost,
+          buyer,
+          resIdx,
+          coinCost,
+          bestResult,
+          searchTrade,
+        );
+      };
 
-  searchTrade(0, {}, {}, 0, 0);
+      searchTrade(0, {}, {}, 0, 0);
+    });
+  });
+
   return bestResult;
 }
 
 function distributeTrade(
   resource: Resource,
   amountLeft: number,
-  _fromLeft: number,
   leftAvailable: Record<string, number>,
   rightAvailable: Record<string, number>,
   leftUsed: Record<string, number>,
@@ -279,7 +326,6 @@ function distributeTrade(
   rightCost: number,
   buyer: PlayerState,
   resIdx: number,
-  _resourcesNeeded: [string, number][],
   coinCost: number,
   bestResult: TradeResult | null,
   searchTrade: (
@@ -321,16 +367,6 @@ function distributeTrade(
       newRightCost,
     );
   }
-}
-
-function getTradeableResources(prod: ProductionSource): Record<string, number> {
-  // NOTE: Neighbors only sell fixed production to traders, not choice-based.
-  // This is a simplification; choice resources are not tradeable.
-  const result: Record<string, number> = {};
-  for (const [r, amt] of Object.entries(prod.fixed)) {
-    result[r] = amt ?? 0;
-  }
-  return result;
 }
 
 export function hasChainFrom(player: PlayerState, card: CardDef): boolean {

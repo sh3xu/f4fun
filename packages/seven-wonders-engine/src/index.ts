@@ -5,6 +5,8 @@ export {
   applyAction,
   createInitialState,
   getPublicStateForPlayer,
+  ResolveTurnError,
+  validatePick,
 } from "./engine.js";
 export { resolveMilitary } from "./military.js";
 export {
@@ -15,6 +17,10 @@ export {
   getPlayerShields,
   hasChainFrom,
 } from "./resources.js";
-export { computeFinalScores, computeScienceScore } from "./scoring.js";
+export {
+  computeFinalScores,
+  computeScienceScore,
+  resolveWinnerId,
+} from "./scoring.js";
 
 export * from "./types.js";
