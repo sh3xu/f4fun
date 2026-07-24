@@ -1,0 +1,32 @@
+apps/web/src/features/seven-wonders/components/RivalCityPanel.tsx
+  s_0d7f80e15563c8::t_ce6713a00dfa41 80
+  s_0d7f80e15563c8::t_15e979a426c9b4 59-62,66-69,73-76
+apps/web/src/features/seven-wonders/components/HowToPlayOverlay.tsx
+  s_0d7f80e15563c8::t_ec841c47f0f3e0 5,53-62
+apps/web/src/features/seven-wonders/components/IconLegend.tsx
+  s_0d7f80e15563c8::t_1facf83ebcc020 15,200-201,218-219,224-225
+  s_0d7f80e15563c8::t_f631339ac7bedc 1-14,16-199,202-203,210-212,214-217,220-223,259-262,280-324,326-345
+  s_0d7f80e15563c8::t_bf2e4f7dc2daa2 204-209,213,226-258,263-279
+  s_0d7f80e15563c8::t_224705455d8bb0 325
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "5a18da9e540fe8ed754d33e74a7250a79432377c",
+  "prompts": {},
+  "humans": {
+    "h_54cccc4af8e4fc": {
+      "author": "sh3xu <s43khu@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_0d7f80e15563c8": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "c3f89083-c07c-441e-985f-39f6e2780bf4",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
