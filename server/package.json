@@ -12,6 +12,7 @@
   "dependencies": {
     "@f4fun/monopoly-bot": "workspace:*",
     "@f4fun/monopoly-engine": "workspace:*",
+    "@f4fun/seven-wonders-engine": "workspace:*",
     "@f4fun/shared-types": "workspace:*",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",

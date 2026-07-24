@@ -71,7 +71,12 @@ export function HomePage() {
         selectedAvatar,
         response.playerSecret,
       );
-      setRoom(response.roomId, response.roomCode, response.players);
+      setRoom(
+        response.roomId,
+        response.roomCode,
+        response.players,
+        response.gameType,
+      );
 
       savePlayer({
         playerId: response.playerId,
@@ -79,7 +84,11 @@ export function HomePage() {
         token: selectedAvatar,
         playerSecret: response.playerSecret,
       });
-      saveRoom({ roomId: response.roomId, roomCode: response.roomCode });
+      saveRoom({
+        roomId: response.roomId,
+        roomCode: response.roomCode,
+        gameType: response.gameType,
+      });
 
       router.push(`/room/${response.roomCode}`);
     } catch (err) {
@@ -121,7 +130,12 @@ export function HomePage() {
         selectedAvatar,
         response.playerSecret,
       );
-      setRoom(response.roomId, response.roomCode, response.players);
+      setRoom(
+        response.roomId,
+        response.roomCode,
+        response.players,
+        response.gameType,
+      );
 
       savePlayer({
         playerId: response.playerId,
@@ -129,7 +143,11 @@ export function HomePage() {
         token: selectedAvatar,
         playerSecret: response.playerSecret,
       });
-      saveRoom({ roomId: response.roomId, roomCode: response.roomCode });
+      saveRoom({
+        roomId: response.roomId,
+        roomCode: response.roomCode,
+        gameType: response.gameType,
+      });
 
       router.push(`/room/${response.roomCode}`);
     } catch (err) {

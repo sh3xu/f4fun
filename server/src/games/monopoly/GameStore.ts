@@ -13,7 +13,8 @@ export async function createGame(
   await GameModel.create({
     gameId: state.gameId,
     roomId,
-    state,
+    gameType: "monopoly",
+    state: state as unknown as Record<string, unknown>,
     turnCount: 0,
     startedAt: new Date(),
     finishedAt: null,
@@ -23,14 +24,14 @@ export async function createGame(
 
 export async function loadGame(gameId: string): Promise<GameState | null> {
   const doc = await GameModel.findOne({ gameId });
-  return doc ? (doc.state as GameState) : null;
+  return doc ? (doc.state as unknown as GameState) : null;
 }
 
 export async function loadGameByRoomId(
   roomId: string,
 ): Promise<GameState | null> {
   const doc = await GameModel.findOne({ roomId }).sort({ createdAt: -1 });
-  return doc ? (doc.state as GameState) : null;
+  return doc ? (doc.state as unknown as GameState) : null;
 }
 
 export interface SaveGameGuard {
@@ -66,13 +67,15 @@ export async function saveGame(
 
   if (turnCountDelta > 0) {
     const result = await GameModel.updateOne(filter, {
-      $set: { state },
+      $set: { state: state as unknown as Record<string, unknown> },
       $inc: { turnCount: turnCountDelta },
     });
     return result.matchedCount > 0;
   }
 
-  const update: Record<string, unknown> = { state };
+  const update: Record<string, unknown> = {
+    state: state as unknown as Record<string, unknown>,
+  };
   if (state.winnerId) {
     update.finishedAt = new Date();
     update.winnerId = state.winnerId;

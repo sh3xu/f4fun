@@ -29,6 +29,9 @@ importers:
       '@f4fun/monopoly-engine':
         specifier: workspace:*
         version: link:../../packages/monopoly-engine
+      '@f4fun/seven-wonders-engine':
+        specifier: workspace:*
+        version: link:../../packages/seven-wonders-engine
       '@f4fun/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
@@ -120,6 +123,15 @@ importers:
         specifier: ^4.1.10
         version: 4.1.10(@types/node@26.1.1)(vite@7.3.6(@types/node@26.1.1)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0))
 
+  packages/seven-wonders-engine:
+    devDependencies:
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@26.1.1)(vite@7.3.6(@types/node@26.1.1)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.1)(yaml@2.9.0))
+
   packages/shared-types:
     dependencies:
       zod:
@@ -138,6 +150,9 @@ importers:
       '@f4fun/monopoly-engine':
         specifier: workspace:*
         version: link:../packages/monopoly-engine
+      '@f4fun/seven-wonders-engine':
+        specifier: workspace:*
+        version: link:../packages/seven-wonders-engine
       '@f4fun/shared-types':
         specifier: workspace:*
         version: link:../packages/shared-types

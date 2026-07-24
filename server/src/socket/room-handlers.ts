@@ -4,9 +4,15 @@ import {
   stampActionDeadline,
 } from "@f4fun/monopoly-engine";
 import {
+  createInitialState as createSevenWondersState,
+  MAX_PLAYERS as SW_MAX,
+  MIN_PLAYERS as SW_MIN,
+} from "@f4fun/seven-wonders-engine";
+import {
   RoomAddBotPlayerSchema,
   RoomCreateSchema,
   RoomJoinSchema,
+  RoomSetGameTypeSchema,
   RoomStartGameSchema,
   RoomSyncSchema,
 } from "@f4fun/shared-types";
@@ -14,6 +20,8 @@ import type { Server } from "socket.io";
 import { afterGameStateCommit } from "../games/monopoly/DeadlineTimers.js";
 import { createGame, generateGameId } from "../games/monopoly/GameStore.js";
 import { withRoomLock } from "../games/monopoly/roomMutex.js";
+import { createGame as createSevenWondersGame } from "../games/seven-wonders/GameStore.js";
+import { emitPerPlayerSnapshots } from "../games/seven-wonders/handlers.js";
 import { cancelGrace } from "../rooms/DisconnectGrace.js";
 import {
   addBotPlayer,
@@ -24,6 +32,7 @@ import {
   joinRoom,
   setPlayerConnected,
   setRoomGameStarted,
+  setRoomGameType,
   verifyPlayerSession,
 } from "../rooms/RoomManager.js";
 import type { SocketWithPlayer } from "./middleware.js";
@@ -81,6 +90,7 @@ export function registerRoomHandlers(
         playerId,
         playerSecret,
         players: toPlayerInfoList(room.players),
+        gameType: room.gameType,
       });
     } catch (err) {
       callback((err as Error).message);
@@ -124,6 +134,7 @@ export function registerRoomHandlers(
         playerId,
         playerSecret,
         players: toPlayerInfoList(room.players),
+        gameType: room.gameType,
       });
 
       socket.to(room.roomId).emit("room:playerJoined", { player: playerInfo });
@@ -167,6 +178,48 @@ export function registerRoomHandlers(
         roomId: room.roomId,
         roomCode: room.code,
         players: toPlayerInfoList(room.players),
+        gameType: room.gameType,
+      });
+    } catch (err) {
+      callback((err as Error).message);
+    }
+  });
+
+  socket.on("room:setGameType", async (payload, callback) => {
+    const data = validatePayload(RoomSetGameTypeSchema)(payload, callback);
+    if (!data) return;
+
+    try {
+      const roomId = socket.roomId;
+      if (!roomId) {
+        callback("Room not found");
+        return;
+      }
+
+      await withRoomLock(roomId, async () => {
+        const room = await getRoom(roomId);
+        if (!room) {
+          callback("Room not found");
+          return;
+        }
+
+        if (socket.playerId !== room.hostId) {
+          callback("Only host can change game type");
+          return;
+        }
+
+        if (room.status !== "lobby") {
+          callback("Game already started");
+          return;
+        }
+
+        const updated = await setRoomGameType(room.roomId, data.gameType);
+        const players = toPlayerInfoList(updated.players);
+        io.to(room.roomId).emit("room:gameTypeUpdated", {
+          gameType: updated.gameType,
+          players,
+        });
+        callback(null, { gameType: updated.gameType, players });
       });
     } catch (err) {
       callback((err as Error).message);
@@ -198,6 +251,11 @@ export function registerRoomHandlers(
 
         if (room.status !== "lobby") {
           callback("Game already started");
+          return;
+        }
+
+        if (room.gameType === "sevenWonders") {
+          callback("AI players are not available for Seven Wonders yet");
           return;
         }
 
@@ -263,6 +321,38 @@ export function registerRoomHandlers(
             name: p.name,
             token: p.token,
           }));
+        if (room.gameType === "sevenWonders") {
+          if (room.players.some((p) => p.isBot)) {
+            callback(
+              "AI players are not available for Seven Wonders yet — remove bots before starting",
+            );
+            return;
+          }
+
+          if (seatedPlayers.length < SW_MIN || seatedPlayers.length > SW_MAX) {
+            callback(`Seven Wonders needs ${SW_MIN}-${SW_MAX} players`);
+            return;
+          }
+
+          const initialState = createSevenWondersState(gameId, seatedPlayers);
+          console.log(
+            `[Server] Created Seven Wonders game ${gameId} with ${seatedPlayers.length} players`,
+          );
+
+          await createSevenWondersGame(room.roomId, initialState);
+          await setRoomGameStarted(room.roomId, gameId);
+
+          io.to(room.roomId).emit("room:gameStarted", {
+            gameId,
+            roomCode: room.code,
+            gameType: "sevenWonders",
+          });
+
+          emitPerPlayerSnapshots(io, room.roomId, initialState);
+          callback(null, { gameId });
+          return;
+        }
+
         if (seatedPlayers.length < 2) {
           callback("Need at least 2 players");
           return;
@@ -294,19 +384,16 @@ export function registerRoomHandlers(
         });
         stampActionDeadline(initialState);
         console.log(
-          `[Server] Created game ${gameId} with ${playerConfigs.length} players`,
+          `[Server] Created Monopoly game ${gameId} with ${playerConfigs.length} players`,
         );
 
         await createGame(room.roomId, initialState);
         await setRoomGameStarted(room.roomId, gameId);
 
-        console.log(
-          `[Server] Emitting room:gameStarted and game:stateSnapshot to room ${room.roomId}`,
-        );
-
         io.to(room.roomId).emit("room:gameStarted", {
           gameId,
           roomCode: room.code,
+          gameType: "monopoly",
         });
 
         io.to(room.roomId).emit("game:stateSnapshot", { state: initialState });
