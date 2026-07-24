@@ -1,0 +1,104 @@
+packages/seven-wonders-engine/src/types.ts
+  s_b732b6b869d7eb::t_fc8303e9c81ff1 21,39,49-53,76-79,84-96,167-176,178
+  s_b732b6b869d7eb::t_c172c01b7c542a 38
+server/src/games/seven-wonders/GameStore.ts
+  s_83504b89b004d0::t_c6ef1dd80d8dee 49-51
+apps/web/src/features/room/components/LobbyPage.tsx
+  s_f32de700522f14::t_02fa71c6262f1c 79-80
+server/src/games/seven-wonders/handlers.ts
+  s_83504b89b004d0::t_8a0fcf0f570b9b 5
+  s_f32de700522f14::t_5eb181a443ad40 8,82,85-87,107-119,142,147-149
+  s_83504b89b004d0::t_818a2047cbbcf0 68,74,76-81,83,88-106
+  s_83504b89b004d0::t_b787b1b03d767e 65-67
+  s_83504b89b004d0::t_a38f5fc81e7701 69-73
+  s_83504b89b004d0::t_35eecc68d2b857 75
+packages/shared-types/src/game-type.ts
+  s_83504b89b004d0::t_334a274daa2b38 3-6
+apps/web/src/features/seven-wonders/components/CardViews.tsx
+  s_f32de700522f14::t_db4ec217c2b9a3 40-74
+packages/seven-wonders-engine/src/index.ts
+  s_83504b89b004d0::t_dbc467dd75e935 8-9,20-24
+server/src/db/schemas/RoomSchema.ts
+  s_83504b89b004d0::t_b3bc062ee0704a 1,17,59
+packages/seven-wonders-engine/src/__tests__/scoring.test.ts
+  s_b732b6b869d7eb::t_833a6e1b494e0c 33
+packages/seven-wonders-engine/src/scoring.ts
+  s_83504b89b004d0::t_1b7cb11c8c5044 22-46
+  s_b732b6b869d7eb::t_91646bdb30aba8 130-131,140-145
+  s_b732b6b869d7eb::t_79f55efbaf9376 57
+packages/shared-types/src/seven-wonders-events.ts
+  s_83504b89b004d0::t_cd1eea27010be3 50-55,62,68
+  s_f32de700522f14::t_b9d8083a3fd364 13-18
+  s_83504b89b004d0::t_5e99b5d93fb683 27-49,56-61,63-67,69-86,88
+  s_f32de700522f14::t_611276da8805fb 107-109
+server/src/db/schemas/GameSchema.ts
+  s_83504b89b004d0::t_d5af34193508b7 1,4,24
+packages/seven-wonders-engine/src/engine.ts
+  s_b732b6b869d7eb::t_de9ee45f1e5342 22
+  s_b732b6b869d7eb::t_eba76cefdc3ed7 474
+  s_b732b6b869d7eb::t_0c2fc1191291e8 557-560
+  s_83504b89b004d0::t_28364f25ff90be 18,26-36,84-88,90-94,121-187,193-205,221-230
+  s_b732b6b869d7eb::t_c172c01b7c542a 188-190,392-396
+  s_83504b89b004d0::t_aa9b95d6a812c6 101-102
+  s_83504b89b004d0::t_61b9352c948aec 262,273,301,306
+  s_b732b6b869d7eb::t_d6706748393799 10,14,63,99-100,115-120,191-192,207-211,231-239,248-252,255-256,259-261,263-272,274-284,286,288-295,297-300,302-305,307-317,319,323-383,385-387,390-391,399,401-405,408,411,414,416,418-420,422-424,426,428-443,445-468,471,475,481-496,498-503,511-517,521-532,535,537-542,544-547,550-552,555-556,561-579,581-584,586-605,608,610-618,621-643
+packages/seven-wonders-engine/src/__tests__/simulation.test.ts
+  s_f32de700522f14::t_312d9993106331 134-135,138,140-147
+packages/seven-wonders-engine/src/__tests__/resources.test.ts
+  s_b732b6b869d7eb::t_fbd75754c19ef5 1-89
+apps/web/src/app/game/[code]/page.tsx
+  s_f32de700522f14::t_1c451efd26ce71 4,13-14,21-34
+packages/seven-wonders-engine/src/resources.ts
+  s_b732b6b869d7eb::t_e773ac83ab5b75 26,45,56-68,83,125,203,220-252,272-288,291-313
+server/src/socket/room-handlers.ts
+  s_83504b89b004d0::t_fc2359a2e0dd80 216-225
+  s_83504b89b004d0::t_55381263a12a7a 333-339
+apps/web/src/features/seven-wonders/components/GamePage.tsx
+  s_f32de700522f14::t_fbfc7fae36143b 96-103
+  s_f32de700522f14::t_5bd3572fbd2192 149,159,162-168,179-198,239-244,260-262,319-364,373-380,382,384-422
+packages/seven-wonders-engine/src/__tests__/engine.test.ts
+  s_b732b6b869d7eb::t_256d18d9d34859 568,572
+  s_83504b89b004d0::t_ad089f9a9c283e 165-172,176-199,203-236,238-243,245-292
+  s_83504b89b004d0::t_4e6a30b607ac39 6-10,26-38
+  s_b732b6b869d7eb::t_c172c01b7c542a 173-175,200-202,569
+  s_83504b89b004d0::t_e26b4ad6fcceb8 237,244
+  s_b732b6b869d7eb::t_ff2778c05ed867 402-567,570-571,573-626
+  s_b732b6b869d7eb::t_462d35df98d830 39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "f275eaf5a1335e7136335bc14ef82d5ad9d78945",
+  "prompts": {},
+  "humans": {
+    "h_54cccc4af8e4fc": {
+      "author": "sh3xu <s43khu@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_83504b89b004d0": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "7a9a31b6-8bc9-41b2-9219-5f358375a97a",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    },
+    "s_b732b6b869d7eb": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "2d519ad9-a8e9-46f1-9024-347ee5092d1e",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    },
+    "s_f32de700522f14": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "dfede187-7ac1-425c-8e02-699ff0c4e131",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
