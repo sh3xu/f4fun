@@ -1,0 +1,35 @@
+apps/web/src/features/seven-wonders/components/DevSeatsPanel.tsx
+  s_cfe80250fdb7fa::t_f411f26088f79f 47-51,56-58
+  s_cfe80250fdb7fa::t_12c8fbcf2b1b4b 1-46,52-55,59-104
+apps/web/src/features/seven-wonders/dev-mode.ts
+  s_cfe80250fdb7fa::t_017264edc1dbd1 1-46
+apps/web/src/features/room/components/LobbyPage.tsx
+  s_cfe80250fdb7fa::t_9a73bf5ffb4538 438-448
+  s_cfe80250fdb7fa::t_3187884040409c 20
+apps/web/src/features/seven-wonders/components/DevSeatSwitcher.tsx
+  s_cfe80250fdb7fa::t_d1c8c5f5c0fc56 1-89
+apps/web/src/features/seven-wonders/components/GamePage.tsx
+  s_cfe80250fdb7fa::t_f5f5e526d5096e 33
+  s_cfe80250fdb7fa::t_ac081413fc4060 313-316
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "ca149ddc92841ec1d4402fe68542d94eadbcd7ac",
+  "prompts": {},
+  "humans": {
+    "h_54cccc4af8e4fc": {
+      "author": "sh3xu <s43khu@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_cfe80250fdb7fa": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "9b1e9248-76f4-4aa2-ad36-d6718bd9fd6c",
+        "model": "claude-fable-5"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
