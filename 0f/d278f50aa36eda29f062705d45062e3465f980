@@ -1,0 +1,27 @@
+apps/web/src/app/game/[code]/page.tsx
+  s_f32de700522f14::t_37b1408cdcf329 26
+  s_f32de700522f14::t_59349bbbc9c794 22
+apps/web/src/features/seven-wonders/components/GamePage.tsx
+  s_f32de700522f14::t_6b689c4613178c 93,95-96,102
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "0fd278f50aa36eda29f062705d45062e3465f980",
+  "prompts": {},
+  "humans": {
+    "h_54cccc4af8e4fc": {
+      "author": "sh3xu <s43khu@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_f32de700522f14": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "dfede187-7ac1-425c-8e02-699ff0c4e131",
+        "model": "default"
+      },
+      "human_author": "sh3xu <s43khu@gmail.com>"
+    }
+  }
+}
